@@ -1,0 +1,48 @@
+{
+  "name": "health-tracker",
+  "version": "0.1.0",
+  "description": "A comprehensive health tracking application with enterprise-grade architecture",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:watch": "npm run test:watch --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "clean": "rm -rf node_modules frontend/node_modules shared/*/node_modules frontend/dist backend/target",
+    "prepare": "command -v husky >/dev/null 2>&1 && husky || echo 'Husky not installed yet'"
+  },
+  "keywords": [
+    "health-tracker",
+    "health",
+    "fitness",
+    "react",
+    "spring-boot",
+    "monorepo"
+  ],
+  "author": "Health Tracker Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/franaraujo77/health-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/franaraujo77/health-tracker/issues"
+  },
+  "homepage": "https://github.com/franaraujo77/health-tracker#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}
