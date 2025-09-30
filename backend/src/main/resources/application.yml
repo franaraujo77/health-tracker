@@ -3,7 +3,7 @@ spring:
     name: health-tracker-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/healthtracker
+    url: jdbc:postgresql://localhost:5433/healthtracker
     username: admin
     password: ${DB_PASSWORD:secret}
     hikari:
