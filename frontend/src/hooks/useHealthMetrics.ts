@@ -2,16 +2,15 @@
  * React Query hooks for health metrics API operations
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// apiClient will be used when replacing mock functions with real API calls
+// @ts-expect-error - Placeholder for future API integration
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { apiClient } from '../lib/axios';
 import type {
   HealthMetric,
   CreateHealthMetricRequest,
   HealthMetricsResponse,
 } from '../types/health-metrics';
-
-// Mock API base URL - will be replaced with actual API endpoint
-// @ts-expect-error - Placeholder for future API integration
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 /**
  * Query Keys for health metrics
@@ -26,7 +25,9 @@ export const healthMetricsKeys = {
 
 /**
  * Mock API function to fetch health metrics
- * In production, this would use axios or fetch to call the backend API
+ * In production, this will be replaced with:
+ * const response = await apiClient.get<HealthMetricsResponse>('/health-metrics');
+ * return response.data;
  */
 const fetchHealthMetrics = async (): Promise<HealthMetricsResponse> => {
   // Simulate API delay
@@ -71,6 +72,9 @@ const fetchHealthMetrics = async (): Promise<HealthMetricsResponse> => {
 
 /**
  * Mock API function to create a health metric
+ * In production, this will be replaced with:
+ * const response = await apiClient.post<HealthMetric>('/health-metrics', data);
+ * return response.data;
  */
 const createHealthMetric = async (data: CreateHealthMetricRequest): Promise<HealthMetric> => {
   // Simulate API delay
