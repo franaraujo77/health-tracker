@@ -59,6 +59,15 @@ management:
     db:
       enabled: true
 
+  # Distributed Tracing Configuration
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:0.1}  # 10% sampling rate (use 1.0 for dev)
+
+  otlp:
+    tracing:
+      endpoint: ${JAEGER_ENDPOINT:http://jaeger:4318/v1/traces}
+
 logging:
   level:
     root: INFO
