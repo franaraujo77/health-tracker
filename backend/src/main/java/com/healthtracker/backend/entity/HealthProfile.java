@@ -1,5 +1,6 @@
 package com.healthtracker.backend.entity;
 
+import com.healthtracker.backend.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,5 +37,6 @@ public class HealthProfile {
     private BigDecimal heightCm;
 
     @Column(name = "medical_history_encrypted", columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String medicalHistoryEncrypted;
 }
