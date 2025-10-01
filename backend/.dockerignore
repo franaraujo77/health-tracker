@@ -1,0 +1,60 @@
+# Build outputs
+target/
+!target/*.jar
+*.jar
+*.war
+*.ear
+*.class
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+.springBeans
+
+# OS files
+.DS_Store
+Thumbs.db
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+
+# Test reports
+test-results/
+coverage/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+application-local.yml
+application-dev.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
