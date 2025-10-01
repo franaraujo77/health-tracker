@@ -6,6 +6,7 @@ import './index.css';
 import App from './App.tsx';
 import { startInspector } from './lib/xstate';
 import { queryClient } from './lib/react-query';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Initialize XState inspector in development mode
 startInspector();
@@ -13,8 +14,10 @@ startInspector();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <AuthProvider>
+        <App />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </AuthProvider>
     </QueryClientProvider>
   </StrictMode>
 );
