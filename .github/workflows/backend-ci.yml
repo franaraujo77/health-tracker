@@ -122,7 +122,7 @@ jobs:
           cache: 'maven'
 
       - name: Run tests with coverage
-        run: ./mvnw test jacoco:report -B -Dmaven.test.failure.ignore=true
+        run: ./mvnw test jacoco:report -B
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
