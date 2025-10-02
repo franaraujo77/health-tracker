@@ -27,7 +27,7 @@ describe('HealthMetricsList', () => {
       isLoading: true,
       error: null,
       refetch: vi.fn(),
-    } as UseQueryResult<HealthMetricsResponse>);
+    } as unknown as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -41,7 +41,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: new Error('Failed to fetch'),
       refetch: mockRefetch,
-    } as UseQueryResult<HealthMetricsResponse>);
+    } as unknown as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -56,7 +56,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as UseQueryResult<HealthMetricsResponse>);
+    } as unknown as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -90,7 +90,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as UseQueryResult<HealthMetricsResponse>);
+    } as unknown as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -107,7 +107,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as UseQueryResult<HealthMetricsResponse>);
+    } as unknown as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
