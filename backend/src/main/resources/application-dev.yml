@@ -1,0 +1,49 @@
+# Development Configuration
+# This configuration is for LOCAL DEVELOPMENT ONLY
+# DO NOT use these secrets in production
+
+# Development JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:dev-jwt-secret-change-me-in-production-minimum-256-bits-required-for-hs256-algorithm}
+  access-token-expiration: 3600000  # 1 hour for easier development
+  refresh-token-expiration: 604800000  # 7 days
+  issuer: health-tracker-dev-api
+  audience: health-tracker-dev-app
+
+# Development Encryption Configuration
+encryption:
+  secret: ${ENCRYPTION_SECRET:dev-encryption-secret-must-be-different-from-jwt-secret-change-in-production}
+  salt: ${ENCRYPTION_SALT:dev-salt-change-in-production}
+  algorithm: AES/GCM/NoPadding
+
+# Development CORS Configuration
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:3000,http://localhost:8080
+
+# Rate Limiting - More lenient for development
+rate-limit:
+  auth:
+    # More lenient: 10 attempts per minute for development
+    capacity: 10
+    refill-period-seconds: 60
+    refill-tokens: 10
+  cache:
+    maximum-size: 10000
+    expire-after-access-seconds: 1800
+
+server:
+  cookie:
+    secure: false  # Allow non-HTTPS in development
+
+logging:
+  level:
+    root: INFO
+    com.healthtracker.backend: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling for development debugging

@@ -41,8 +41,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF for stateless JWT authentication
-                .csrf(AbstractHttpConfigurer::disable)
+                // Enable CSRF protection with cookie-based tokens for cookie authentication
+                // Exclude auth endpoints as they handle cookies directly
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout"
+                        )
+                        .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
 
                 // Configure CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -107,20 +116,55 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configures CORS (Cross-Origin Resource Sharing) with environment-specific origins.
+     *
+     * <p><b>Security Notes:</b>
+     * <ul>
+     *   <li>Origins are environment-specific (dev vs prod)</li>
+     *   <li>Wildcard headers removed - only specific headers allowed</li>
+     *   <li>Credentials enabled for cookie-based authentication</li>
+     *   <li>Exposed headers include rate limiting information</li>
+     * </ul>
+     *
+     * @param corsAllowedOrigins comma-separated list of allowed origins from configuration
+     * @return CORS configuration source
+     */
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${cors.allowed-origins}") String corsAllowedOrigins) {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow frontend origin (configure based on environment)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",  // Local development
-                "http://localhost:5173"   // Vite dev server
+        // Environment-specific origins (no hardcoded values)
+        configuration.setAllowedOrigins(
+                Arrays.asList(corsAllowedOrigins.split(","))
+        );
+
+        // Allowed HTTP methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        // Specific headers only (no wildcard for security)
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "X-XSRF-TOKEN"
+        ));
+
+        // Enable credentials for cookie-based authentication
         configuration.setAllowCredentials(true);
+
+        // Cache preflight requests for 1 hour
         configuration.setMaxAge(3600L);
+
+        // Expose security-related headers to frontend
+        configuration.setExposedHeaders(Arrays.asList(
+                "X-Rate-Limit-Remaining",
+                "X-Rate-Limit-Reset",
+                "X-XSRF-TOKEN"
+        ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -1,5 +1,7 @@
 /**
  * Axios configuration with JWT interceptors
+ * SECURITY: Uses httpOnly cookies for refresh tokens and in-memory storage for access tokens
+ * This prevents XSS attacks from accessing sensitive tokens
  */
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
@@ -8,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 /**
  * Axios instance with default configuration
+ * withCredentials: true enables sending cookies with cross-origin requests
  */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -15,27 +18,50 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Required for cookie-based authentication
 });
 
 /**
- * Token storage utilities
+ * In-memory token storage for access tokens
+ * SECURITY: Access tokens are never persisted to localStorage or sessionStorage
+ * This provides XSS protection - even if an attacker injects malicious code,
+ * they cannot access tokens from localStorage
+ */
+let accessTokenMemory: string | null = null;
+
+/**
+ * Secure token storage utilities
+ * Refresh tokens are stored in httpOnly cookies (managed by backend)
+ * Access tokens are stored in memory only
  */
 export const tokenStorage = {
+  /**
+   * Get access token from memory
+   */
   getAccessToken: (): string | null => {
-    return localStorage.getItem('accessToken');
+    return accessTokenMemory;
   },
+
+  /**
+   * Set access token in memory
+   */
   setAccessToken: (token: string): void => {
-    localStorage.setItem('accessToken', token);
+    accessTokenMemory = token;
   },
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem('refreshToken');
-  },
-  setRefreshToken: (token: string): void => {
-    localStorage.setItem('refreshToken', token);
-  },
+
+  /**
+   * Clear access token from memory
+   * Refresh token is cleared by backend when logout endpoint is called
+   */
   clearTokens: (): void => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    accessTokenMemory = null;
+  },
+
+  /**
+   * Check if user has an access token
+   */
+  hasAccessToken: (): boolean => {
+    return accessTokenMemory !== null;
   },
 };
 
@@ -83,6 +109,7 @@ apiClient.interceptors.request.use(
 
 /**
  * Response interceptor: Handle 401 errors and refresh tokens
+ * SECURITY: Uses httpOnly cookies for refresh tokens (sent automatically by browser)
  */
 apiClient.interceptors.response.use(
   (response) => response,
@@ -112,28 +139,21 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = tokenStorage.getRefreshToken();
-
-      if (!refreshToken) {
-        // No refresh token available, redirect to login
-        tokenStorage.clearTokens();
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
       try {
         // Attempt to refresh the access token
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        // Refresh token is sent automatically via httpOnly cookie
+        const response = await axios.post(
+          `${API_BASE_URL}/v1/auth/refresh`,
+          {},
+          {
+            withCredentials: true, // Send cookies with request
+          }
+        );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const { accessToken } = response.data;
 
-        // Store new tokens
+        // Store new access token in memory
         tokenStorage.setAccessToken(accessToken);
-        if (newRefreshToken) {
-          tokenStorage.setRefreshToken(newRefreshToken);
-        }
 
         // Update Authorization header and retry original request
         if (originalRequest.headers) {
@@ -164,13 +184,23 @@ apiClient.interceptors.response.use(
  * Helper function to check if user is authenticated
  */
 export const isAuthenticated = (): boolean => {
-  return tokenStorage.getAccessToken() !== null;
+  return tokenStorage.hasAccessToken();
 };
 
 /**
  * Helper function to logout user
+ * Calls backend logout endpoint to clear httpOnly cookie
  */
-export const logout = (): void => {
-  tokenStorage.clearTokens();
-  window.location.href = '/login';
+export const logout = async (): Promise<void> => {
+  try {
+    // Call backend to clear refresh token cookie
+    await apiClient.post('/v1/auth/logout');
+  } catch (error) {
+    // Even if backend call fails, clear local token
+    console.error('Logout error:', error);
+  } finally {
+    // Clear access token from memory
+    tokenStorage.clearTokens();
+    window.location.href = '/login';
+  }
 };

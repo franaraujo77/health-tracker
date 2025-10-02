@@ -1,13 +1,10 @@
 /**
  * Authentication Context Provider
  * Manages user authentication state and provides auth methods
+ * SECURITY: Uses httpOnly cookies for refresh tokens and in-memory storage for access tokens
  */
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { tokenStorage, logout as apiLogout } from '../lib/axios';
-// apiClient will be used when replacing mock functions with real API calls
-// @ts-expect-error - Placeholder for future API integration
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { apiClient } from '../lib/axios';
+import { tokenStorage, logout as apiLogout, apiClient } from '../lib/axios';
 
 interface User {
   id: string;
@@ -87,16 +84,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing token on mount
+  // Check for existing token on mount and attempt to refresh
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = tokenStorage.getAccessToken();
+      // SECURITY: Try to refresh token from httpOnly cookie
+      // If user has a valid refresh token cookie, we'll get a new access token
+      try {
+        const response = await apiClient.post('/v1/auth/refresh', {});
+        const { accessToken } = response.data;
 
-      if (token) {
-        try {
-          // In production, fetch user data from /auth/me endpoint
-          // const response = await apiClient.get<User>('/auth/me');
-          // setUser(response.data);
+        if (accessToken) {
+          tokenStorage.setAccessToken(accessToken);
+
+          // Fetch user profile
+          // TODO: Implement /auth/me endpoint
+          // const userResponse = await apiClient.get('/v1/auth/me');
+          // setUser(userResponse.data);
 
           // Mock user data for now
           setUser({
@@ -104,11 +107,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             email: 'user@example.com',
             name: 'Test User',
           });
-        } catch {
-          // Token is invalid, clear it
-          tokenStorage.clearTokens();
-          setUser(null);
         }
+      } catch (error) {
+        // No valid refresh token or it expired
+        // User needs to login again
+        tokenStorage.clearTokens();
+        setUser(null);
       }
 
       setIsLoading(false);
@@ -118,32 +122,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // In production: const response = await apiClient.post<LoginResponse>('/auth/login', { email, password });
+    // TODO: Replace mock with real API call when backend is ready
+    // For now, use mock data
     const response = await mockLogin(email, password);
 
-    // Store tokens
+    // SECURITY: Only store access token in memory
+    // Refresh token is automatically stored in httpOnly cookie by backend
     tokenStorage.setAccessToken(response.accessToken);
-    tokenStorage.setRefreshToken(response.refreshToken);
 
     // Set user
     setUser(response.user);
+
+    /* Production implementation:
+    const response = await apiClient.post('/v1/auth/login', { email, password });
+    tokenStorage.setAccessToken(response.data.accessToken);
+
+    // Fetch user profile
+    const userResponse = await apiClient.get('/v1/auth/me');
+    setUser(userResponse.data);
+    */
   };
 
-  const logout = () => {
-    apiLogout();
+  const logout = async () => {
+    await apiLogout();
     setUser(null);
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    // In production: const response = await apiClient.post<RegisterResponse>('/auth/register', { email, password, name });
+    // TODO: Replace mock with real API call when backend is ready
     const response = await mockRegister(email, password, name);
 
-    // Store tokens
+    // SECURITY: Only store access token in memory
+    // Refresh token is automatically stored in httpOnly cookie by backend
     tokenStorage.setAccessToken(response.accessToken);
-    tokenStorage.setRefreshToken(response.refreshToken);
 
     // Set user
     setUser(response.user);
+
+    /* Production implementation:
+    const response = await apiClient.post('/v1/auth/register', { email, password, name });
+    tokenStorage.setAccessToken(response.data.accessToken);
+
+    // Fetch user profile
+    const userResponse = await apiClient.get('/v1/auth/me');
+    setUser(userResponse.data);
+    */
   };
 
   return (

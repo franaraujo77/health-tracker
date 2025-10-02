@@ -30,19 +30,40 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-  access-token-expiration: 604800000  # 7 days in milliseconds
-  refresh-token-expiration: 2592000000 # 30 days in milliseconds
+  secret: ${JWT_SECRET}  # REQUIRED: No default - set via environment variable
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:1800000}  # 30 minutes (30 * 60 * 1000)
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}  # 30 days
+  issuer: ${JWT_ISSUER:health-tracker-api}
+  audience: ${JWT_AUDIENCE:health-tracker-app}
 
-# Encryption Configuration (for PHI data)
+# Encryption Configuration (for PHI data - HIPAA compliant)
 encryption:
-  secret: ${ENCRYPTION_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  secret: ${ENCRYPTION_SECRET}  # REQUIRED: Must be different from JWT secret
+  salt: ${ENCRYPTION_SALT}  # REQUIRED: Unique salt for key derivation
+  algorithm: ${ENCRYPTION_ALGORITHM:AES/GCM/NoPadding}
+
+# Rate Limiting Configuration
+rate-limit:
+  auth:
+    # Number of requests allowed per IP address per time window
+    capacity: ${RATE_LIMIT_CAPACITY:5}
+    # Time window in seconds for rate limiting
+    refill-period-seconds: ${RATE_LIMIT_PERIOD:60}
+    # Number of tokens to refill per period
+    refill-tokens: ${RATE_LIMIT_REFILL:5}
+  cache:
+    # Maximum number of IP addresses to track in cache
+    maximum-size: ${RATE_LIMIT_CACHE_SIZE:100000}
+    # Time after last access when cache entries expire (in seconds)
+    expire-after-access-seconds: ${RATE_LIMIT_CACHE_EXPIRE:3600}
 
 server:
   port: 8080
   error:
     include-message: always
     include-binding-errors: always
+  cookie:
+    secure: ${COOKIE_SECURE:false}  # Set to true in production with HTTPS
 
 management:
   endpoints:
