@@ -2,6 +2,7 @@ package com.healthtracker.backend.config;
 
 import com.healthtracker.backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,8 +54,8 @@ public class SecurityConfig {
                         .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
 
-                // Configure CORS
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Configure CORS (Spring will inject the bean)
+                .cors(org.springframework.security.config.Customizer.withDefaults())
 
                 // Configure authorization
                 .authorizeHttpRequests(auth -> auth

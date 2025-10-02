@@ -214,7 +214,7 @@ public class EncryptedStringConverter implements AttributeConverter<String, Stri
                         long startTime = System.currentTimeMillis();
 
                         // Create key specification for PBKDF2
-                        KeySpec spec = new PBEKeySpec(
+                        PBEKeySpec spec = new PBEKeySpec(
                             encryptionSecret.toCharArray(),
                             encryptionSalt.getBytes(StandardCharsets.UTF_8),
                             PBKDF2_ITERATIONS,

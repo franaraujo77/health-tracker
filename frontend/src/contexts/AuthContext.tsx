@@ -111,6 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         // No valid refresh token or it expired
         // User needs to login again
+        console.debug('Token refresh failed during initialization:', error);
         tokenStorage.clearTokens();
         setUser(null);
       }
