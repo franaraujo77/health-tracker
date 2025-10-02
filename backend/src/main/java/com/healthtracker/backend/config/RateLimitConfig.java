@@ -148,15 +148,14 @@ public class RateLimitConfig {
      */
     @Bean
     public ProxyManager<String> proxyManager() {
-        var cache = Caffeine.newBuilder()
+        Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
                 .maximumSize(properties.getCache().getMaximumSize())
                 .expireAfterAccess(
                     properties.getCache().getExpireAfterAccessSeconds(),
                     TimeUnit.SECONDS
-                )
-                .build();
+                );
 
-        return new CaffeineProxyManager<>(cache);
+        return new CaffeineProxyManager<String>(caffeine, Duration.ofMinutes(1));
     }
 
     /**
