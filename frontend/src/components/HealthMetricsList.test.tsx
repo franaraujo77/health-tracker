@@ -4,8 +4,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { HealthMetricsList } from './HealthMetricsList';
 import * as hooks from '../hooks/useHealthMetrics';
+import type { HealthMetricsResponse } from '../types/health-metrics';
 
 describe('HealthMetricsList', () => {
   const createWrapper = () => {
@@ -25,7 +27,7 @@ describe('HealthMetricsList', () => {
       isLoading: true,
       error: null,
       refetch: vi.fn(),
-    } as any);
+    } as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -39,7 +41,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: new Error('Failed to fetch'),
       refetch: mockRefetch,
-    } as any);
+    } as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -54,7 +56,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as any);
+    } as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -88,7 +90,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as any);
+    } as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 
@@ -105,7 +107,7 @@ describe('HealthMetricsList', () => {
       isLoading: false,
       error: null,
       refetch: vi.fn(),
-    } as any);
+    } as UseQueryResult<HealthMetricsResponse>);
 
     render(<HealthMetricsList />, { wrapper: createWrapper() });
 

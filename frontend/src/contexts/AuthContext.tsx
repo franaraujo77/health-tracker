@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             email: 'user@example.com',
             name: 'Test User',
           });
-        } catch (error) {
+        } catch {
           // Token is invalid, clear it
           tokenStorage.clearTokens();
           setUser(null);
@@ -118,19 +118,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      // In production: const response = await apiClient.post<LoginResponse>('/auth/login', { email, password });
-      const response = await mockLogin(email, password);
+    // In production: const response = await apiClient.post<LoginResponse>('/auth/login', { email, password });
+    const response = await mockLogin(email, password);
 
-      // Store tokens
-      tokenStorage.setAccessToken(response.accessToken);
-      tokenStorage.setRefreshToken(response.refreshToken);
+    // Store tokens
+    tokenStorage.setAccessToken(response.accessToken);
+    tokenStorage.setRefreshToken(response.refreshToken);
 
-      // Set user
-      setUser(response.user);
-    } catch (error) {
-      throw error;
-    }
+    // Set user
+    setUser(response.user);
   };
 
   const logout = () => {
@@ -139,19 +135,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    try {
-      // In production: const response = await apiClient.post<RegisterResponse>('/auth/register', { email, password, name });
-      const response = await mockRegister(email, password, name);
+    // In production: const response = await apiClient.post<RegisterResponse>('/auth/register', { email, password, name });
+    const response = await mockRegister(email, password, name);
 
-      // Store tokens
-      tokenStorage.setAccessToken(response.accessToken);
-      tokenStorage.setRefreshToken(response.refreshToken);
+    // Store tokens
+    tokenStorage.setAccessToken(response.accessToken);
+    tokenStorage.setRefreshToken(response.refreshToken);
 
-      // Set user
-      setUser(response.user);
-    } catch (error) {
-      throw error;
-    }
+    // Set user
+    setUser(response.user);
   };
 
   return (
@@ -173,6 +165,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 /**
  * Hook to use auth context
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
