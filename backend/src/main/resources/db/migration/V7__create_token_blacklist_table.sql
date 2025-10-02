@@ -66,8 +66,9 @@ CREATE INDEX idx_blacklisted_tokens_user_id ON blacklisted_tokens(user_id);
 CREATE INDEX idx_blacklisted_tokens_blacklisted_at ON blacklisted_tokens(blacklisted_at DESC);
 
 -- Composite index for common query pattern (user's active blacklisted tokens)
-CREATE INDEX idx_blacklisted_tokens_user_active ON blacklisted_tokens(user_id, expires_at)
-    WHERE expires_at > CURRENT_TIMESTAMP;
+-- Note: Partial index removed - CURRENT_TIMESTAMP is not IMMUTABLE
+-- Query performance impact minimal as full index on (user_id, expires_at) is sufficient
+CREATE INDEX idx_blacklisted_tokens_user_active ON blacklisted_tokens(user_id, expires_at);
 
 -- ============================================================================
 -- Comments for Documentation
