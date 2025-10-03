@@ -1,0 +1,59 @@
+# Prometheus Configuration for Health Tracker
+# Scrapes metrics from backend Spring Boot Actuator
+
+global:
+  scrape_interval: 15s      # Scrape targets every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  scrape_timeout: 10s       # Timeout after 10 seconds
+
+  # Attach these labels to any time series or alerts
+  external_labels:
+    environment: 'local'
+    application: 'health-tracker'
+
+# Alertmanager configuration (for future integration)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configuration
+scrape_configs:
+  # Job 1: Scrape backend Spring Boot Actuator metrics
+  - job_name: 'backend'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['backend:8080']
+        labels:
+          service: 'health-tracker-backend'
+          tier: 'backend'
+
+  # Job 2: Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'
+
+  # Job 3: Scrape PostgreSQL exporter (optional, can be added later)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgresql'
+  #         tier: 'database'
+
+  # Job 4: Scrape Redis exporter (optional, can be added later)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+  #         tier: 'cache'

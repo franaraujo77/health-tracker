@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: healthtracker-postgres
+    environment:
+      POSTGRES_DB: healthtracker
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d healthtracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthtracker-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  healthtracker-network:
+    driver: bridge
