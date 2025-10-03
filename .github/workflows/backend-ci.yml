@@ -112,6 +112,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: healthtracker_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -124,6 +139,14 @@ jobs:
           cache: 'maven'
 
       - name: Run tests with coverage
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/healthtracker_test
+          SPRING_DATASOURCE_USERNAME: test
+          SPRING_DATASOURCE_PASSWORD: test
+          JWT_SECRET: test-secret-key-for-ci-testing-purposes-only
+          ENCRYPTION_SECRET: test-encryption-key-for-ci-testing-only
+          ENCRYPTION_SALT: test-salt-for-ci-testing-only
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
         run: ./mvnw test jacoco:report -B
 
       - name: Upload coverage to Codecov
