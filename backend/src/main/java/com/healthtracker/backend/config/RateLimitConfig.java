@@ -149,13 +149,14 @@ public class RateLimitConfig {
     @Bean
     public ProxyManager<String> proxyManager() {
         Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
-                .maximumSize(properties.getCache().getMaximumSize())
-                .expireAfterAccess(
-                    properties.getCache().getExpireAfterAccessSeconds(),
-                    TimeUnit.SECONDS
-                );
+                .maximumSize(properties.getCache().getMaximumSize());
 
-        return new CaffeineProxyManager<String>(caffeine, Duration.ofMinutes(1));
+        // CaffeineProxyManager will handle expiry via Duration parameter
+        // Cannot use expireAfterAccess() here as it conflicts with ProxyManager's internal expireAfter()
+        return new CaffeineProxyManager<String>(
+                caffeine,
+                Duration.ofSeconds(properties.getCache().getExpireAfterAccessSeconds())
+        );
     }
 
     /**
