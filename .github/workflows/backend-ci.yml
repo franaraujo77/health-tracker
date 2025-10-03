@@ -72,6 +72,7 @@ jobs:
           JWT_SECRET: test-secret-key-for-ci-testing-purposes-only
           ENCRYPTION_SECRET: test-encryption-key-for-ci-testing-only
           ENCRYPTION_SALT: test-salt-for-ci-testing-only
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
         run: ./mvnw test -B
 
       - name: Build JAR package
