@@ -42,6 +42,24 @@ encryption:
   salt: ${ENCRYPTION_SALT}  # REQUIRED: Unique salt for key derivation
   algorithm: ${ENCRYPTION_ALGORITHM:AES/GCM/NoPadding}
 
+# Security Validator Configuration
+security:
+  validator:
+    # Minimum length for JWT and encryption secrets (in characters)
+    # Default: 32 characters = 256 bits (HS256 requirement)
+    # For quantum-resistant security, consider 64+ characters
+    min-secret-length: ${SECURITY_MIN_SECRET_LENGTH:32}
+
+    # Pattern to detect development secrets (e.g., "dev-secret-key")
+    # Production validator rejects secrets containing this pattern
+    # Default: "dev-"
+    dev-secret-pattern: ${SECURITY_DEV_PATTERN:dev-}
+
+    # Pattern to detect placeholder secrets (e.g., "change-me-in-production")
+    # Production validator rejects secrets containing this pattern
+    # Default: "change-me"
+    change-me-pattern: ${SECURITY_CHANGE_ME_PATTERN:change-me}
+
 # Rate Limiting Configuration
 rate-limit:
   auth:

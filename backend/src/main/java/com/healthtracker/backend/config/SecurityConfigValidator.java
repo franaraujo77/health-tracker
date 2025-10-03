@@ -30,9 +30,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityConfigValidator implements ApplicationListener<ApplicationReadyEvent> {
 
-    private static final int MIN_SECRET_LENGTH = 32;  // 256 bits minimum for HS256
-    private static final String DEV_SECRET_PATTERN = "dev-";
-    private static final String CHANGE_ME_PATTERN = "change-me";
+    /**
+     * Minimum secret length in characters (256 bits for HS256).
+     * Configurable per environment via security.validator.min-secret-length property.
+     * Default: 32 characters (256 bits)
+     */
+    @Value("${security.validator.min-secret-length:32}")
+    private int minSecretLength;
+
+    /**
+     * Pattern to detect development secrets (e.g., "dev-secret-key").
+     * Configurable per environment via security.validator.dev-secret-pattern property.
+     * Default: "dev-"
+     */
+    @Value("${security.validator.dev-secret-pattern:dev-}")
+    private String devSecretPattern;
+
+    /**
+     * Pattern to detect placeholder secrets (e.g., "change-me-in-production").
+     * Configurable per environment via security.validator.change-me-pattern property.
+     * Default: "change-me"
+     */
+    @Value("${security.validator.change-me-pattern:change-me}")
+    private String changeMePattern;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -146,22 +166,22 @@ public class SecurityConfigValidator implements ApplicationListener<ApplicationR
      * HS256 JWT signing requires at least 256 bits (32 characters) for secure operation.
      */
     private void validateSecretStrength() {
-        if (jwtSecret.length() < MIN_SECRET_LENGTH) {
+        if (jwtSecret.length() < minSecretLength) {
             throw new IllegalStateException(
                 String.format(
                     "CRITICAL SECURITY VIOLATION: JWT secret must be at least %d characters (256 bits) for HS256 algorithm. " +
                     "Current length: %d. Generate a longer secret using: openssl rand -hex 32",
-                    MIN_SECRET_LENGTH, jwtSecret.length()
+                    minSecretLength, jwtSecret.length()
                 )
             );
         }
 
-        if (encryptionSecret.length() < MIN_SECRET_LENGTH) {
+        if (encryptionSecret.length() < minSecretLength) {
             throw new IllegalStateException(
                 String.format(
                     "CRITICAL SECURITY VIOLATION: Encryption secret must be at least %d characters for AES-256. " +
                     "Current length: %d. Generate a longer secret using: openssl rand -hex 32",
-                    MIN_SECRET_LENGTH, encryptionSecret.length()
+                    minSecretLength, encryptionSecret.length()
                 )
             );
         }
@@ -245,7 +265,7 @@ public class SecurityConfigValidator implements ApplicationListener<ApplicationR
      */
     private boolean containsDevPattern(String value) {
         return value != null &&
-               (value.contains(DEV_SECRET_PATTERN) || value.contains(CHANGE_ME_PATTERN));
+               (value.contains(devSecretPattern) || value.contains(changeMePattern));
     }
 
     /**
