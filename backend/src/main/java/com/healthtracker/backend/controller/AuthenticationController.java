@@ -110,6 +110,20 @@ public class AuthenticationController {
     }
 
     /**
+     * CSRF token endpoint
+     * GET request triggers Spring Security to generate and set XSRF-TOKEN cookie
+     * Frontend will read this cookie and send it in X-XSRF-TOKEN header for state-changing requests
+     *
+     * @return Success response (Spring Security automatically sets XSRF-TOKEN cookie)
+     */
+    @GetMapping("/csrf")
+    public ResponseEntity<Void> csrf() {
+        // Spring Security's CsrfFilter automatically generates and sets XSRF-TOKEN cookie
+        // for any request. This endpoint provides a dedicated way for frontend to initialize CSRF.
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Logout user by clearing the refresh token cookie
      *
      * @param response HTTP response to clear cookie

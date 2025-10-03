@@ -90,14 +90,35 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 /**
- * Request interceptor: Add Authorization header with JWT token
+ * Extract CSRF token from cookie
+ * SECURITY: Spring Security sends CSRF token in XSRF-TOKEN cookie
+ * Frontend must read this and send it back in X-XSRF-TOKEN header
+ */
+const getCsrfToken = (): string | null => {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+/**
+ * Request interceptor: Add Authorization header with JWT token and CSRF token
+ * SECURITY: CSRF token is required for state-changing operations (POST, PUT, DELETE, PATCH)
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStorage.getAccessToken();
+    const csrfToken = getCsrfToken();
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Add CSRF token for state-changing requests
+    // Spring Security checks for X-XSRF-TOKEN header on POST/PUT/DELETE/PATCH
+    if (csrfToken && config.headers && config.method) {
+      const method = config.method.toUpperCase();
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        config.headers['X-XSRF-TOKEN'] = csrfToken;
+      }
     }
 
     return config;
@@ -185,6 +206,23 @@ apiClient.interceptors.response.use(
  */
 export const isAuthenticated = (): boolean => {
   return tokenStorage.hasAccessToken();
+};
+
+/**
+ * Initialize CSRF protection on app startup
+ * SECURITY: Makes a GET request to trigger CSRF cookie generation
+ * Spring Security will set XSRF-TOKEN cookie which we'll use in subsequent requests
+ */
+export const initializeCsrf = async (): Promise<void> => {
+  try {
+    // Make a simple GET request to trigger CSRF cookie generation
+    // Backend will set the XSRF-TOKEN cookie in the response
+    await apiClient.get('/v1/auth/csrf');
+  } catch (error) {
+    // CSRF initialization is not critical for GET requests
+    // Log but don't block app initialization
+    console.debug('CSRF initialization failed:', error);
+  }
 };
 
 /**
