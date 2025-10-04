@@ -10,6 +10,7 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+    clean-disabled: false  # Allow clean in tests for idempotency testing
 
 # JWT Configuration (test values)
 JWT_SECRET: test-jwt-secret-key-for-migration-tests-minimum-256-bits-required-for-hs256-algorithm

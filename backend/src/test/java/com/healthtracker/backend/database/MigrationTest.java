@@ -71,4 +71,49 @@ class MigrationTest {
         assertThat(result.validationSuccessful).isTrue();
         assertThat(result.invalidMigrations).isEmpty();
     }
+
+    @Test
+    void shouldValidateMigrationIdempotency() {
+        // Clean database to start fresh
+        flyway.clean();
+
+        // Apply migrations first time
+        var firstMigrate = flyway.migrate();
+        assertThat(firstMigrate.migrationsExecuted).isEqualTo(7);
+        var firstResult = flyway.info();
+
+        // Apply migrations second time (should be no-op)
+        var migrateResult = flyway.migrate();
+
+        // Verify no new migrations applied
+        assertThat(migrateResult.migrationsExecuted).isEqualTo(0);
+        assertThat(migrateResult.success).isTrue();
+
+        // Verify state unchanged
+        var secondResult = flyway.info();
+        assertThat(secondResult.applied()).hasSize(firstResult.applied().length);
+    }
+
+    @Test
+    void shouldHandleRepeatedMigrationAttempts() {
+        // Clean database to start fresh
+        flyway.clean();
+
+        // Run migrations 3 times
+        for (int i = 0; i < 3; i++) {
+            var result = flyway.migrate();
+            if (i == 0) {
+                // First run should apply all migrations
+                assertThat(result.migrationsExecuted).isEqualTo(7);
+            } else {
+                // Subsequent runs should be no-op
+                assertThat(result.migrationsExecuted).isEqualTo(0);
+            }
+            assertThat(result.success).isTrue();
+        }
+
+        // Verify final state correct
+        var info = flyway.info();
+        assertThat(info.applied()).hasSize(7);
+    }
 }
