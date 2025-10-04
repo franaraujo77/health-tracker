@@ -12,6 +12,8 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      register-mbeans: true
+      pool-name: HikariPool-HealthTracker
 
   jpa:
     hibernate:
@@ -97,6 +99,14 @@ management:
   health:
     db:
       enabled: true
+
+  # Metrics Configuration
+  metrics:
+    enable:
+      hikaricp: true
+    tags:
+      application: health-tracker
+      environment: ${SPRING_PROFILES_ACTIVE:local}
 
   # Distributed Tracing Configuration
   tracing:
