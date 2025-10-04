@@ -1,0 +1,85 @@
+pg_stat_statements:
+  query: |
+    SELECT
+      queryid,
+      query,
+      calls,
+      total_exec_time,
+      mean_exec_time,
+      max_exec_time,
+      rows
+    FROM pg_stat_statements
+    WHERE query IS NOT NULL
+  metrics:
+    - queryid:
+        usage: "LABEL"
+        description: "Query ID"
+    - query:
+        usage: "LABEL"
+        description: "Query text"
+    - calls:
+        usage: "COUNTER"
+        description: "Number of times executed"
+    - total_exec_time:
+        usage: "COUNTER"
+        description: "Total time spent executing this query, in milliseconds"
+    - mean_exec_time:
+        usage: "GAUGE"
+        description: "Mean time spent executing this query, in milliseconds"
+    - max_exec_time:
+        usage: "GAUGE"
+        description: "Maximum time spent executing this query, in milliseconds"
+    - rows:
+        usage: "COUNTER"
+        description: "Total number of rows retrieved or affected by the statement"
+
+pg_stat_database:
+  query: |
+    SELECT
+      datname,
+      numbackends,
+      xact_commit,
+      xact_rollback,
+      blks_read,
+      blks_hit,
+      tup_returned,
+      tup_fetched,
+      tup_inserted,
+      tup_updated,
+      tup_deleted
+    FROM pg_stat_database
+    WHERE datname = current_database()
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - numbackends:
+        usage: "GAUGE"
+        description: "Number of backends currently connected to this database"
+    - xact_commit:
+        usage: "COUNTER"
+        description: "Number of transactions committed"
+    - xact_rollback:
+        usage: "COUNTER"
+        description: "Number of transactions rolled back"
+    - blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read"
+    - blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits"
+    - tup_returned:
+        usage: "COUNTER"
+        description: "Number of rows returned by queries"
+    - tup_fetched:
+        usage: "COUNTER"
+        description: "Number of rows fetched by queries"
+    - tup_inserted:
+        usage: "COUNTER"
+        description: "Number of rows inserted"
+    - tup_updated:
+        usage: "COUNTER"
+        description: "Number of rows updated"
+    - tup_deleted:
+        usage: "COUNTER"
+        description: "Number of rows deleted"
