@@ -1,0 +1,473 @@
+{
+  "dashboard": {
+    "title": "PostgreSQL Health - Health Tracker",
+    "uid": "postgresql-health-tracker",
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"],
+      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d"]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(hikaricp_connections_active, environment)",
+          "current": {
+            "text": "local",
+            "value": "local"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "refresh": 1,
+          "regex": "",
+          "sort": 1
+        },
+        {
+          "name": "application",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(hikaricp_connections_active, application)",
+          "current": {
+            "text": "health-tracker",
+            "value": "health-tracker"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "refresh": 1,
+          "regex": "",
+          "sort": 1
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "datasource": "Prometheus",
+          "enable": true,
+          "expr": "changes(up{job=\"spring-actuator\"}[2m]) > 0",
+          "name": "Application Restarts",
+          "step": "60s",
+          "tagKeys": "application",
+          "textFormat": "App restarted",
+          "titleFormat": "Restart"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "title": "Connection Pool Overview",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 1,
+        "title": "Connection Pool Utilization",
+        "type": "gauge",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 1
+        },
+        "targets": [
+          {
+            "expr": "(hikaricp_connections_active{application=\"$application\",environment=\"$environment\"} / hikaricp_connections_max{application=\"$application\",environment=\"$environment\"}) * 100",
+            "refId": "A",
+            "legendFormat": "Pool Utilization %"
+          }
+        ],
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 70, "color": "yellow" },
+                { "value": 85, "color": "red" }
+              ]
+            },
+            "min": 0,
+            "max": 100
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Active Connections",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 1
+        },
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "Active"
+          },
+          {
+            "expr": "hikaricp_connections_max{application=\"$application\",environment=\"$environment\"}",
+            "refId": "B",
+            "legendFormat": "Max Pool Size"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "showPoints": "never"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Max Pool Size" },
+              "properties": [
+                { "id": "custom.lineStyle", "value": { "fill": "dash" } },
+                { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "title": "Idle Connections",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 1
+        },
+        "targets": [
+          {
+            "expr": "hikaricp_connections_idle{application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "Idle Connections"
+          },
+          {
+            "expr": "hikaricp_connections_min{application=\"$application\",environment=\"$environment\"}",
+            "refId": "B",
+            "legendFormat": "Min Idle"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "title": "Connection Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 9
+        }
+      },
+      {
+        "id": 4,
+        "title": "Connection Wait Time (P50, P95, P99)",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 10
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(hikaricp_connections_pending_bucket{application=\"$application\",environment=\"$environment\"}[5m])) by (le))",
+            "refId": "A",
+            "legendFormat": "P50"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(hikaricp_connections_pending_bucket{application=\"$application\",environment=\"$environment\"}[5m])) by (le))",
+            "refId": "B",
+            "legendFormat": "P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(hikaricp_connections_pending_bucket{application=\"$application\",environment=\"$environment\"}[5m])) by (le))",
+            "refId": "C",
+            "legendFormat": "P99"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Connection Acquire Time",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 10
+        },
+        "targets": [
+          {
+            "expr": "rate(hikaricp_connections_acquire_seconds_sum{application=\"$application\",environment=\"$environment\"}[5m]) / rate(hikaricp_connections_acquire_seconds_count{application=\"$application\",environment=\"$environment\"}[5m]) * 1000",
+            "refId": "A",
+            "legendFormat": "Avg Acquire Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 50, "color": "yellow" },
+                { "value": 100, "color": "red" }
+              ]
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Connection Timeout Count (5m rate)",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 10
+        },
+        "targets": [
+          {
+            "expr": "increase(hikaricp_connections_timeout_total{application=\"$application\",environment=\"$environment\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Timeouts"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 5, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Database Health",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 18
+        }
+      },
+      {
+        "id": 7,
+        "title": "Database Health Status",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 19
+        },
+        "targets": [
+          {
+            "expr": "up{job=\"spring-actuator\",application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "Health Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "mappings": [
+              { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } },
+              { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "none",
+          "textMode": "value_and_name",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 8,
+        "title": "Connection Latency",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 19
+        },
+        "targets": [
+          {
+            "expr": "database_connection_latency_ms{application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "Latency (ms)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 30, "color": "yellow" },
+                { "value": 50, "color": "red" }
+              ]
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Database Size Growth",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 19
+        },
+        "targets": [
+          {
+            "expr": "database_size_mb{application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "DB Size (MB)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "decmbytes",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "title": "Active Sessions",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 27
+        }
+      },
+      {
+        "id": 10,
+        "title": "Active Database Connections",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 28
+        },
+        "targets": [
+          {
+            "expr": "database_active_connections{application=\"$application\",environment=\"$environment\"}",
+            "refId": "A",
+            "legendFormat": "Active DB Connections"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20
+            }
+          }
+        }
+      }
+    ]
+  },
+  "overwrite": false
+}
