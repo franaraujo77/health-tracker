@@ -42,13 +42,13 @@ scrape_configs:
           service: 'prometheus'
           tier: 'monitoring'
 
-  # Job 3: Scrape PostgreSQL exporter (optional, can be added later)
-  # - job_name: 'postgres'
-  #   static_configs:
-  #     - targets: ['postgres-exporter:9187']
-  #       labels:
-  #         service: 'postgresql'
-  #         tier: 'database'
+  # Job 3: Scrape PostgreSQL exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['pg_exporter:9187']
+        labels:
+          service: 'postgresql'
+          tier: 'database'
 
   # Job 4: Scrape Redis exporter (optional, can be added later)
   # - job_name: 'redis'

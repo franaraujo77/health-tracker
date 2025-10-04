@@ -188,11 +188,7 @@ class QueryPerformanceTest {
         long preparedStatementCount = statistics.getPrepareStatementCount();
 
         // Document the query behavior for future reference
-        System.out.println("Query Performance Metrics:");
-        System.out.println("- Users fetched: " + users.size());
-        System.out.println("- Queries executed: " + queryCount);
-        System.out.println("- Prepared statements: " + preparedStatementCount);
-        System.out.println("- Query count per user: " + (double) queryCount / users.size());
+        // Performance metrics are validated via assertions below
 
         // Should not have N queries (one per user)
         assertThat(queryCount)
