@@ -46,7 +46,8 @@ class MigrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
         .withDatabaseName("healthtracker_test")
         .withUsername("test")
-        .withPassword("test");
+        .withPassword("test")
+        .withReuse(true);  // Enable container reuse for faster test execution
 
     @DynamicPropertySource
     static void postgresqlProperties(DynamicPropertyRegistry registry) {
