@@ -302,5 +302,45 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+  # Job 6: Migration Tests
+  migration-tests:
+    name: Migration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Migration Tests
+        working-directory: ./backend
+        run: |
+          ./mvnw test -Dtest=MigrationTest \
+            -Dtestcontainers.reuse.enable=false -B
+
+      - name: Publish Migration Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: backend/target/surefire-reports/*.xml
+          check_name: Migration Test Results
+
+      - name: Generate Migration Test Summary
+        if: always()
+        run: |
+          echo "## 🗄️ Migration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ All migration tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Migration tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
 
