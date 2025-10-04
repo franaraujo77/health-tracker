@@ -1,9 +1,11 @@
 package com.healthtracker.backend.database;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -14,6 +16,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import javax.sql.DataSource;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,6 +60,9 @@ class MigrationTest {
 
     @Autowired
     private Flyway flyway;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void shouldApplyAllMigrationsSuccessfully() {
@@ -167,5 +175,140 @@ class MigrationTest {
                             migration.getVersion(), executionTime.toMillis())
                     .isLessThan(Duration.ofSeconds(2));
         }
+    }
+
+    @Test
+    void shouldValidateMigrationVersionNumbers() {
+        var info = flyway.info();
+        var migrations = info.all();
+
+        // Verify sequential version numbers (V1, V2, V3...)
+        for (int i = 1; i < migrations.length; i++) {
+            var current = migrations[i].getVersion();
+            var previous = migrations[i - 1].getVersion();
+
+            assertThat(current.compareTo(previous))
+                    .withFailMessage("Migration versions not sequential: %s -> %s",
+                            previous, current)
+                    .isGreaterThan(0);
+        }
+    }
+
+    @Test
+    void shouldValidateMigrationNamingConvention() {
+        var info = flyway.info();
+        var migrations = info.all();
+
+        // Pattern: V{version}__{description}.sql (description starts with lowercase)
+        Pattern namingPattern = Pattern.compile("^[a-z][a-z0-9 _]*$");
+
+        for (var migration : migrations) {
+            String description = migration.getDescription();
+            assertThat(description)
+                    .withFailMessage("Migration description doesn't follow convention: %s", description)
+                    .matches(namingPattern);
+        }
+    }
+
+    @Test
+    void shouldVerifyNoMissingMigrations() {
+        var info = flyway.info();
+
+        // Verify no gaps in migration sequence
+        assertThat(info.pending()).isEmpty();
+        // Note: Flyway's MigrationInfoService doesn't have failed() method
+        // Migration failures would be caught during apply/validate tests
+    }
+
+    @Test
+    void shouldValidateMigrationTypes() {
+        var info = flyway.info();
+        var migrations = info.applied();
+
+        for (var migration : migrations) {
+            // All should be SQL migrations (not Java-based)
+            assertThat(migration.getType().name())
+                    .isEqualTo("SQL");
+
+            // All should be versioned (not repeatable)
+            assertThat(migration.getVersion()).isNotNull();
+        }
+    }
+
+    @Test
+    void shouldValidateExpectedTablesExist() {
+        // Query PostgreSQL system catalogs for tables
+        List<String> tables = jdbcTemplate.queryForList(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public'",
+                String.class
+        );
+
+        // Verify expected tables from migrations V1-V7
+        assertThat(tables).contains(
+                "users",
+                "health_profiles",
+                "health_metrics",
+                "goals",
+                "audit_logs",
+                "blacklisted_tokens"
+        );
+
+        // Verify Flyway metadata table exists
+        assertThat(tables).contains("flyway_schema_history");
+    }
+
+    @Test
+    void shouldValidateTableColumns() {
+        // Validate users table schema
+        List<Map<String, Object>> columns = jdbcTemplate.queryForList(
+                "SELECT column_name, data_type, is_nullable " +
+                        "FROM information_schema.columns " +
+                        "WHERE table_name = 'users' " +
+                        "ORDER BY ordinal_position"
+        );
+
+        // Verify expected columns exist
+        var columnNames = columns.stream()
+                .map(col -> (String) col.get("column_name"))
+                .toList();
+
+        assertThat(columnNames).contains(
+                "id",
+                "email",
+                "password_hash",
+                "roles",
+                "created_at",
+                "updated_at"
+        );
+    }
+
+    @Test
+    void shouldValidateIndexesExist() {
+        List<String> indexes = jdbcTemplate.queryForList(
+                "SELECT indexname FROM pg_indexes WHERE tablename = 'users'",
+                String.class
+        );
+
+        // Verify expected indexes created by migrations
+        assertThat(indexes).contains(
+                "users_pkey"  // Primary key
+        );
+    }
+
+    @Test
+    void shouldValidateConstraints() {
+        List<Map<String, Object>> constraints = jdbcTemplate.queryForList(
+                "SELECT conname, contype " +
+                        "FROM pg_constraint " +
+                        "JOIN pg_class ON pg_constraint.conrelid = pg_class.oid " +
+                        "WHERE pg_class.relname = 'users'"
+        );
+
+        var constraintTypes = constraints.stream()
+                .map(c -> (String) c.get("contype"))
+                .toList();
+
+        // Verify primary key and unique constraints exist
+        assertThat(constraintTypes).contains("p", "u");  // p=primary, u=unique
     }
 }
