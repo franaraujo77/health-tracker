@@ -1,0 +1,73 @@
+# Prometheus Alerting Rules - Database Connection Pool
+# Monitors HikariCP connection pool health and performance
+
+groups:
+  - name: database_connection_pool
+    interval: 30s
+    rules:
+
+      - alert: HighConnectionPoolUtilization
+        expr: |
+          (hikaricp_connections_active / hikaricp_connections_max) > 0.85
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High connection pool utilization ({{ $value | humanizePercentage }})"
+          description: "HikariCP connection pool is {{ $value | humanizePercentage }} utilized for application {{ $labels.application }}"
+
+      - alert: CriticalConnectionPoolUtilization
+        expr: |
+          (hikaricp_connections_active / hikaricp_connections_max) > 0.95
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Critical connection pool utilization ({{ $value | humanizePercentage }})"
+          description: "HikariCP connection pool is critically high at {{ $value | humanizePercentage }} for {{ $labels.application }}"
+
+      - alert: ConnectionAcquireTimeHigh
+        expr: |
+          histogram_quantile(0.95, rate(hikaricp_connections_acquire_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High connection acquire time (P95: {{ $value }}s)"
+          description: "95th percentile connection acquire time is {{ $value }}s for {{ $labels.application }}"
+
+      - alert: ConnectionTimeouts
+        expr: |
+          increase(hikaricp_connections_timeout_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Connection pool timeouts detected"
+          description: "{{ $value }} connection timeouts in the last 5 minutes for {{ $labels.application }}"
+
+      - alert: DatabaseHealthDown
+        expr: |
+          up{job="health-tracker-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database health check failed"
+          description: "Backend application health endpoint is down for {{ $labels.application }}"
+
+      - alert: HighConnectionLatency
+        expr: |
+          database_connection_latency_ms > 50
+        for: 3m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection latency ({{ $value }}ms)"
+          description: "Database connection latency is {{ $value }}ms for {{ $labels.application }}"
