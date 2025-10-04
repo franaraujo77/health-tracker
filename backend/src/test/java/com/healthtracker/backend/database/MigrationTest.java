@@ -12,6 +12,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.sql.DataSource;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -115,5 +117,55 @@ class MigrationTest {
         // Verify final state correct
         var info = flyway.info();
         assertThat(info.applied()).hasSize(7);
+    }
+
+    @Test
+    void shouldBenchmarkMigrationPerformance() {
+        // Clean database
+        flyway.clean();
+
+        // Measure migration time
+        Instant start = Instant.now();
+        var result = flyway.migrate();
+        Duration migrationTime = Duration.between(start, Instant.now());
+
+        // Log performance metrics
+        System.out.println("Total migrations: " + result.migrationsExecuted);
+        System.out.println("Migration time: " + migrationTime.toMillis() + "ms");
+        System.out.println("Average per migration: " +
+                (migrationTime.toMillis() / result.migrationsExecuted) + "ms");
+
+        // Assert reasonable performance
+        assertThat(migrationTime).isLessThan(Duration.ofSeconds(5));
+        assertThat(result.success).isTrue();
+    }
+
+    @Test
+    void shouldBenchmarkIndividualMigrations() {
+        flyway.clean();
+
+        // Get pending migrations
+        var pending = flyway.info().pending();
+        assertThat(pending).isNotEmpty();
+
+        // Apply and measure each migration
+        for (int i = 0; i < pending.length; i++) {
+            var migration = pending[i];
+            Instant start = Instant.now();
+
+            // Migrate to specific version
+            flyway.migrate();
+
+            Duration executionTime = Duration.between(start, Instant.now());
+            System.out.printf("Migration %s: %dms%n",
+                    migration.getVersion(),
+                    executionTime.toMillis());
+
+            // No migration should take > 2 seconds
+            assertThat(executionTime)
+                    .withFailMessage("Migration %s took too long: %dms",
+                            migration.getVersion(), executionTime.toMillis())
+                    .isLessThan(Duration.ofSeconds(2));
+        }
     }
 }
