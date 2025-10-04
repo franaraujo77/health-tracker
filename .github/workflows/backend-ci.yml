@@ -234,3 +234,73 @@ jobs:
           fi
         continue-on-error: true
 
+  # Job 5: Migration validation
+  migration-validation:
+    name: Migration Validation
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: healthtracker_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U test; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
+      - name: Run Flyway Info
+        env:
+          FLYWAY_URL: jdbc:postgresql://localhost:5432/healthtracker_test
+          FLYWAY_USER: test
+          FLYWAY_PASSWORD: test
+        run: |
+          echo "## 🗃️ Database Migration Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Migration Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ./mvnw flyway:info -B | tee -a $GITHUB_STEP_SUMMARY
+
+      - name: Run Flyway Validate
+        env:
+          FLYWAY_URL: jdbc:postgresql://localhost:5432/healthtracker_test
+          FLYWAY_USER: test
+          FLYWAY_PASSWORD: test
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Result" >> $GITHUB_STEP_SUMMARY
+          ./mvnw flyway:validate -B
+          echo "✅ All migrations validated successfully" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate Migration Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+

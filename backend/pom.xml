@@ -214,6 +214,22 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>10.21.0</version>
+				<configuration>
+					<url>${env.FLYWAY_URL}</url>
+					<user>${env.FLYWAY_USER}</user>
+					<password>${env.FLYWAY_PASSWORD}</password>
+					<locations>
+						<location>classpath:db/migration</location>
+					</locations>
+					<validateMigrationNaming>true</validateMigrationNaming>
+					<outOfOrder>false</outOfOrder>
+					<cleanDisabled>true</cleanDisabled>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
