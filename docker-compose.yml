@@ -3,6 +3,14 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: health-tracker-db
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "pg_stat_statements.track=all"
+      - "-c"
+      - "pg_stat_statements.max=10000"
     environment:
       POSTGRES_DB: healthtracker
       POSTGRES_USER: admin
@@ -12,6 +20,7 @@ services:
       - "5433:5432"  # Using 5433 to avoid conflicts with local PostgreSQL
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
     networks:
       - health-tracker-network
     healthcheck:
