@@ -10,3 +10,21 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+
+# JWT Configuration (test values)
+JWT_SECRET: test-jwt-secret-key-for-migration-tests-minimum-256-bits-required-for-hs256-algorithm
+JWT_ISSUER: healthtracker-test
+JWT_AUDIENCE: healthtracker-test-users
+jwt:
+  expiration: 3600000
+
+# Encryption Configuration (test values)
+ENCRYPTION_SECRET: test-encryption-secret-key-for-tests-minimum-256-bits-required-for-aes
+ENCRYPTION_SALT: test-encryption-salt-for-migration-tests-hex-format
+
+# CORS Configuration (test values)
+cors:
+  allowed-origins: http://localhost:3000
+
+# Rate Limiting (test values)
+RATE_LIMIT_ENABLED: false
