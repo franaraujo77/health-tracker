@@ -1,0 +1,106 @@
+/**
+ * Material Design 3 - Light Theme
+ * Health Tracker Application
+ *
+ * Seed Color: #4CAF50 (Material Green 500)
+ * Generated: 2025-10-16
+ *
+ * Usage:
+ *   Apply to :root for default light theme
+ *   All color tokens follow M3 naming convention: --md-sys-color-{role}
+ *
+ * @see https://m3.material.io/styles/color/system/overview
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════
+   * PRIMARY COLORS
+   * Used for key components like FABs, prominent buttons, active states
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-primary: #2e7d32;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #c8e6c9;
+  --md-sys-color-on-primary-container: #1b5e20;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SECONDARY COLORS
+   * Used for less prominent components
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-secondary: #5e7c62;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #dfe9e1;
+  --md-sys-color-on-secondary-container: #1b3520;
+
+  /* ═══════════════════════════════════════════════════════════
+   * TERTIARY COLORS
+   * Used for contrasting accents and highlights
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-tertiary: #3d6378;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #c2e7ff;
+  --md-sys-color-on-tertiary-container: #001e2f;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ERROR COLORS
+   * Used for errors, warnings, and destructive actions
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+
+  /* ═══════════════════════════════════════════════════════════
+   * BACKGROUND COLORS
+   * Used for app-level backgrounds
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-background: #f7fbf7;
+  --md-sys-color-on-background: #181d18;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SURFACE COLORS
+   * Used for component surfaces like cards, sheets, menus
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-surface: #f7fbf7;
+  --md-sys-color-on-surface: #181d18;
+  --md-sys-color-surface-variant: #dde5db;
+  --md-sys-color-on-surface-variant: #414941;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SURFACE TONES
+   * Used for brightness variations of surfaces
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-surface-dim: #d7dbd7;
+  --md-sys-color-surface-bright: #f7fbf7;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SURFACE CONTAINERS
+   * Used for elevation hierarchy through tonal variations
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f1f5f1;
+  --md-sys-color-surface-container: #ebefeb;
+  --md-sys-color-surface-container-high: #e5e9e5;
+  --md-sys-color-surface-container-highest: #e0e4df;
+
+  /* ═══════════════════════════════════════════════════════════
+   * OUTLINE COLORS
+   * Used for borders, dividers, and focus indicators
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-outline: #717971;
+  --md-sys-color-outline-variant: #c1c9bf;
+
+  /* ═══════════════════════════════════════════════════════════
+   * INVERSE COLORS
+   * Used for snackbars and inverted surfaces
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-inverse-surface: #2d322d;
+  --md-sys-color-inverse-on-surface: #eef2ed;
+  --md-sys-color-inverse-primary: #aed581;
+
+  /* ═══════════════════════════════════════════════════════════
+   * UTILITY COLORS
+   * Used for overlays and shadows
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+}
