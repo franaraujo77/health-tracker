@@ -12,7 +12,10 @@
     "test": "vitest",
     "test:ci": "vitest run --reporter=verbose",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "tokens:validate": "tsc --noEmit src/styles/tokens/index.ts",
+    "tokens:check": "npm run tokens:validate && echo '✓ Design tokens are valid'",
+    "prebuild": "npm run tokens:check"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.2",
