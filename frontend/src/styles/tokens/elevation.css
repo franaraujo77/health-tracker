@@ -1,0 +1,315 @@
+/**
+ * Material Design 3 - Elevation Tokens
+ * Health Tracker Application
+ *
+ * M3 Elevation System:
+ *   - 6 elevation levels (0-5) corresponding to 0dp, 1dp, 3dp, 6dp, 8dp, 12dp
+ *   - Two-layer shadows: key shadow (directional) + ambient shadow (soft diffusion)
+ *   - Surface tints: primary color overlay increases with elevation
+ *   - Light theme: subtle tints + visible shadows
+ *   - Dark theme: prominent tints + minimal shadows
+ *
+ * Generated: 2025-10-16
+ * @see https://m3.material.io/styles/elevation/overview
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 0 (0dp) - Base Surface
+   * No shadow or tint - ground level
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-0-shadow: none;
+  --md-sys-elevation-0-tint-opacity: 0;
+  --md-sys-elevation-0-z-index: 0;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 1 (1dp) - Minimal Elevation
+   * Usage: Search bars, input fields at rest
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3),
+    0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-1-tint-opacity: 0.05;
+  --md-sys-elevation-1-z-index: 1;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 2 (3dp) - Low Elevation
+   * Usage: Cards, raised buttons, switches, dropdown menus
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3),
+    0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-2-tint-opacity: 0.08;
+  --md-sys-elevation-2-z-index: 2;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 3 (6dp) - Medium Elevation
+   * Usage: FAB (resting state), snackbars, tooltips
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3),
+    0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-3-tint-opacity: 0.11;
+  --md-sys-elevation-3-z-index: 3;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 4 (8dp) - High Elevation
+   * Usage: Navigation drawer, app bar, bottom navigation
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3),
+    0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-4-tint-opacity: 0.14;
+  --md-sys-elevation-4-z-index: 4;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ELEVATION LEVEL 5 (12dp) - Maximum Elevation
+   * Usage: Modal dialogs, date pickers, bottom sheets
+   * ═══════════════════════════════════════════════════════════ */
+  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3),
+    0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-5-tint-opacity: 0.17;
+  --md-sys-elevation-5-z-index: 5;
+
+  /* ═══════════════════════════════════════════════════════════
+   * COMPONENT-SPECIFIC ELEVATIONS
+   * ═══════════════════════════════════════════════════════════ */
+
+  /* Card */
+  --md-sys-elevation-card: var(--md-sys-elevation-2-shadow);
+  --md-sys-elevation-card-hover: var(--md-sys-elevation-3-shadow);
+  --md-sys-elevation-card-tint: var(--md-sys-elevation-2-tint-opacity);
+  --md-sys-elevation-card-hover-tint: var(--md-sys-elevation-3-tint-opacity);
+
+  /* Floating Action Button */
+  --md-sys-elevation-fab: var(--md-sys-elevation-3-shadow);
+  --md-sys-elevation-fab-hover: var(--md-sys-elevation-4-shadow);
+  --md-sys-elevation-fab-pressed: var(--md-sys-elevation-3-shadow);
+  --md-sys-elevation-fab-tint: var(--md-sys-elevation-3-tint-opacity);
+
+  /* Dialog */
+  --md-sys-elevation-dialog: var(--md-sys-elevation-5-shadow);
+  --md-sys-elevation-dialog-tint: var(--md-sys-elevation-5-tint-opacity);
+
+  /* App Bar */
+  --md-sys-elevation-app-bar: var(--md-sys-elevation-0-shadow);
+  --md-sys-elevation-app-bar-scrolled: var(--md-sys-elevation-4-shadow);
+  --md-sys-elevation-app-bar-tint: var(--md-sys-elevation-0-tint-opacity);
+  --md-sys-elevation-app-bar-scrolled-tint: var(
+    --md-sys-elevation-4-tint-opacity
+  );
+
+  /* Navigation Drawer */
+  --md-sys-elevation-nav-drawer: var(--md-sys-elevation-4-shadow);
+  --md-sys-elevation-nav-drawer-tint: var(--md-sys-elevation-4-tint-opacity);
+
+  /* Bottom Sheet */
+  --md-sys-elevation-bottom-sheet: var(--md-sys-elevation-5-shadow);
+  --md-sys-elevation-bottom-sheet-tint: var(--md-sys-elevation-5-tint-opacity);
+
+  /* Menu / Dropdown */
+  --md-sys-elevation-menu: var(--md-sys-elevation-2-shadow);
+  --md-sys-elevation-menu-tint: var(--md-sys-elevation-2-tint-opacity);
+
+  /* Snackbar */
+  --md-sys-elevation-snackbar: var(--md-sys-elevation-3-shadow);
+  --md-sys-elevation-snackbar-tint: var(--md-sys-elevation-3-tint-opacity);
+
+  /* Tooltip */
+  --md-sys-elevation-tooltip: var(--md-sys-elevation-3-shadow);
+  --md-sys-elevation-tooltip-tint: var(--md-sys-elevation-3-tint-opacity);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * DARK THEME ADJUSTMENTS
+ * Stronger tints, subtler shadows for dark backgrounds
+ * ═══════════════════════════════════════════════════════════ */
+
+[data-theme='dark'] {
+  /* Level 0 - unchanged */
+
+  /* Level 1 */
+  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5),
+    0px 1px 3px 1px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-1-tint-opacity: 0.08;
+
+  /* Level 2 */
+  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5),
+    0px 2px 6px 2px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-2-tint-opacity: 0.11;
+
+  /* Level 3 */
+  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5),
+    0px 4px 8px 3px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-3-tint-opacity: 0.14;
+
+  /* Level 4 */
+  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.5),
+    0px 6px 10px 4px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-4-tint-opacity: 0.17;
+
+  /* Level 5 */
+  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.5),
+    0px 8px 12px 6px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-5-tint-opacity: 0.2;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * UTILITY CLASSES
+ * Apply elevation with box-shadow only (no tint)
+ * For tint implementation, use overlay pseudo-elements
+ * ═══════════════════════════════════════════════════════════ */
+
+.elevation-0 {
+  box-shadow: var(--md-sys-elevation-0-shadow);
+  z-index: var(--md-sys-elevation-0-z-index);
+}
+
+.elevation-1 {
+  box-shadow: var(--md-sys-elevation-1-shadow);
+  z-index: var(--md-sys-elevation-1-z-index);
+}
+
+.elevation-2 {
+  box-shadow: var(--md-sys-elevation-2-shadow);
+  z-index: var(--md-sys-elevation-2-z-index);
+}
+
+.elevation-3 {
+  box-shadow: var(--md-sys-elevation-3-shadow);
+  z-index: var(--md-sys-elevation-3-z-index);
+}
+
+.elevation-4 {
+  box-shadow: var(--md-sys-elevation-4-shadow);
+  z-index: var(--md-sys-elevation-4-z-index);
+}
+
+.elevation-5 {
+  box-shadow: var(--md-sys-elevation-5-shadow);
+  z-index: var(--md-sys-elevation-5-z-index);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * ELEVATION WITH SURFACE TINT
+ * Complete M3 elevation implementation with tint overlay
+ * Requires position: relative on parent element
+ * ═══════════════════════════════════════════════════════════ */
+
+.elevation-tint-1::before,
+.elevation-tint-2::before,
+.elevation-tint-3::before,
+.elevation-tint-4::before,
+.elevation-tint-5::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--md-sys-color-primary);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.elevation-tint-1 {
+  position: relative;
+  box-shadow: var(--md-sys-elevation-1-shadow);
+  z-index: var(--md-sys-elevation-1-z-index);
+}
+
+.elevation-tint-1::before {
+  opacity: var(--md-sys-elevation-1-tint-opacity);
+}
+
+.elevation-tint-2 {
+  position: relative;
+  box-shadow: var(--md-sys-elevation-2-shadow);
+  z-index: var(--md-sys-elevation-2-z-index);
+}
+
+.elevation-tint-2::before {
+  opacity: var(--md-sys-elevation-2-tint-opacity);
+}
+
+.elevation-tint-3 {
+  position: relative;
+  box-shadow: var(--md-sys-elevation-3-shadow);
+  z-index: var(--md-sys-elevation-3-z-index);
+}
+
+.elevation-tint-3::before {
+  opacity: var(--md-sys-elevation-3-tint-opacity);
+}
+
+.elevation-tint-4 {
+  position: relative;
+  box-shadow: var(--md-sys-elevation-4-shadow);
+  z-index: var(--md-sys-elevation-4-z-index);
+}
+
+.elevation-tint-4::before {
+  opacity: var(--md-sys-elevation-4-tint-opacity);
+}
+
+.elevation-tint-5 {
+  position: relative;
+  box-shadow: var(--md-sys-elevation-5-shadow);
+  z-index: var(--md-sys-elevation-5-z-index);
+}
+
+.elevation-tint-5::before {
+  opacity: var(--md-sys-elevation-5-tint-opacity);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * HOVER TRANSITIONS
+ * Smooth elevation changes on hover
+ * ═══════════════════════════════════════════════════════════ */
+
+.elevation-1,
+.elevation-2,
+.elevation-3,
+.elevation-4,
+.elevation-5,
+.elevation-tint-1,
+.elevation-tint-2,
+.elevation-tint-3,
+.elevation-tint-4,
+.elevation-tint-5 {
+  transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * COMPONENT ELEVATION CLASSES
+ * Pre-configured elevation for common components
+ * ═══════════════════════════════════════════════════════════ */
+
+.elevation-card {
+  box-shadow: var(--md-sys-elevation-card);
+  z-index: 2;
+}
+
+.elevation-card:hover {
+  box-shadow: var(--md-sys-elevation-card-hover);
+}
+
+.elevation-fab {
+  box-shadow: var(--md-sys-elevation-fab);
+  z-index: 3;
+}
+
+.elevation-fab:hover {
+  box-shadow: var(--md-sys-elevation-fab-hover);
+}
+
+.elevation-fab:active {
+  box-shadow: var(--md-sys-elevation-fab-pressed);
+}
+
+.elevation-dialog {
+  box-shadow: var(--md-sys-elevation-dialog);
+  z-index: 5;
+}
+
+.elevation-menu {
+  box-shadow: var(--md-sys-elevation-menu);
+  z-index: 2;
+}

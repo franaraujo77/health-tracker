@@ -5,6 +5,7 @@
 @import './styles/tokens/m3-dark.css';
 @import './styles/tokens/typography.css';
 @import './styles/tokens/spacing.css';
+@import './styles/tokens/elevation.css';
 
 :root {
   /* Use M3 typography tokens for base font */
