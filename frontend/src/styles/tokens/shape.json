@@ -1,0 +1,357 @@
+{
+  "$schema": "./schema.json",
+  "description": "Material Design 3 Shape Tokens - Health Tracker. Defines corner radius system for components following M3's rounded aesthetic.",
+  "shapeScale": {
+    "none": {
+      "value": "0px",
+      "description": "No rounding - sharp corners",
+      "usage": "Legacy components, specific design needs"
+    },
+    "extraSmall": {
+      "value": "4px",
+      "description": "Extra small corners - subtle rounding",
+      "usage": "Text fields, small chips, compact elements"
+    },
+    "small": {
+      "value": "8px",
+      "description": "Small corners - gentle rounding",
+      "usage": "Buttons, standard chips, small cards"
+    },
+    "medium": {
+      "value": "12px",
+      "description": "Medium corners - balanced rounding",
+      "usage": "Cards, input fields, medium components"
+    },
+    "large": {
+      "value": "16px",
+      "description": "Large corners - prominent rounding",
+      "usage": "Large cards, dialogs, sheets"
+    },
+    "extraLarge": {
+      "value": "28px",
+      "description": "Extra large corners - dramatic rounding",
+      "usage": "FAB, bottom sheets, large modals"
+    },
+    "full": {
+      "value": "9999px",
+      "description": "Fully rounded - pill shape",
+      "usage": "Buttons, badges, avatars, pill-shaped elements",
+      "alternative": "50% for perfect circles"
+    }
+  },
+  "components": {
+    "button": {
+      "standard": {
+        "shape": "full",
+        "value": "9999px",
+        "description": "Standard buttons use fully rounded (pill) shape"
+      },
+      "icon": {
+        "shape": "full",
+        "value": "50%",
+        "description": "Icon buttons are circular"
+      },
+      "extended": {
+        "shape": "large",
+        "value": "16px",
+        "description": "Extended FABs use large corners"
+      }
+    },
+    "card": {
+      "standard": {
+        "shape": "medium",
+        "value": "12px",
+        "description": "Standard cards use medium corners"
+      },
+      "elevated": {
+        "shape": "medium",
+        "value": "12px",
+        "description": "Elevated cards use medium corners"
+      },
+      "outlined": {
+        "shape": "medium",
+        "value": "12px",
+        "description": "Outlined cards use medium corners"
+      },
+      "large": {
+        "shape": "large",
+        "value": "16px",
+        "description": "Large feature cards use large corners"
+      }
+    },
+    "chip": {
+      "assist": {
+        "shape": "small",
+        "value": "8px",
+        "description": "Assist chips use small corners"
+      },
+      "filter": {
+        "shape": "small",
+        "value": "8px",
+        "description": "Filter chips use small corners"
+      },
+      "input": {
+        "shape": "small",
+        "value": "8px",
+        "description": "Input chips use small corners"
+      },
+      "suggestion": {
+        "shape": "small",
+        "value": "8px",
+        "description": "Suggestion chips use small corners"
+      }
+    },
+    "dialog": {
+      "standard": {
+        "shape": "extraLarge",
+        "value": "28px",
+        "description": "Dialogs use extra large corners for prominence"
+      },
+      "fullscreen": {
+        "shape": "none",
+        "value": "0px",
+        "description": "Fullscreen dialogs have no corner rounding"
+      }
+    },
+    "fab": {
+      "small": {
+        "shape": "medium",
+        "value": "12px",
+        "description": "Small FAB uses medium corners"
+      },
+      "standard": {
+        "shape": "large",
+        "value": "16px",
+        "description": "Standard FAB uses large corners"
+      },
+      "large": {
+        "shape": "extraLarge",
+        "value": "28px",
+        "description": "Large FAB uses extra large corners"
+      },
+      "extended": {
+        "shape": "large",
+        "value": "16px",
+        "description": "Extended FAB uses large corners"
+      }
+    },
+    "textField": {
+      "filled": {
+        "top": {
+          "shape": "extraSmall",
+          "value": "4px",
+          "description": "Filled text field top corners"
+        },
+        "bottom": {
+          "shape": "none",
+          "value": "0px",
+          "description": "Filled text field bottom corners are square"
+        }
+      },
+      "outlined": {
+        "shape": "extraSmall",
+        "value": "4px",
+        "description": "Outlined text field uses extra small corners"
+      }
+    },
+    "navigationDrawer": {
+      "standard": {
+        "shape": "large",
+        "value": "16px",
+        "topRight": "16px",
+        "bottomRight": "16px",
+        "topLeft": "0px",
+        "bottomLeft": "0px",
+        "description": "Navigation drawer rounded on right edge only"
+      },
+      "modal": {
+        "shape": "large",
+        "value": "16px",
+        "description": "Modal navigation drawer uses large corners"
+      }
+    },
+    "bottomSheet": {
+      "standard": {
+        "top": {
+          "shape": "extraLarge",
+          "value": "28px",
+          "description": "Bottom sheet top corners use extra large rounding"
+        },
+        "bottom": {
+          "shape": "none",
+          "value": "0px",
+          "description": "Bottom sheet bottom corners are square"
+        }
+      }
+    },
+    "menu": {
+      "standard": {
+        "shape": "extraSmall",
+        "value": "4px",
+        "description": "Dropdown menus use extra small corners"
+      }
+    },
+    "snackbar": {
+      "standard": {
+        "shape": "extraSmall",
+        "value": "4px",
+        "description": "Snackbars use extra small corners"
+      }
+    },
+    "tooltip": {
+      "standard": {
+        "shape": "extraSmall",
+        "value": "4px",
+        "description": "Tooltips use extra small corners"
+      }
+    },
+    "badge": {
+      "standard": {
+        "shape": "full",
+        "value": "9999px",
+        "description": "Badges are fully rounded"
+      }
+    },
+    "avatar": {
+      "standard": {
+        "shape": "full",
+        "value": "50%",
+        "description": "Avatars are circular"
+      }
+    },
+    "switch": {
+      "track": {
+        "shape": "full",
+        "value": "9999px",
+        "description": "Switch track is fully rounded"
+      },
+      "thumb": {
+        "shape": "full",
+        "value": "50%",
+        "description": "Switch thumb is circular"
+      }
+    },
+    "slider": {
+      "track": {
+        "shape": "full",
+        "value": "9999px",
+        "description": "Slider track is fully rounded"
+      },
+      "thumb": {
+        "shape": "full",
+        "value": "50%",
+        "description": "Slider thumb is circular"
+      }
+    },
+    "progressIndicator": {
+      "linear": {
+        "shape": "full",
+        "value": "9999px",
+        "description": "Linear progress indicator is fully rounded"
+      },
+      "circular": {
+        "shape": "full",
+        "value": "50%",
+        "description": "Circular progress indicator is circular"
+      }
+    }
+  },
+  "asymmetricPatterns": {
+    "topOnly": {
+      "extraSmall": {
+        "value": "4px 4px 0 0",
+        "description": "Extra small rounding on top corners only"
+      },
+      "small": {
+        "value": "8px 8px 0 0",
+        "description": "Small rounding on top corners only"
+      },
+      "medium": {
+        "value": "12px 12px 0 0",
+        "description": "Medium rounding on top corners only"
+      },
+      "large": {
+        "value": "16px 16px 0 0",
+        "description": "Large rounding on top corners only"
+      },
+      "extraLarge": {
+        "value": "28px 28px 0 0",
+        "description": "Extra large rounding on top corners only"
+      }
+    },
+    "bottomOnly": {
+      "extraSmall": {
+        "value": "0 0 4px 4px",
+        "description": "Extra small rounding on bottom corners only"
+      },
+      "small": {
+        "value": "0 0 8px 8px",
+        "description": "Small rounding on bottom corners only"
+      },
+      "medium": {
+        "value": "0 0 12px 12px",
+        "description": "Medium rounding on bottom corners only"
+      },
+      "large": {
+        "value": "0 0 16px 16px",
+        "description": "Large rounding on bottom corners only"
+      },
+      "extraLarge": {
+        "value": "0 0 28px 28px",
+        "description": "Extra large rounding on bottom corners only"
+      }
+    },
+    "leftOnly": {
+      "extraSmall": {
+        "value": "4px 0 0 4px",
+        "description": "Extra small rounding on left corners only"
+      },
+      "small": {
+        "value": "8px 0 0 8px",
+        "description": "Small rounding on left corners only"
+      },
+      "medium": {
+        "value": "12px 0 0 12px",
+        "description": "Medium rounding on left corners only"
+      },
+      "large": {
+        "value": "16px 0 0 16px",
+        "description": "Large rounding on left corners only"
+      },
+      "extraLarge": {
+        "value": "28px 0 0 28px",
+        "description": "Extra large rounding on left corners only"
+      }
+    },
+    "rightOnly": {
+      "extraSmall": {
+        "value": "0 4px 4px 0",
+        "description": "Extra small rounding on right corners only"
+      },
+      "small": {
+        "value": "0 8px 8px 0",
+        "description": "Small rounding on right corners only"
+      },
+      "medium": {
+        "value": "0 12px 12px 0",
+        "description": "Medium rounding on right corners only"
+      },
+      "large": {
+        "value": "0 16px 16px 0",
+        "description": "Large rounding on right corners only"
+      },
+      "extraLarge": {
+        "value": "0 28px 28px 0",
+        "description": "Extra large rounding on right corners only"
+      }
+    }
+  },
+  "notes": {
+    "m3Philosophy": "M3 embraces rounded corners as a signature aesthetic, creating a softer, more approachable interface",
+    "consistency": "Use consistent shape scales across similar component types",
+    "hierarchy": "Larger corner radii (extra-large) indicate more important surfaces (dialogs, FABs)",
+    "asymmetry": "Asymmetric rounding (top-only, bottom-only) creates visual connection between surfaces",
+    "fullRounding": "Use 9999px for pill shapes, 50% for perfect circles",
+    "accessibility": "Corner rounding is purely aesthetic and doesn't affect accessibility"
+  }
+}
