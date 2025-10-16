@@ -1,17 +1,21 @@
 /**
- * Import Material Design 3 color tokens
+ * Import Material Design 3 design tokens
  */
 @import './styles/tokens/m3-light.css';
 @import './styles/tokens/m3-dark.css';
+@import './styles/tokens/typography.css';
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Use M3 typography tokens for base font */
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  font-weight: var(--md-sys-typescale-body-medium-weight);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 
   color-scheme: light dark;
 
-  /* Use M3 color tokens instead of hardcoded colors */
+  /* Use M3 color tokens */
   color: var(--md-sys-color-on-background);
   background-color: var(--md-sys-color-background);
 
