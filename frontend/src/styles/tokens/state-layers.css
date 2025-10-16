@@ -1,0 +1,491 @@
+/**
+ * Material Design 3 - State Layer Tokens
+ * Health Tracker Application
+ *
+ * M3 State Layer System:
+ *   - State layers provide visual feedback for interactive states
+ *   - Applied as colored overlays with specific opacity values
+ *   - Hover: 8%, Focus: 12%, Pressed: 12%, Dragged: 16%
+ *   - Disabled: 38% (content), 12% (container)
+ *   - State layers can stack (hover + pressed = 20%)
+ *
+ * Generated: 2025-10-16
+ * @see https://m3.material.io/foundations/interaction/states/overview
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════
+   * BASE STATE OPACITIES
+   * Standard opacity values for all interactive states
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.12;
+  --md-sys-state-pressed-opacity: 0.12;
+  --md-sys-state-dragged-opacity: 0.16;
+  --md-sys-state-disabled-content-opacity: 0.38;
+  --md-sys-state-disabled-container-opacity: 0.12;
+
+  /* ═══════════════════════════════════════════════════════════
+   * PRIMARY COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-primary-hover: 0.08;
+  --md-sys-state-primary-focus: 0.12;
+  --md-sys-state-primary-pressed: 0.12;
+  --md-sys-state-primary-dragged: 0.16;
+
+  --md-sys-state-on-primary-hover: 0.08;
+  --md-sys-state-on-primary-focus: 0.12;
+  --md-sys-state-on-primary-pressed: 0.12;
+  --md-sys-state-on-primary-dragged: 0.16;
+
+  --md-sys-state-primary-container-hover: 0.08;
+  --md-sys-state-primary-container-focus: 0.12;
+  --md-sys-state-primary-container-pressed: 0.12;
+  --md-sys-state-primary-container-dragged: 0.16;
+
+  --md-sys-state-on-primary-container-hover: 0.08;
+  --md-sys-state-on-primary-container-focus: 0.12;
+  --md-sys-state-on-primary-container-pressed: 0.12;
+  --md-sys-state-on-primary-container-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SECONDARY COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-secondary-hover: 0.08;
+  --md-sys-state-secondary-focus: 0.12;
+  --md-sys-state-secondary-pressed: 0.12;
+  --md-sys-state-secondary-dragged: 0.16;
+
+  --md-sys-state-on-secondary-hover: 0.08;
+  --md-sys-state-on-secondary-focus: 0.12;
+  --md-sys-state-on-secondary-pressed: 0.12;
+  --md-sys-state-on-secondary-dragged: 0.16;
+
+  --md-sys-state-secondary-container-hover: 0.08;
+  --md-sys-state-secondary-container-focus: 0.12;
+  --md-sys-state-secondary-container-pressed: 0.12;
+  --md-sys-state-secondary-container-dragged: 0.16;
+
+  --md-sys-state-on-secondary-container-hover: 0.08;
+  --md-sys-state-on-secondary-container-focus: 0.12;
+  --md-sys-state-on-secondary-container-pressed: 0.12;
+  --md-sys-state-on-secondary-container-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * TERTIARY COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-tertiary-hover: 0.08;
+  --md-sys-state-tertiary-focus: 0.12;
+  --md-sys-state-tertiary-pressed: 0.12;
+  --md-sys-state-tertiary-dragged: 0.16;
+
+  --md-sys-state-on-tertiary-hover: 0.08;
+  --md-sys-state-on-tertiary-focus: 0.12;
+  --md-sys-state-on-tertiary-pressed: 0.12;
+  --md-sys-state-on-tertiary-dragged: 0.16;
+
+  --md-sys-state-tertiary-container-hover: 0.08;
+  --md-sys-state-tertiary-container-focus: 0.12;
+  --md-sys-state-tertiary-container-pressed: 0.12;
+  --md-sys-state-tertiary-container-dragged: 0.16;
+
+  --md-sys-state-on-tertiary-container-hover: 0.08;
+  --md-sys-state-on-tertiary-container-focus: 0.12;
+  --md-sys-state-on-tertiary-container-pressed: 0.12;
+  --md-sys-state-on-tertiary-container-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * ERROR COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-error-hover: 0.08;
+  --md-sys-state-error-focus: 0.12;
+  --md-sys-state-error-pressed: 0.12;
+  --md-sys-state-error-dragged: 0.16;
+
+  --md-sys-state-on-error-hover: 0.08;
+  --md-sys-state-on-error-focus: 0.12;
+  --md-sys-state-on-error-pressed: 0.12;
+  --md-sys-state-on-error-dragged: 0.16;
+
+  --md-sys-state-error-container-hover: 0.08;
+  --md-sys-state-error-container-focus: 0.12;
+  --md-sys-state-error-container-pressed: 0.12;
+  --md-sys-state-error-container-dragged: 0.16;
+
+  --md-sys-state-on-error-container-hover: 0.08;
+  --md-sys-state-on-error-container-focus: 0.12;
+  --md-sys-state-on-error-container-pressed: 0.12;
+  --md-sys-state-on-error-container-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * SURFACE COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-surface-hover: 0.08;
+  --md-sys-state-surface-focus: 0.12;
+  --md-sys-state-surface-pressed: 0.12;
+  --md-sys-state-surface-dragged: 0.16;
+
+  --md-sys-state-on-surface-hover: 0.08;
+  --md-sys-state-on-surface-focus: 0.12;
+  --md-sys-state-on-surface-pressed: 0.12;
+  --md-sys-state-on-surface-dragged: 0.16;
+
+  --md-sys-state-on-surface-variant-hover: 0.08;
+  --md-sys-state-on-surface-variant-focus: 0.12;
+  --md-sys-state-on-surface-variant-pressed: 0.12;
+  --md-sys-state-on-surface-variant-dragged: 0.16;
+
+  --md-sys-state-outline-hover: 0.08;
+  --md-sys-state-outline-focus: 0.12;
+  --md-sys-state-outline-pressed: 0.12;
+  --md-sys-state-outline-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * INVERSE COLOR STATE LAYERS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-inverse-surface-hover: 0.08;
+  --md-sys-state-inverse-surface-focus: 0.12;
+  --md-sys-state-inverse-surface-pressed: 0.12;
+  --md-sys-state-inverse-surface-dragged: 0.16;
+
+  --md-sys-state-inverse-on-surface-hover: 0.08;
+  --md-sys-state-inverse-on-surface-focus: 0.12;
+  --md-sys-state-inverse-on-surface-pressed: 0.12;
+  --md-sys-state-inverse-on-surface-dragged: 0.16;
+
+  /* ═══════════════════════════════════════════════════════════
+   * STATE LAYER TRANSITIONS
+   * ═══════════════════════════════════════════════════════════ */
+
+  --md-sys-state-transition-hover: 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  --md-sys-state-transition-focus: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --md-sys-state-transition-pressed: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * STATE LAYER HELPER CLASSES
+ * Base classes for applying state layers to interactive elements
+ * ═══════════════════════════════════════════════════════════ */
+
+/* State Layer Base - Creates pseudo-element for overlay */
+.state-layer {
+  position: relative;
+  overflow: hidden;
+}
+
+.state-layer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Hover State */
+.state-layer:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+
+/* Focus State */
+.state-layer:focus::before,
+.state-layer:focus-visible::before {
+  opacity: var(--md-sys-state-focus-opacity);
+}
+
+/* Pressed State */
+.state-layer:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+  transition: opacity var(--md-sys-state-transition-pressed);
+}
+
+/* Disabled State */
+.state-layer:disabled,
+.state-layer[disabled],
+.state-layer[aria-disabled='true'] {
+  opacity: var(--md-sys-state-disabled-content-opacity);
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * COLOR-SPECIFIC STATE LAYERS
+ * Pre-configured state layers for specific color roles
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Primary State Layer */
+.state-layer-primary::before {
+  background-color: var(--md-sys-color-primary);
+}
+
+.state-layer-primary:hover::before {
+  opacity: var(--md-sys-state-primary-hover);
+}
+
+.state-layer-primary:focus::before,
+.state-layer-primary:focus-visible::before {
+  opacity: var(--md-sys-state-primary-focus);
+}
+
+.state-layer-primary:active::before {
+  opacity: var(--md-sys-state-primary-pressed);
+}
+
+/* On-Primary State Layer */
+.state-layer-on-primary::before {
+  background-color: var(--md-sys-color-on-primary);
+}
+
+.state-layer-on-primary:hover::before {
+  opacity: var(--md-sys-state-on-primary-hover);
+}
+
+.state-layer-on-primary:focus::before,
+.state-layer-on-primary:focus-visible::before {
+  opacity: var(--md-sys-state-on-primary-focus);
+}
+
+.state-layer-on-primary:active::before {
+  opacity: var(--md-sys-state-on-primary-pressed);
+}
+
+/* Secondary State Layer */
+.state-layer-secondary::before {
+  background-color: var(--md-sys-color-secondary);
+}
+
+.state-layer-secondary:hover::before {
+  opacity: var(--md-sys-state-secondary-hover);
+}
+
+.state-layer-secondary:focus::before,
+.state-layer-secondary:focus-visible::before {
+  opacity: var(--md-sys-state-secondary-focus);
+}
+
+.state-layer-secondary:active::before {
+  opacity: var(--md-sys-state-secondary-pressed);
+}
+
+/* On-Surface State Layer */
+.state-layer-on-surface::before {
+  background-color: var(--md-sys-color-on-surface);
+}
+
+.state-layer-on-surface:hover::before {
+  opacity: var(--md-sys-state-on-surface-hover);
+}
+
+.state-layer-on-surface:focus::before,
+.state-layer-on-surface:focus-visible::before {
+  opacity: var(--md-sys-state-on-surface-focus);
+}
+
+.state-layer-on-surface:active::before {
+  opacity: var(--md-sys-state-on-surface-pressed);
+}
+
+/* Error State Layer */
+.state-layer-error::before {
+  background-color: var(--md-sys-color-error);
+}
+
+.state-layer-error:hover::before {
+  opacity: var(--md-sys-state-error-hover);
+}
+
+.state-layer-error:focus::before,
+.state-layer-error:focus-visible::before {
+  opacity: var(--md-sys-state-error-focus);
+}
+
+.state-layer-error:active::before {
+  opacity: var(--md-sys-state-error-pressed);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * FOCUS INDICATORS
+ * Visible keyboard focus indicators for accessibility
+ * ═══════════════════════════════════════════════════════════ */
+
+.state-layer:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .state-layer::before {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * COMPONENT-SPECIFIC STATE LAYER PATTERNS
+ * Common patterns for buttons, cards, and list items
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Filled Button State Layer */
+.button-filled {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.button-filled::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-on-primary);
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.button-filled:hover::before {
+  opacity: var(--md-sys-state-on-primary-hover);
+}
+
+.button-filled:focus-visible::before {
+  opacity: var(--md-sys-state-on-primary-focus);
+}
+
+.button-filled:active::before {
+  opacity: var(--md-sys-state-on-primary-pressed);
+}
+
+/* Outlined Button State Layer */
+.button-outlined {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.button-outlined::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-primary);
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.button-outlined:hover::before {
+  opacity: var(--md-sys-state-primary-hover);
+}
+
+.button-outlined:focus-visible::before {
+  opacity: var(--md-sys-state-primary-focus);
+}
+
+.button-outlined:active::before {
+  opacity: var(--md-sys-state-primary-pressed);
+}
+
+/* Text Button State Layer */
+.button-text {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+}
+
+.button-text::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-primary);
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.button-text:hover::before {
+  opacity: var(--md-sys-state-primary-hover);
+}
+
+.button-text:focus-visible::before {
+  opacity: var(--md-sys-state-primary-focus);
+}
+
+.button-text:active::before {
+  opacity: var(--md-sys-state-primary-pressed);
+}
+
+/* Card State Layer (interactive cards) */
+.card-interactive {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card-interactive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-on-surface);
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.card-interactive:hover::before {
+  opacity: var(--md-sys-state-on-surface-hover);
+}
+
+.card-interactive:focus-visible::before {
+  opacity: var(--md-sys-state-on-surface-focus);
+}
+
+.card-interactive:active::before {
+  opacity: var(--md-sys-state-on-surface-pressed);
+}
+
+/* List Item State Layer */
+.list-item-interactive {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.list-item-interactive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-on-surface);
+  opacity: 0;
+  transition: opacity var(--md-sys-state-transition-hover);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.list-item-interactive:hover::before {
+  opacity: var(--md-sys-state-on-surface-hover);
+}
+
+.list-item-interactive:focus-visible::before {
+  opacity: var(--md-sys-state-on-surface-focus);
+}
+
+.list-item-interactive:active::before {
+  opacity: var(--md-sys-state-on-surface-pressed);
+}
