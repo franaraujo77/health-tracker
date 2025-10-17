@@ -1,0 +1,174 @@
+/**
+ * Theme Toggle Styles
+ * Material Design 3 segmented button implementation
+ */
+
+/* Segmented button container */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  background-color: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-full);
+  border: 1px solid var(--md-sys-color-outline);
+  overflow: hidden;
+}
+
+/* Individual toggle option */
+.theme-toggle-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--md-sys-spacing-2);
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+  min-width: 48px;
+  min-height: 40px;
+  background: transparent;
+  border: none;
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* State layer for interactions */
+.theme-toggle-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--md-sys-color-on-surface);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+/* Hover state */
+.theme-toggle-option:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+
+/* Focus state */
+.theme-toggle-option:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+/* Pressed state */
+.theme-toggle-option:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+
+/* Active (selected) state */
+.theme-toggle-option.active {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.theme-toggle-option.active::before {
+  background-color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Icon styling */
+.theme-toggle-option svg {
+  flex-shrink: 0;
+}
+
+/* Disabled state */
+.theme-toggle-option:disabled {
+  opacity: var(--md-sys-state-disabled-content-opacity);
+  cursor: not-allowed;
+}
+
+.theme-toggle-option:disabled::before {
+  display: none;
+}
+
+/* Icon button variant */
+.theme-toggle-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--md-sys-shape-full);
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* State layer for icon button */
+.theme-toggle-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--md-sys-color-on-surface-variant);
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.theme-toggle-icon:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+
+.theme-toggle-icon:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-icon:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .theme-toggle-option {
+    padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  }
+
+  .theme-toggle-option span {
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .theme-toggle {
+    border-width: 2px;
+  }
+
+  .theme-toggle-option.active {
+    border: 2px solid var(--md-sys-color-on-secondary-container);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle-option,
+  .theme-toggle-option::before,
+  .theme-toggle-icon,
+  .theme-toggle-icon::before {
+    transition: none;
+  }
+}
