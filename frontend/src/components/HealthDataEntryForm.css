@@ -42,6 +42,9 @@
   color: var(--md-sys-color-on-error-container);
   border-radius: var(--md-sys-shape-small);
   font-family: var(--md-sys-typescale-body-medium-font);
+  /* Ensure error messages wrap properly */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .health-data-entry-error strong {
@@ -56,6 +59,9 @@
   color: var(--md-sys-color-on-primary-container);
   border-radius: var(--md-sys-shape-small);
   font-family: var(--md-sys-typescale-body-medium-font);
+  /* Ensure success messages wrap properly */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .health-data-entry-success strong {
@@ -81,6 +87,9 @@
   font-weight: var(--md-sys-typescale-body-large-weight);
   color: var(--md-sys-color-on-surface);
   margin-bottom: var(--md-sys-spacing-1);
+  /* Ensure labels wrap properly on narrow screens */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* M3 Text Field (Filled variant) */

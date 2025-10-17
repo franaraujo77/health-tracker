@@ -10,6 +10,11 @@
 @import './styles/tokens/state-layers.css';
 
 /**
+ * Import Material Design 3 utility classes
+ */
+@import './styles/utilities/text-overflow.css';
+
+/**
  * Import Material Symbols icon font
  */
 @import 'material-symbols/outlined.css';

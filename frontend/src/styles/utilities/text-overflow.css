@@ -1,0 +1,238 @@
+/**
+ * Material Design 3 - Text Overflow & Truncation Utilities
+ * Health Tracker Application
+ *
+ * Provides utility classes for handling long text content with proper truncation,
+ * ellipsis, and multi-line clamping patterns following M3 best practices.
+ *
+ * Generated: 2025-10-17
+ * @see https://m3.material.io/foundations/content-design/overview
+ */
+
+/* ═══════════════════════════════════════════════════════════
+ * SINGLE-LINE TRUNCATION
+ * Truncates text to a single line with ellipsis
+ * ═══════════════════════════════════════════════════════════ */
+
+.md-text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * MULTI-LINE CLAMPING
+ * Truncates text after a specified number of lines
+ * Uses -webkit-line-clamp with fallback
+ * ═══════════════════════════════════════════════════════════ */
+
+.md-text-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md-text-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md-text-clamp-4 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md-text-clamp-5 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * RESPONSIVE TEXT WRAPPING
+ * Ensures proper text wrapping for long words
+ * ═══════════════════════════════════════════════════════════ */
+
+.md-text-wrap {
+  overflow-wrap: break-word;
+  word-wrap: break-word; /* Legacy browsers */
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Conservative wrapping - only breaks at normal word boundaries */
+.md-text-wrap-conservative {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Aggressive wrapping - breaks anywhere if needed */
+.md-text-wrap-aggressive {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * NO WRAP
+ * Prevents text from wrapping
+ * ═══════════════════════════════════════════════════════════ */
+
+.md-text-nowrap {
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * COMPONENT-SPECIFIC TEXT OVERFLOW PATTERNS
+ * Common M3 component text handling patterns
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Card Title Pattern: Single line with ellipsis */
+.md-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Card Description Pattern: 2-3 lines with ellipsis */
+.md-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* List Item Title Pattern: Single line with ellipsis */
+.md-list-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* List Item Supporting Text Pattern: 2 lines with ellipsis */
+.md-list-item-supporting {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chip/Tag Text Pattern: Single line, no wrap */
+.md-chip-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Dialog Title Pattern: Wraps but with max height */
+.md-dialog-title {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  max-height: 3.6em; /* Approximately 3 lines */
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * ACCESSIBILITY & TOOLTIP SUPPORT
+ * Enhances truncated text with accessibility features
+ * ═══════════════════════════════════════════════════════════ */
+
+/*
+ * When text is truncated, consider adding a title attribute or tooltip
+ * to show the full text on hover/focus.
+ *
+ * Example usage:
+ * <div class="md-text-truncate" title="Full text here">
+ *   Truncated text...
+ * </div>
+ */
+
+/* Optional: Add visual indicator that text is truncated */
+.md-text-truncated-indicator::after {
+  content: '\2026'; /* Ellipsis character */
+  position: relative;
+  left: -0.5em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * UTILITY COMBINATIONS
+ * Common combinations for specific use cases
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Truncate with title attribute support (for tooltips) */
+.md-text-truncate-with-tooltip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help; /* Indicates more information available */
+}
+
+/* Long content with fade effect */
+.md-text-fade {
+  position: relative;
+  max-height: 6em; /* Approximately 4-5 lines */
+  overflow: hidden;
+}
+
+.md-text-fade::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2em;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--md-sys-color-surface-container)
+  );
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * TESTING UTILITIES
+ * For development/testing text overflow behavior
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Show container boundaries (for debugging) */
+.md-text-debug {
+  outline: 1px dashed var(--md-sys-color-error);
+  outline-offset: -1px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * BROWSER SUPPORT NOTES
+ * ═══════════════════════════════════════════════════════════
+ *
+ * -webkit-line-clamp:
+ *   - Chrome: All versions
+ *   - Firefox: 68+ (2019)
+ *   - Safari: All versions
+ *   - Edge: All versions
+ *   - Coverage: ~97% of browsers
+ *
+ * overflow-wrap: anywhere:
+ *   - Chrome: 80+ (2020)
+ *   - Firefox: 65+ (2019)
+ *   - Safari: 15.4+ (2022)
+ *   - Edge: 80+ (2020)
+ *   - Coverage: ~95% of browsers
+ *
+ * For older browsers, graceful degradation occurs with text wrapping normally.
+ */

@@ -141,6 +141,11 @@
   line-height: var(--md-sys-typescale-title-medium-line-height);
   color: var(--md-sys-color-on-surface);
   text-transform: capitalize;
+  /* Apply text truncation for long metric names */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .health-metric-date {
@@ -170,6 +175,9 @@
   border-radius: var(--md-sys-shape-medium);
   font-family: var(--md-sys-typescale-body-large-font);
   font-size: var(--md-sys-typescale-body-large-size);
+  /* Ensure proper text wrapping for long messages */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Reduced motion support */
