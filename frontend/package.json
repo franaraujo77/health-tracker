@@ -20,6 +20,7 @@
     "prebuild": "npm run tokens:check"
   },
   "dependencies": {
+    "@material/material-color-utilities": "^0.3.0",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@xstate/react": "^6.0.0",
