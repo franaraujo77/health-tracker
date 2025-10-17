@@ -7,6 +7,10 @@ import App from './App.tsx';
 import { startInspector } from './lib/xstate';
 import { queryClient } from './lib/react-query';
 import { AuthProvider } from './contexts/AuthContext';
+import { initializeTheme } from './styles/theme';
+
+// Initialize theme before React renders to prevent FOUC
+initializeTheme();
 
 // Initialize XState inspector in development mode
 startInspector();

@@ -27,6 +27,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Smooth theme transitions */
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+/* Apply smooth transitions to all elements using M3 color tokens */
+* {
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 a {
