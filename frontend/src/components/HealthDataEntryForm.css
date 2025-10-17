@@ -1,0 +1,218 @@
+/**
+ * Health Data Entry Form Styles
+ * Material Design 3 implementation
+ */
+
+.health-data-entry-form {
+  padding: var(--md-sys-spacing-5);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.health-data-entry-title {
+  font-family: var(--md-sys-typescale-headline-medium-font);
+  font-size: var(--md-sys-typescale-headline-medium-size);
+  font-weight: var(--md-sys-typescale-headline-medium-weight);
+  line-height: var(--md-sys-typescale-headline-medium-line-height);
+  color: var(--md-sys-color-on-surface);
+  margin: 0 0 var(--md-sys-spacing-5) 0;
+}
+
+/* Debug state display */
+.health-data-entry-debug {
+  padding: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-5);
+  background-color: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-small);
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.health-data-entry-debug strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+/* Error display */
+.health-data-entry-error {
+  padding: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-5);
+  background-color: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  border-radius: var(--md-sys-shape-small);
+  font-family: var(--md-sys-typescale-body-medium-font);
+}
+
+.health-data-entry-error strong {
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+/* Success display */
+.health-data-entry-success {
+  padding: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-5);
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-radius: var(--md-sys-shape-small);
+  font-family: var(--md-sys-typescale-body-medium-font);
+}
+
+.health-data-entry-success strong {
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+/* Form fields container */
+.health-data-entry-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-4);
+}
+
+/* Form field wrapper */
+.health-data-entry-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.health-data-entry-label {
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+  font-weight: var(--md-sys-typescale-body-large-weight);
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--md-sys-spacing-1);
+}
+
+/* M3 Text Field (Filled variant) */
+.health-data-entry-select,
+.health-data-entry-input {
+  width: 100%;
+  padding: var(--md-sys-spacing-2);
+  margin-top: var(--md-sys-spacing-1);
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+  color: var(--md-sys-color-on-surface);
+  background-color: var(--md-sys-color-surface-container-highest);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-text-field-outlined);
+  transition: all 0.2s ease-in-out;
+  min-height: 48px;
+}
+
+.health-data-entry-select:focus,
+.health-data-entry-input:focus {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -1px;
+  border-color: var(--md-sys-color-primary);
+}
+
+.health-data-entry-select:disabled,
+.health-data-entry-input:disabled {
+  background-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.04);
+  color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.38);
+  border-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.12);
+  cursor: not-allowed;
+}
+
+/* Action buttons container */
+.health-data-entry-actions {
+  margin-top: var(--md-sys-spacing-5);
+  display: flex;
+  gap: var(--md-sys-spacing-3);
+  justify-content: flex-end;
+}
+
+/* M3 Buttons */
+.health-data-entry-button {
+  position: relative;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
+  border: none;
+  border-radius: var(--md-sys-shape-full);
+  cursor: pointer;
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  min-height: 40px;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+/* State layer for buttons */
+.health-data-entry-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.health-data-entry-button:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+
+.health-data-entry-button:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.health-data-entry-button:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+
+/* Primary button (Filled) */
+.health-data-entry-button-primary {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.health-data-entry-button-primary::before {
+  background-color: var(--md-sys-color-on-primary);
+}
+
+/* Secondary button (Tonal) */
+.health-data-entry-button-secondary {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.health-data-entry-button-secondary::before {
+  background-color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Tertiary button (Outlined) */
+.health-data-entry-button-tertiary {
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.health-data-entry-button-tertiary::before {
+  background-color: var(--md-sys-color-primary);
+}
+
+/* Disabled state */
+.health-data-entry-button:disabled {
+  background-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.12);
+  color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.38);
+  cursor: not-allowed;
+  border: none;
+}
+
+.health-data-entry-button:disabled::before {
+  display: none;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .health-data-entry-select,
+  .health-data-entry-input,
+  .health-data-entry-button,
+  .health-data-entry-button::before {
+    transition: none;
+  }
+}

@@ -1,12 +1,14 @@
 import { useMachine } from '@xstate/react';
 import { healthDataEntryMachine } from '../machines/healthDataEntryMachine';
 import { inspector } from '../lib/xstate';
+import './HealthDataEntryForm.css';
 
 /**
  * Health Data Entry Form Component
  *
  * Demonstrates XState integration with React using the @xstate/react hook.
  * This component manages the health data entry workflow using a state machine.
+ * Material Design 3 implementation
  */
 export function HealthDataEntryForm() {
   const [state, send] = useMachine(healthDataEntryMachine, {
@@ -21,57 +23,34 @@ export function HealthDataEntryForm() {
   ];
 
   return (
-    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
-      <h2>Health Data Entry</h2>
+    <div className="health-data-entry-form">
+      <h2 className="health-data-entry-title">Health Data Entry</h2>
 
       {/* Debug: Show current state */}
-      <div
-        style={{
-          padding: '10px',
-          marginBottom: '20px',
-          backgroundColor: '#f0f0f0',
-          borderRadius: '4px',
-        }}
-      >
+      <div className="health-data-entry-debug">
         <strong>Current State:</strong> {state.value.toString()}
       </div>
 
       {/* Error Display */}
       {state.context.error && (
-        <div
-          style={{
-            padding: '10px',
-            marginBottom: '20px',
-            backgroundColor: '#ffebee',
-            color: '#c62828',
-            borderRadius: '4px',
-          }}
-        >
+        <div className="health-data-entry-error">
           <strong>Error:</strong> {state.context.error}
         </div>
       )}
 
       {/* Success Display */}
       {state.matches('success') && (
-        <div
-          style={{
-            padding: '10px',
-            marginBottom: '20px',
-            backgroundColor: '#e8f5e9',
-            color: '#2e7d32',
-            borderRadius: '4px',
-          }}
-        >
+        <div className="health-data-entry-success">
           <strong>Success!</strong> Health data recorded successfully.
         </div>
       )}
 
       {/* Form Fields */}
       {!state.matches('success') && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div className="health-data-entry-fields">
           {/* Metric Type Selection */}
-          <div>
-            <label htmlFor="metricType">
+          <div className="health-data-entry-field">
+            <label htmlFor="metricType" className="health-data-entry-label">
               <strong>Metric Type:</strong>
             </label>
             <select
@@ -88,7 +67,7 @@ export function HealthDataEntryForm() {
                 }
               }}
               disabled={state.matches('submitting')}
-              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+              className="health-data-entry-select"
             >
               <option value="">-- Select Metric --</option>
               {metricTypes.map((metric) => (
@@ -101,8 +80,8 @@ export function HealthDataEntryForm() {
 
           {/* Value Input */}
           {state.context.metricType && (
-            <div>
-              <label htmlFor="value">
+            <div className="health-data-entry-field">
+              <label htmlFor="value" className="health-data-entry-label">
                 <strong>Value ({state.context.unit}):</strong>
               </label>
               <input
@@ -112,7 +91,7 @@ export function HealthDataEntryForm() {
                 value={state.context.value}
                 onChange={(e) => send({ type: 'ENTER_VALUE', value: e.target.value })}
                 disabled={state.matches('submitting')}
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                className="health-data-entry-input"
                 placeholder="Enter value"
               />
             </div>
@@ -120,8 +99,8 @@ export function HealthDataEntryForm() {
 
           {/* Date Input */}
           {state.context.metricType && (
-            <div>
-              <label htmlFor="recordedAt">
+            <div className="health-data-entry-field">
+              <label htmlFor="recordedAt" className="health-data-entry-label">
                 <strong>Recorded At:</strong>
               </label>
               <input
@@ -135,7 +114,7 @@ export function HealthDataEntryForm() {
                   })
                 }
                 disabled={state.matches('submitting')}
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                className="health-data-entry-input"
               />
             </div>
           )}
@@ -143,25 +122,11 @@ export function HealthDataEntryForm() {
       )}
 
       {/* Action Buttons */}
-      <div
-        style={{
-          marginTop: '20px',
-          display: 'flex',
-          gap: '10px',
-          justifyContent: 'flex-end',
-        }}
-      >
+      <div className="health-data-entry-actions">
         {state.matches('success') && (
           <button
             onClick={() => send({ type: 'RESET' })}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#1976d2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="health-data-entry-button health-data-entry-button-primary"
           >
             Add Another
           </button>
@@ -171,27 +136,13 @@ export function HealthDataEntryForm() {
           <>
             <button
               onClick={() => send({ type: 'RETRY' })}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#f57c00',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
+              className="health-data-entry-button health-data-entry-button-secondary"
             >
               Retry
             </button>
             <button
               onClick={() => send({ type: 'RESET' })}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#757575',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
+              className="health-data-entry-button health-data-entry-button-tertiary"
             >
               Cancel
             </button>
@@ -202,28 +153,14 @@ export function HealthDataEntryForm() {
           <>
             <button
               onClick={() => send({ type: 'CANCEL' })}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#757575',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
+              className="health-data-entry-button health-data-entry-button-tertiary"
             >
               Cancel
             </button>
             <button
               onClick={() => send({ type: 'SUBMIT' })}
               disabled={state.matches('submitting')}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: state.matches('submitting') ? '#9e9e9e' : '#4caf50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: state.matches('submitting') ? 'not-allowed' : 'pointer',
-              }}
+              className="health-data-entry-button health-data-entry-button-primary"
             >
               {state.matches('submitting') ? 'Submitting...' : 'Submit'}
             </button>

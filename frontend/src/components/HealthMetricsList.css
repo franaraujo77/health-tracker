@@ -1,0 +1,181 @@
+/**
+ * Health Metrics List Styles
+ * Material Design 3 implementation
+ */
+
+.health-metrics-list {
+  padding: var(--md-sys-spacing-5);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.health-metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-sys-spacing-5);
+}
+
+.health-metrics-title {
+  font-family: var(--md-sys-typescale-headline-small-font);
+  font-size: var(--md-sys-typescale-headline-small-size);
+  font-weight: var(--md-sys-typescale-headline-small-weight);
+  line-height: var(--md-sys-typescale-headline-small-line-height);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+}
+
+/* Loading state */
+.health-metrics-loading {
+  padding: var(--md-sys-spacing-5);
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Error state */
+.health-metrics-error {
+  padding: var(--md-sys-spacing-4);
+  background-color: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  border-radius: var(--md-sys-shape-small);
+  margin: var(--md-sys-spacing-5);
+}
+
+.health-metrics-error strong {
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+.health-metrics-error-button {
+  margin-left: var(--md-sys-spacing-2);
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  cursor: pointer;
+  background-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  border: none;
+  border-radius: var(--md-sys-shape-full);
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  min-height: 40px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
+}
+
+/* Refresh button */
+.health-metrics-refresh-button {
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border: none;
+  border-radius: var(--md-sys-shape-full);
+  cursor: pointer;
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  min-height: 40px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* State layer for refresh button */
+.health-metrics-refresh-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--md-sys-color-on-primary);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.health-metrics-refresh-button:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+
+.health-metrics-refresh-button:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.health-metrics-refresh-button:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+
+/* Metrics container */
+.health-metrics-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-3);
+}
+
+/* Individual metric card */
+.health-metric-card {
+  padding: var(--md-sys-spacing-4);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-card);
+  background-color: var(--md-sys-color-surface-container);
+  box-shadow: var(--md-sys-elevation-1);
+  transition: all 0.2s ease-in-out;
+}
+
+.health-metric-card:hover {
+  box-shadow: var(--md-sys-elevation-2);
+  background-color: var(--md-sys-color-surface-container-high);
+}
+
+.health-metric-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--md-sys-spacing-2);
+}
+
+.health-metric-type {
+  font-family: var(--md-sys-typescale-title-medium-font);
+  font-size: var(--md-sys-typescale-title-medium-size);
+  font-weight: var(--md-sys-typescale-title-medium-weight);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  color: var(--md-sys-color-on-surface);
+  text-transform: capitalize;
+}
+
+.health-metric-date {
+  font-family: var(--md-sys-typescale-label-medium-font);
+  font-size: var(--md-sys-typescale-label-medium-size);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.health-metric-value {
+  font-family: var(--md-sys-typescale-headline-large-font);
+  font-size: var(--md-sys-typescale-headline-large-size);
+  font-weight: var(--md-sys-typescale-headline-large-weight);
+  color: var(--md-sys-color-primary);
+}
+
+.health-metric-unit {
+  font-size: var(--md-sys-typescale-body-large-size);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Empty state */
+.health-metrics-empty {
+  padding: var(--md-sys-spacing-10);
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  background-color: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-medium);
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .health-metric-card,
+  .health-metrics-refresh-button::before {
+    transition: none;
+  }
+}
