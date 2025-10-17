@@ -18,12 +18,15 @@
 :root {
   /* ═══════════════════════════════════════════════════════════
    * FONT FAMILIES
+   * Using Google Fonts (Roboto, Roboto Flex, Roboto Mono) loaded in index.html
+   * Fallback to system fonts for better compatibility and performance
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-font-family-brand: 'Roboto', system-ui, -apple-system,
-    'Segoe UI', sans-serif;
-  --md-sys-typescale-font-family-plain: system-ui, -apple-system, 'Segoe UI',
-    Helvetica, Arial, sans-serif;
-  --md-sys-typescale-font-family-code: 'Roboto Mono', 'Courier New', monospace;
+  --md-sys-typescale-font-family-brand: 'Roboto', 'Roboto Flex', system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
+  --md-sys-typescale-font-family-plain: 'Roboto', system-ui, -apple-system,
+    'Segoe UI', Helvetica, Arial, sans-serif;
+  --md-sys-typescale-font-family-code: 'Roboto Mono', 'Courier New', Consolas,
+    Monaco, monospace;
 
   /* ═══════════════════════════════════════════════════════════
    * DISPLAY LARGE
