@@ -7,8 +7,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Cross-Browser Compatibility - M3 Components', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to the application
-    await page.goto('/');
+    // Navigate to the showcase page (no auth required)
+    await page.goto('/?showcase=true');
   });
 
   test('should render HealthDataEntryForm correctly', async ({ page, browserName }) => {
@@ -170,7 +170,7 @@ test.describe('Cross-Browser Compatibility - M3 Components', () => {
     });
 
     // Navigate and interact with the page
-    await page.goto('/');
+    await page.goto('/?showcase=true');
     await page.waitForLoadState('networkidle');
 
     // Filter out known non-critical errors (like React DevTools in production)

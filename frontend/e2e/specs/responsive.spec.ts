@@ -31,8 +31,8 @@ test.describe('Responsive Design - Viewport Testing', () => {
       // Set viewport size
       await page.setViewportSize(viewport);
 
-      // Navigate to the application
-      await page.goto('/');
+      // Navigate to the showcase page (no auth required)
+      await page.goto('/?showcase=true');
       await page.waitForLoadState('networkidle');
 
       // Verify page loads
@@ -53,7 +53,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
   test('should have appropriate touch targets on mobile', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize(viewports['mobile-medium']);
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     // Check theme toggle button size
     const themeToggleButton = page.locator('.theme-toggle button').first();
@@ -83,7 +83,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
   test('should adapt typography for readability across viewports', async ({ page }) => {
     // Test small mobile viewport
     await page.setViewportSize(viewports['mobile-small']);
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     const heading = page.locator('h2').first();
     await expect(heading).toBeVisible();
@@ -110,7 +110,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
   });
 
   test('should maintain layout integrity on viewport resize', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     // Start with mobile
     await page.setViewportSize(viewports['mobile-medium']);
@@ -139,7 +139,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
   test('should have no horizontal scrollbar at standard viewports', async ({ page }) => {
     for (const [name, viewport] of Object.entries(viewports)) {
       await page.setViewportSize(viewport);
-      await page.goto('/');
+      await page.goto('/?showcase=true');
       await page.waitForLoadState('networkidle');
 
       // Check if horizontal scrollbar exists
@@ -160,7 +160,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
 
   test('should render images responsively', async ({ page }) => {
     await page.setViewportSize(viewports['mobile-medium']);
-    await page.goto('/');
+    await page.goto('/?showcase=true');
     await page.waitForLoadState('networkidle');
 
     // Check if any images are present and responsive
@@ -187,7 +187,7 @@ test.describe('Responsive Design - Viewport Testing', () => {
 test.describe('Responsive Design - Device-Specific Tests', () => {
   test('should work correctly on iPhone 13', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     await expect(page.locator('body')).toBeVisible();
     await expect(page.locator('.health-data-entry-form')).toBeVisible();
@@ -197,7 +197,7 @@ test.describe('Responsive Design - Device-Specific Tests', () => {
 
   test('should work correctly on iPad', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     await expect(page.locator('body')).toBeVisible();
     await expect(page.locator('.health-data-entry-form')).toBeVisible();
@@ -207,7 +207,7 @@ test.describe('Responsive Design - Device-Specific Tests', () => {
 
   test('should work correctly on desktop (1920x1080)', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.goto('/');
+    await page.goto('/?showcase=true');
 
     await expect(page.locator('body')).toBeVisible();
     await expect(page.locator('.health-data-entry-form')).toBeVisible();
