@@ -13,6 +13,8 @@
   border-radius: var(--md-sys-shape-full);
   border: 1px solid var(--md-sys-color-outline);
   overflow: hidden;
+  /* CSS Containment for performance isolation */
+  contain: layout style;
 }
 
 /* Individual toggle option */

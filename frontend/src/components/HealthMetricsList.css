@@ -7,6 +7,8 @@
   padding: var(--md-sys-spacing-5);
   max-width: 600px;
   margin: 0 auto;
+  /* CSS Containment for performance isolation */
+  contain: layout style paint;
 }
 
 .health-metrics-header {
