@@ -11,6 +11,7 @@
 // Re-export all types and color utilities
 export * from './types';
 export * from './theme';
+export * from './version';
 
 /**
  * Typography scale token names
