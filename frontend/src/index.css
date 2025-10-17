@@ -9,6 +9,11 @@
 @import './styles/tokens/shape.css';
 @import './styles/tokens/state-layers.css';
 
+/**
+ * Import Material Symbols icon font
+ */
+@import 'material-symbols/outlined.css';
+
 :root {
   /* Use M3 typography tokens for base font */
   font-family: var(--md-sys-typescale-body-medium-font);

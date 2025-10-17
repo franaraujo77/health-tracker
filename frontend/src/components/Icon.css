@@ -1,0 +1,69 @@
+/**
+ * Material Symbols Icon Styles
+ * Material Design 3 icon system
+ */
+
+/* Base icon class */
+.md-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  vertical-align: middle;
+
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  /* Inherit color from parent */
+  color: currentColor;
+
+  /* Prevent text selection and wrapping */
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+
+  /* Feature settings for variable font */
+  font-feature-settings: 'liga';
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .md-icon {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .md-icon {
+    font-weight: 500;
+  }
+}
+
+/* Common icon size utilities */
+.md-icon-small {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.md-icon-medium {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.md-icon-large {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.md-icon-xlarge {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}

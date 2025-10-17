@@ -8,6 +8,7 @@
  */
 
 import { useTheme, type ThemeMode } from '../contexts/ThemeContext';
+import { Icon } from './Icon';
 import './ThemeToggle.css';
 
 /**
@@ -60,15 +61,11 @@ export function ThemeToggle({
         aria-label={`Switch to ${appliedTheme === 'light' ? 'dark' : 'light'} theme`}
         title={`Switch to ${appliedTheme === 'light' ? 'dark' : 'light'} theme`}
       >
-        {appliedTheme === 'light' ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-        ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-          </svg>
-        )}
+        <Icon
+          name={appliedTheme === 'light' ? 'light_mode' : 'dark_mode'}
+          size={24}
+          aria-label={undefined} // Button already has aria-label
+        />
       </button>
     );
   }
@@ -82,9 +79,7 @@ export function ThemeToggle({
         aria-checked={mode === 'light'}
         aria-label="Light theme"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
+        <Icon name="light_mode" size={20} aria-label={undefined} />
         {showLabels && <span>Light</span>}
       </button>
 
@@ -95,9 +90,7 @@ export function ThemeToggle({
         aria-checked={mode === 'system'}
         aria-label={`System theme (currently ${isSystemDark ? 'dark' : 'light'})`}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+        <Icon name="computer" size={20} aria-label={undefined} />
         {showLabels && <span>Auto</span>}
       </button>
 
@@ -108,9 +101,7 @@ export function ThemeToggle({
         aria-checked={mode === 'dark'}
         aria-label="Dark theme"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-        </svg>
+        <Icon name="dark_mode" size={20} aria-label={undefined} />
         {showLabels && <span>Dark</span>}
       </button>
     </div>
