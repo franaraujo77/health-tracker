@@ -27,32 +27,32 @@
  * ═══════════════════════════════════════════════════════════ */
 
 .md-text-clamp-2 {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .md-text-clamp-3 {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .md-text-clamp-4 {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 4;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .md-text-clamp-5 {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 5;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -64,23 +64,19 @@
  * ═══════════════════════════════════════════════════════════ */
 
 .md-text-wrap {
-  overflow-wrap: break-word;
-  word-wrap: break-word; /* Legacy browsers */
-  word-break: break-word;
   hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 /* Conservative wrapping - only breaks at normal word boundaries */
 .md-text-wrap-conservative {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
   hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 /* Aggressive wrapping - breaks anywhere if needed */
 .md-text-wrap-aggressive {
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -99,16 +95,16 @@
 
 /* Card Title Pattern: Single line with ellipsis */
 .md-card-title {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 
 /* Card Description Pattern: 2-3 lines with ellipsis */
 .md-card-description {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,16 +112,16 @@
 
 /* List Item Title Pattern: Single line with ellipsis */
 .md-list-item-title {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 
 /* List Item Supporting Text Pattern: 2 lines with ellipsis */
 .md-list-item-supporting {
-  display: -webkit-box;
   -webkit-box-orient: vertical;
+  display: -webkit-box;
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,19 +129,18 @@
 
 /* Chip/Tag Text Pattern: Single line, no wrap */
 .md-chip-text {
-  white-space: nowrap;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  white-space: nowrap;
 }
 
 /* Dialog Title Pattern: Wraps but with max height */
 .md-dialog-title {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
   hyphens: auto;
   max-height: 3.6em; /* Approximately 3 lines */
   overflow: hidden;
+  overflow-wrap: break-word;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -166,8 +161,8 @@
 /* Optional: Add visual indicator that text is truncated */
 .md-text-truncated-indicator::after {
   content: '\2026'; /* Ellipsis character */
-  position: relative;
   left: -0.5em;
+  position: relative;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -177,32 +172,32 @@
 
 /* Truncate with title attribute support (for tooltips) */
 .md-text-truncate-with-tooltip {
+  cursor: help; /* Indicates more information available */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: help; /* Indicates more information available */
 }
 
 /* Long content with fade effect */
 .md-text-fade {
-  position: relative;
-  max-height: 6em; /* Approximately 4-5 lines */
+  max-height: var(--md-sys-spacing-24); /* Approximately 4-5 lines */
   overflow: hidden;
+  position: relative;
 }
 
 .md-text-fade::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2em;
   background: linear-gradient(
     to bottom,
     transparent,
     var(--md-sys-color-surface-container)
   );
+  bottom: 0;
+  content: '';
+  height: var(--md-sys-spacing-8);
+  left: 0;
   pointer-events: none;
+  position: absolute;
+  right: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════

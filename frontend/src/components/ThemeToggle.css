@@ -5,54 +5,52 @@
 
 /* Segmented button container */
 .theme-toggle {
-  display: inline-flex;
   align-items: center;
-  gap: 0;
-  padding: 0;
   background-color: var(--md-sys-color-surface-container-low);
-  border-radius: var(--md-sys-shape-full);
   border: 1px solid var(--md-sys-color-outline);
-  overflow: hidden;
+  border-radius: var(--md-sys-shape-full);
+
   /* CSS Containment for performance isolation */
   contain: layout style;
+  display: inline-flex;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
 }
 
 /* Individual toggle option */
 .theme-toggle-option {
-  position: relative;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--md-sys-spacing-2);
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
-  min-width: 48px;
-  min-height: 40px;
   background: transparent;
   border: none;
   color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  display: flex;
   font-family: var(--md-sys-typescale-label-large-font);
   font-size: var(--md-sys-typescale-label-large-size);
   font-weight: var(--md-sys-typescale-label-large-weight);
-  line-height: var(--md-sys-typescale-label-large-line-height);
+  gap: var(--md-sys-spacing-2);
+  justify-content: center;
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
-  cursor: pointer;
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  min-height: 40px;
+  min-width: 48px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease-in-out;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 /* State layer for interactions */
 .theme-toggle-option::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   background-color: var(--md-sys-color-on-surface);
+  content: '';
+  inset: 0;
   opacity: 0;
-  transition: opacity 0.2s ease-in-out;
   pointer-events: none;
+  position: absolute;
+  transition: opacity 0.2s ease-in-out;
 }
 
 /* Hover state */
@@ -89,8 +87,8 @@
 
 /* Disabled state */
 .theme-toggle-option:disabled {
-  opacity: var(--md-sys-state-disabled-content-opacity);
   cursor: not-allowed;
+  opacity: var(--md-sys-state-disabled-content-opacity);
 }
 
 .theme-toggle-option:disabled::before {
@@ -99,35 +97,32 @@
 
 /* Icon button variant */
 .theme-toggle-icon {
-  position: relative;
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  padding: 0;
   background: transparent;
   border: none;
   border-radius: var(--md-sys-shape-full);
   color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  height: var(--md-sys-spacing-12);
+  justify-content: center;
+  padding: 0;
+  position: relative;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-in-out;
+  width: var(--md-sys-spacing-12);
 }
 
 /* State layer for icon button */
 .theme-toggle-icon::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   background-color: var(--md-sys-color-on-surface-variant);
-  opacity: 0;
   border-radius: inherit;
-  transition: opacity 0.2s ease-in-out;
+  content: '';
+  inset: 0;
+  opacity: 0;
   pointer-events: none;
+  position: absolute;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .theme-toggle-icon:hover::before {
@@ -144,7 +139,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .theme-toggle-option {
     padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
   }
@@ -155,7 +150,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .theme-toggle {
     border-width: 2px;
   }

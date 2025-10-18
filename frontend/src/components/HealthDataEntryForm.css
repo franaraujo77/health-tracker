@@ -4,31 +4,31 @@
  */
 
 .health-data-entry-form {
-  padding: var(--md-sys-spacing-5);
-  max-width: 500px;
-  margin: 0 auto;
   /* CSS Containment for performance isolation */
   contain: layout style paint;
+  margin: 0 auto;
+  max-width: 500px;
+  padding: var(--md-sys-spacing-5);
 }
 
 .health-data-entry-title {
+  color: var(--md-sys-color-on-surface);
   font-family: var(--md-sys-typescale-headline-medium-font);
   font-size: var(--md-sys-typescale-headline-medium-size);
   font-weight: var(--md-sys-typescale-headline-medium-weight);
   line-height: var(--md-sys-typescale-headline-medium-line-height);
-  color: var(--md-sys-color-on-surface);
   margin: 0 0 var(--md-sys-spacing-5) 0;
 }
 
 /* Debug state display */
 .health-data-entry-debug {
-  padding: var(--md-sys-spacing-3);
-  margin-bottom: var(--md-sys-spacing-5);
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: var(--md-sys-shape-small);
+  color: var(--md-sys-color-on-surface-variant);
   font-family: var(--md-sys-typescale-body-medium-font);
   font-size: var(--md-sys-typescale-body-medium-size);
-  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: var(--md-sys-spacing-5);
+  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-debug strong {
@@ -38,15 +38,15 @@
 
 /* Error display */
 .health-data-entry-error {
-  padding: var(--md-sys-spacing-3);
-  margin-bottom: var(--md-sys-spacing-5);
   background-color: var(--md-sys-color-error-container);
-  color: var(--md-sys-color-on-error-container);
   border-radius: var(--md-sys-shape-small);
+  color: var(--md-sys-color-on-error-container);
   font-family: var(--md-sys-typescale-body-medium-font);
+  margin-bottom: var(--md-sys-spacing-5);
+
   /* Ensure error messages wrap properly */
   overflow-wrap: break-word;
-  word-wrap: break-word;
+  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-error strong {
@@ -55,15 +55,15 @@
 
 /* Success display */
 .health-data-entry-success {
-  padding: var(--md-sys-spacing-3);
-  margin-bottom: var(--md-sys-spacing-5);
   background-color: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
   border-radius: var(--md-sys-shape-small);
+  color: var(--md-sys-color-on-primary-container);
   font-family: var(--md-sys-typescale-body-medium-font);
+  margin-bottom: var(--md-sys-spacing-5);
+
   /* Ensure success messages wrap properly */
   overflow-wrap: break-word;
-  word-wrap: break-word;
+  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-success strong {
@@ -84,59 +84,57 @@
 }
 
 .health-data-entry-label {
+  color: var(--md-sys-color-on-surface);
   font-family: var(--md-sys-typescale-body-large-font);
   font-size: var(--md-sys-typescale-body-large-size);
   font-weight: var(--md-sys-typescale-body-large-weight);
-  color: var(--md-sys-color-on-surface);
   margin-bottom: var(--md-sys-spacing-1);
+
   /* Ensure labels wrap properly on narrow screens */
   overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 /* M3 Text Field (Filled variant) */
 .health-data-entry-select,
 .health-data-entry-input {
-  width: 100%;
-  padding: var(--md-sys-spacing-2);
-  margin-top: var(--md-sys-spacing-1);
-  font-family: var(--md-sys-typescale-body-large-font);
-  font-size: var(--md-sys-typescale-body-large-size);
-  color: var(--md-sys-color-on-surface);
   background-color: var(--md-sys-color-surface-container-highest);
   border: 1px solid var(--md-sys-color-outline);
   border-radius: var(--md-sys-shape-text-field-outlined);
-  transition: all 0.2s ease-in-out;
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+  margin-top: var(--md-sys-spacing-1);
   min-height: 48px;
+  padding: var(--md-sys-spacing-2);
+  transition: all 0.2s ease-in-out;
+  width: 100%;
 }
 
 .health-data-entry-select:focus,
 .health-data-entry-input:focus {
+  border-color: var(--md-sys-color-primary);
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: -1px;
-  border-color: var(--md-sys-color-primary);
 }
 
 .health-data-entry-select:disabled,
 .health-data-entry-input:disabled {
-  background-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.04);
-  color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.38);
-  border-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.12);
+  background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 4%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
   cursor: not-allowed;
 }
 
 /* Action buttons container */
 .health-data-entry-actions {
-  margin-top: var(--md-sys-spacing-5);
   display: flex;
   gap: var(--md-sys-spacing-3);
   justify-content: flex-end;
+  margin-top: var(--md-sys-spacing-5);
 }
 
 /* M3 Buttons */
 .health-data-entry-button {
-  position: relative;
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
   border: none;
   border-radius: var(--md-sys-shape-full);
   cursor: pointer;
@@ -144,22 +142,21 @@
   font-size: var(--md-sys-typescale-label-large-size);
   font-weight: var(--md-sys-typescale-label-large-weight);
   min-height: 40px;
-  transition: all 0.2s ease-in-out;
   overflow: hidden;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
+  position: relative;
+  transition: all 0.2s ease-in-out;
 }
 
 /* State layer for buttons */
 .health-data-entry-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
   border-radius: inherit;
+  content: '';
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .health-data-entry-button:hover::before {
@@ -198,8 +195,8 @@
 /* Tertiary button (Outlined) */
 .health-data-entry-button-tertiary {
   background-color: transparent;
-  color: var(--md-sys-color-primary);
   border: 1px solid var(--md-sys-color-outline);
+  color: var(--md-sys-color-primary);
 }
 
 .health-data-entry-button-tertiary::before {
@@ -208,10 +205,10 @@
 
 /* Disabled state */
 .health-data-entry-button:disabled {
-  background-color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.12);
-  color: rgba(var(--md-sys-color-on-surface-rgb, 0, 0, 0), 0.38);
-  cursor: not-allowed;
+  background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
   border: none;
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  cursor: not-allowed;
 }
 
 .health-data-entry-button:disabled::before {

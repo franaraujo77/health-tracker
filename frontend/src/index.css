@@ -1,42 +1,41 @@
 /**
  * Import Material Design 3 design tokens
  */
-@import './styles/tokens/m3-light.css';
-@import './styles/tokens/m3-dark.css';
-@import './styles/tokens/typography.css';
-@import './styles/tokens/spacing.css';
-@import './styles/tokens/elevation.css';
-@import './styles/tokens/shape.css';
-@import './styles/tokens/state-layers.css';
+@import url('./styles/tokens/m3-light.css');
+@import url('./styles/tokens/m3-dark.css');
+@import url('./styles/tokens/typography.css');
+@import url('./styles/tokens/spacing.css');
+@import url('./styles/tokens/elevation.css');
+@import url('./styles/tokens/shape.css');
+@import url('./styles/tokens/state-layers.css');
 
 /**
  * Import Material Design 3 utility classes
  */
-@import './styles/utilities/text-overflow.css';
+@import url('./styles/utilities/text-overflow.css');
 
 /**
  * Import Material Symbols icon font
  */
-@import 'material-symbols/outlined.css';
+@import url('material-symbols/outlined.css');
 
 :root {
-  /* Use M3 typography tokens for base font */
-  font-family: var(--md-sys-typescale-body-medium-font);
-  font-size: var(--md-sys-typescale-body-medium-size);
-  line-height: var(--md-sys-typescale-body-medium-line-height);
-  font-weight: var(--md-sys-typescale-body-medium-weight);
-  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
-
-  color-scheme: light dark;
+  background-color: var(--md-sys-color-background);
 
   /* Use M3 color tokens */
   color: var(--md-sys-color-on-background);
-  background-color: var(--md-sys-color-background);
+  color-scheme: light dark;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  /* Use M3 typography tokens for base font */
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  font-weight: var(--md-sys-typescale-body-medium-weight);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  text-rendering: optimizelegibility;
 
   /* Smooth theme transitions */
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
@@ -48,42 +47,45 @@
 }
 
 a {
-  font-weight: 500;
   color: var(--md-sys-color-primary);
+  font-weight: var(--md-sys-typescale-label-large-weight);
   text-decoration: inherit;
 }
+
 a:hover {
   opacity: 0.8;
 }
 
 body {
-  margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
+  margin: 0;
   min-height: 100vh;
+  min-width: 320px;
+  place-items: center;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: var(--md-sys-typescale-display-large-size);
+  line-height: var(--md-sys-typescale-display-large-line-height);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid var(--md-sys-color-outline);
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
   background-color: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 8px;
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
+  font-family: inherit;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
   transition: all 0.2s ease-in-out;
 }
+
 button:hover {
   background-color: var(--md-sys-color-surface-container-high);
 }
+
 button:focus,
 button:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
