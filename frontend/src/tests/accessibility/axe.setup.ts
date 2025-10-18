@@ -10,7 +10,7 @@
  */
 
 import { configureAxe } from 'jest-axe';
-import type { AxeResults, Result, Spec } from 'axe-core';
+import type { AxeResults, Result } from 'axe-core';
 
 /**
  * Configure axe-core with custom rules for M3 components
@@ -110,7 +110,7 @@ export const axeConfig = {
  * });
  * ```
  */
-export async function runAxe(container: HTMLElement, config?: Spec) {
+export async function runAxe(container: HTMLElement, config?: Parameters<typeof axe>[1]) {
   return await axe(container, config);
 }
 
