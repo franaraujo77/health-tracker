@@ -38,6 +38,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
+    "react-router-dom": "^7.9.4",
     "xstate": "^5.22.0"
   },
   "devDependencies": {

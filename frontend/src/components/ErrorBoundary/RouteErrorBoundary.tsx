@@ -1,4 +1,5 @@
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
+import { useNavigate } from 'react-router-dom';
 import './RouteErrorBoundary.css';
 
 interface RouteErrorBoundaryProps {
@@ -13,8 +14,10 @@ interface RouteErrorFallbackProps {
 }
 
 function RouteErrorFallback({ error, resetErrorBoundary, routeName }: RouteErrorFallbackProps) {
+  const navigate = useNavigate();
+
   const handleGoHome = () => {
-    window.location.href = '/';
+    navigate('/', { replace: true });
   };
 
   return (
@@ -59,10 +62,6 @@ export function RouteErrorBoundary({ routeName, children }: RouteErrorBoundaryPr
     <ReactErrorBoundary
       FallbackComponent={(props) => <RouteErrorFallback {...props} routeName={routeName} />}
       onError={handleError}
-      onReset={() => {
-        // Reset to a clean state for this route
-        window.location.reload();
-      }}
     >
       {children}
     </ReactErrorBoundary>

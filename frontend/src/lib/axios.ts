@@ -66,6 +66,18 @@ export const tokenStorage = {
 };
 
 /**
+ * Navigation callback for axios interceptors
+ * Since interceptors can't use React hooks, we provide a callback
+ * that the App component sets up with useNavigate()
+ */
+type NavigationCallback = (path: string, options?: { replace?: boolean; state?: unknown }) => void;
+let navigationCallback: NavigationCallback | null = null;
+
+export const setNavigationCallback = (callback: NavigationCallback) => {
+  navigationCallback = callback;
+};
+
+/**
  * Flag to prevent multiple simultaneous refresh requests
  */
 let isRefreshing = false;
@@ -191,7 +203,14 @@ apiClient.interceptors.response.use(
 
         // Refresh failed, clear tokens and redirect to login
         tokenStorage.clearTokens();
-        window.location.href = '/login';
+
+        // Use SPA navigation if available, fallback to window.location for safety
+        if (navigationCallback) {
+          navigationCallback('/login', { replace: true });
+        } else {
+          // Fallback for cases where navigation isn't initialized yet
+          window.location.href = '/login';
+        }
 
         return Promise.reject(refreshError);
       }
@@ -239,6 +258,13 @@ export const logout = async (): Promise<void> => {
   } finally {
     // Clear access token from memory
     tokenStorage.clearTokens();
-    window.location.href = '/login';
+
+    // Use SPA navigation if available, fallback to window.location for safety
+    if (navigationCallback) {
+      navigationCallback('/login', { replace: true });
+    } else {
+      // Fallback for cases where navigation isn't initialized yet
+      window.location.href = '/login';
+    }
   }
 };
