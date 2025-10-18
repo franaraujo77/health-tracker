@@ -9,6 +9,7 @@ import { startInspector } from './lib/xstate';
 import { queryClient } from './lib/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { initializeTheme } from './styles/theme';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Initialize theme before React renders to prevent FOUC
 initializeTheme();
@@ -22,15 +23,17 @@ const isShowcase = url.searchParams.get('showcase') === 'true';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      {isShowcase ? (
-        <ComponentShowcase />
-      ) : (
-        <AuthProvider>
-          <App />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </AuthProvider>
-      )}
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        {isShowcase ? (
+          <ComponentShowcase />
+        ) : (
+          <AuthProvider>
+            <App />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </AuthProvider>
+        )}
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>
 );
