@@ -1,0 +1,463 @@
+{
+  "$schema": "./schema.json",
+  "description": "Material Design 3 State Layer Tokens - Health Tracker. Defines opacity values for interactive states (hover, focus, pressed, dragged, disabled) applied as colored overlays on components.",
+  "stateOpacities": {
+    "hover": {
+      "value": 0.08,
+      "percentage": "8%",
+      "description": "Hover state - subtle feedback when pointer hovers over interactive element",
+      "usage": "Mouse hover, pen hover"
+    },
+    "focus": {
+      "value": 0.12,
+      "percentage": "12%",
+      "description": "Focus state - indicates element has keyboard focus",
+      "usage": "Keyboard navigation, accessibility focus indicators"
+    },
+    "pressed": {
+      "value": 0.12,
+      "percentage": "12%",
+      "description": "Pressed state - active press or click feedback",
+      "usage": "Mouse down, touch down, active state"
+    },
+    "dragged": {
+      "value": 0.16,
+      "percentage": "16%",
+      "description": "Dragged state - element being dragged or moved",
+      "usage": "Drag and drop operations, reordering"
+    },
+    "disabled": {
+      "content": {
+        "value": 0.38,
+        "percentage": "38%",
+        "description": "Disabled content opacity - text and icons in disabled state"
+      },
+      "container": {
+        "value": 0.12,
+        "percentage": "12%",
+        "description": "Disabled container opacity - background/borders in disabled state"
+      }
+    }
+  },
+  "colorRoles": {
+    "primary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Primary color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Primary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Primary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Primary color dragged overlay"
+      }
+    },
+    "onPrimary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-primary color hover overlay (light overlay on primary surface)"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-primary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-primary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-primary color dragged overlay"
+      }
+    },
+    "primaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Primary container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Primary container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Primary container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Primary container color dragged overlay"
+      }
+    },
+    "onPrimaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-primary-container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-primary-container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-primary-container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-primary-container color dragged overlay"
+      }
+    },
+    "secondary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Secondary color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Secondary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Secondary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Secondary color dragged overlay"
+      }
+    },
+    "onSecondary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-secondary color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-secondary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-secondary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-secondary color dragged overlay"
+      }
+    },
+    "secondaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Secondary container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Secondary container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Secondary container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Secondary container color dragged overlay"
+      }
+    },
+    "onSecondaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-secondary-container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-secondary-container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-secondary-container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-secondary-container color dragged overlay"
+      }
+    },
+    "tertiary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Tertiary color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Tertiary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Tertiary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Tertiary color dragged overlay"
+      }
+    },
+    "onTertiary": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-tertiary color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-tertiary color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-tertiary color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-tertiary color dragged overlay"
+      }
+    },
+    "tertiaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Tertiary container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Tertiary container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Tertiary container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Tertiary container color dragged overlay"
+      }
+    },
+    "onTertiaryContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-tertiary-container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-tertiary-container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-tertiary-container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-tertiary-container color dragged overlay"
+      }
+    },
+    "error": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Error color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Error color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Error color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Error color dragged overlay"
+      }
+    },
+    "onError": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-error color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-error color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-error color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-error color dragged overlay"
+      }
+    },
+    "errorContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Error container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Error container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Error container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Error container color dragged overlay"
+      }
+    },
+    "onErrorContainer": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-error-container color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-error-container color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-error-container color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-error-container color dragged overlay"
+      }
+    },
+    "surface": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Surface color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Surface color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Surface color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Surface color dragged overlay"
+      }
+    },
+    "onSurface": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-surface color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-surface color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-surface color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-surface color dragged overlay"
+      }
+    },
+    "onSurfaceVariant": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "On-surface-variant color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "On-surface-variant color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "On-surface-variant color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "On-surface-variant color dragged overlay"
+      }
+    },
+    "outline": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Outline color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Outline color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Outline color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Outline color dragged overlay"
+      }
+    },
+    "inverseSurface": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Inverse surface color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Inverse surface color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Inverse surface color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Inverse surface color dragged overlay"
+      }
+    },
+    "inverseOnSurface": {
+      "hover": {
+        "opacity": 0.08,
+        "description": "Inverse on-surface color hover overlay"
+      },
+      "focus": {
+        "opacity": 0.12,
+        "description": "Inverse on-surface color focus overlay"
+      },
+      "pressed": {
+        "opacity": 0.12,
+        "description": "Inverse on-surface color pressed overlay"
+      },
+      "dragged": {
+        "opacity": 0.16,
+        "description": "Inverse on-surface color dragged overlay"
+      }
+    }
+  },
+  "implementation": {
+    "methods": {
+      "pseudoElement": {
+        "description": "Use ::before or ::after pseudo-element with background-color and opacity",
+        "example": ".button::before { content: ''; position: absolute; inset: 0; background-color: var(--md-sys-color-primary); opacity: 0; } .button:hover::before { opacity: 0.08; }"
+      },
+      "rgba": {
+        "description": "Use rgba() with the state layer color and opacity value",
+        "example": ".button:hover { background-color: rgba(var(--md-sys-color-primary-rgb), 0.08); }"
+      },
+      "cssVariable": {
+        "description": "Use CSS custom property for state layer opacity",
+        "example": ".button { --state-layer-opacity: 0; } .button:hover { --state-layer-opacity: 0.08; } .button::before { opacity: var(--state-layer-opacity); }"
+      }
+    }
+  },
+  "notes": {
+    "stacking": "State layers stack - hover + pressed = 8% + 12% = 20% total opacity",
+    "transition": "State layer transitions should be quick: 100ms for hover, 150ms for pressed",
+    "accessibility": "Focus indicators must be visible (12% opacity minimum) and meet WCAG contrast requirements",
+    "disabled": "Disabled states use lower opacity for both content (38%) and container (12%)",
+    "darkTheme": "State layer opacities remain the same in dark theme - the base colors change instead"
+  }
+}

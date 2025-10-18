@@ -1,0 +1,164 @@
+{
+  "$schema": "./schema.json",
+  "description": "Material Design 3 Elevation Tokens - Health Tracker. Uses shadow + surface tint system for depth perception across light and dark themes.",
+  "elevationLevels": {
+    "0": {
+      "dp": 0,
+      "description": "No elevation - base surface level",
+      "light": {
+        "shadow": "none",
+        "tintOpacity": 0,
+        "zIndex": 0
+      },
+      "dark": {
+        "shadow": "none",
+        "tintOpacity": 0,
+        "zIndex": 0
+      },
+      "usage": "Base surface, no visual elevation needed"
+    },
+    "1": {
+      "dp": 1,
+      "description": "Minimal elevation - subtle lift",
+      "light": {
+        "keyShadow": "0px 1px 2px rgba(0, 0, 0, 0.3)",
+        "ambientShadow": "0px 1px 3px 1px rgba(0, 0, 0, 0.15)",
+        "shadow": "0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)",
+        "tintOpacity": 0.05,
+        "zIndex": 1
+      },
+      "dark": {
+        "keyShadow": "0px 1px 2px rgba(0, 0, 0, 0.5)",
+        "ambientShadow": "0px 1px 3px 1px rgba(0, 0, 0, 0.3)",
+        "shadow": "0px 1px 2px rgba(0, 0, 0, 0.5), 0px 1px 3px 1px rgba(0, 0, 0, 0.3)",
+        "tintOpacity": 0.08,
+        "zIndex": 1
+      },
+      "usage": "Search bars, input fields at rest"
+    },
+    "2": {
+      "dp": 3,
+      "description": "Low elevation - raised surface",
+      "light": {
+        "keyShadow": "0px 1px 2px rgba(0, 0, 0, 0.3)",
+        "ambientShadow": "0px 2px 6px 2px rgba(0, 0, 0, 0.15)",
+        "shadow": "0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)",
+        "tintOpacity": 0.08,
+        "zIndex": 2
+      },
+      "dark": {
+        "keyShadow": "0px 1px 2px rgba(0, 0, 0, 0.5)",
+        "ambientShadow": "0px 2px 6px 2px rgba(0, 0, 0, 0.3)",
+        "shadow": "0px 1px 2px rgba(0, 0, 0, 0.5), 0px 2px 6px 2px rgba(0, 0, 0, 0.3)",
+        "tintOpacity": 0.11,
+        "zIndex": 2
+      },
+      "usage": "Cards, raised buttons, switches, dropdown menus"
+    },
+    "3": {
+      "dp": 6,
+      "description": "Medium elevation - floating elements",
+      "light": {
+        "keyShadow": "0px 1px 3px rgba(0, 0, 0, 0.3)",
+        "ambientShadow": "0px 4px 8px 3px rgba(0, 0, 0, 0.15)",
+        "shadow": "0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15)",
+        "tintOpacity": 0.11,
+        "zIndex": 3
+      },
+      "dark": {
+        "keyShadow": "0px 1px 3px rgba(0, 0, 0, 0.5)",
+        "ambientShadow": "0px 4px 8px 3px rgba(0, 0, 0, 0.3)",
+        "shadow": "0px 1px 3px rgba(0, 0, 0, 0.5), 0px 4px 8px 3px rgba(0, 0, 0, 0.3)",
+        "tintOpacity": 0.14,
+        "zIndex": 3
+      },
+      "usage": "FAB (resting state), snackbars, tooltips"
+    },
+    "4": {
+      "dp": 8,
+      "description": "High elevation - prominent surfaces",
+      "light": {
+        "keyShadow": "0px 2px 3px rgba(0, 0, 0, 0.3)",
+        "ambientShadow": "0px 6px 10px 4px rgba(0, 0, 0, 0.15)",
+        "shadow": "0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15)",
+        "tintOpacity": 0.14,
+        "zIndex": 4
+      },
+      "dark": {
+        "keyShadow": "0px 2px 3px rgba(0, 0, 0, 0.5)",
+        "ambientShadow": "0px 6px 10px 4px rgba(0, 0, 0, 0.3)",
+        "shadow": "0px 2px 3px rgba(0, 0, 0, 0.5), 0px 6px 10px 4px rgba(0, 0, 0, 0.3)",
+        "tintOpacity": 0.17,
+        "zIndex": 4
+      },
+      "usage": "Navigation drawer, app bar, bottom navigation"
+    },
+    "5": {
+      "dp": 12,
+      "description": "Maximum elevation - modals and overlays",
+      "light": {
+        "keyShadow": "0px 4px 4px rgba(0, 0, 0, 0.3)",
+        "ambientShadow": "0px 8px 12px 6px rgba(0, 0, 0, 0.15)",
+        "shadow": "0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15)",
+        "tintOpacity": 0.17,
+        "zIndex": 5
+      },
+      "dark": {
+        "keyShadow": "0px 4px 4px rgba(0, 0, 0, 0.5)",
+        "ambientShadow": "0px 8px 12px 6px rgba(0, 0, 0, 0.3)",
+        "shadow": "0px 4px 4px rgba(0, 0, 0, 0.5), 0px 8px 12px 6px rgba(0, 0, 0, 0.3)",
+        "tintOpacity": 0.2,
+        "zIndex": 5
+      },
+      "usage": "Modal dialogs, date pickers, bottom sheets"
+    }
+  },
+  "components": {
+    "card": {
+      "elevation": 2,
+      "elevationHover": 3,
+      "description": "Cards use level 2 elevation, lift to level 3 on hover"
+    },
+    "fab": {
+      "elevation": 3,
+      "elevationHover": 4,
+      "elevationPressed": 3,
+      "description": "Floating Action Button elevations for different states"
+    },
+    "dialog": {
+      "elevation": 5,
+      "description": "Dialogs use maximum elevation to appear above other content"
+    },
+    "appBar": {
+      "elevation": 0,
+      "elevationScrolled": 4,
+      "description": "App bar elevates when page scrolls"
+    },
+    "navigationDrawer": {
+      "elevation": 4,
+      "description": "Navigation drawer uses prominent elevation"
+    },
+    "bottomSheet": {
+      "elevation": 5,
+      "description": "Bottom sheets use maximum elevation"
+    },
+    "menu": {
+      "elevation": 2,
+      "description": "Dropdown menus and popups"
+    },
+    "snackbar": {
+      "elevation": 3,
+      "description": "Snackbars float above content"
+    },
+    "tooltip": {
+      "elevation": 3,
+      "description": "Tooltips float above target element"
+    }
+  },
+  "notes": {
+    "shadowComposition": "M3 uses two-layer shadows: key shadow (directional) + ambient shadow (soft diffusion)",
+    "tintBehavior": "Surface tint opacity increases with elevation level. Dark theme uses stronger tints since shadows are less visible.",
+    "tintColor": "Tint uses primary color to create cohesive brand presence",
+    "zIndexRange": "Z-index values 0-5 match elevation levels for predictable stacking"
+  }
+}

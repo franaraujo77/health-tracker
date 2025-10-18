@@ -1,0 +1,285 @@
+{
+  "$schema": "./schema.json",
+  "description": "Material Design 3 Spacing Tokens - Health Tracker. Follows 8px baseline grid system for consistent layout and spacing.",
+  "baseUnit": "8px",
+  "scale": {
+    "0": {
+      "value": "0px",
+      "units": 0,
+      "description": "No spacing - for flush layouts and reset spacing"
+    },
+    "1": {
+      "value": "4px",
+      "units": 0.5,
+      "description": "Extra small spacing - tight gaps, minimal padding"
+    },
+    "2": {
+      "value": "8px",
+      "units": 1,
+      "description": "Small spacing - compact UI, icon gaps"
+    },
+    "3": {
+      "value": "12px",
+      "units": 1.5,
+      "description": "Small-medium spacing - button padding, chip gaps"
+    },
+    "4": {
+      "value": "16px",
+      "units": 2,
+      "description": "Medium spacing - standard padding, comfortable gaps (most common)"
+    },
+    "5": {
+      "value": "20px",
+      "units": 2.5,
+      "description": "Medium-large spacing - card padding, section gaps"
+    },
+    "6": {
+      "value": "24px",
+      "units": 3,
+      "description": "Large spacing - generous padding, visual breathing room"
+    },
+    "8": {
+      "value": "32px",
+      "units": 4,
+      "description": "Extra large spacing - section separators, modal padding"
+    },
+    "10": {
+      "value": "40px",
+      "units": 5,
+      "description": "2X large spacing - major section gaps"
+    },
+    "12": {
+      "value": "48px",
+      "units": 6,
+      "description": "3X large spacing - hero sections, page-level gaps"
+    },
+    "16": {
+      "value": "64px",
+      "units": 8,
+      "description": "4X large spacing - dramatic separation"
+    },
+    "20": {
+      "value": "80px",
+      "units": 10,
+      "description": "5X large spacing - landing page sections"
+    },
+    "24": {
+      "value": "96px",
+      "units": 12,
+      "description": "6X large spacing - maximum separation"
+    }
+  },
+  "component": {
+    "button": {
+      "paddingX": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Horizontal padding for standard buttons"
+      },
+      "paddingY": {
+        "value": "12px",
+        "scale": "3",
+        "description": "Vertical padding for standard buttons"
+      },
+      "gap": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Gap between button icon and text"
+      },
+      "small": {
+        "paddingX": {
+          "value": "16px",
+          "scale": "4",
+          "description": "Horizontal padding for small buttons"
+        },
+        "paddingY": {
+          "value": "8px",
+          "scale": "2",
+          "description": "Vertical padding for small buttons"
+        }
+      },
+      "large": {
+        "paddingX": {
+          "value": "32px",
+          "scale": "8",
+          "description": "Horizontal padding for large buttons"
+        },
+        "paddingY": {
+          "value": "16px",
+          "scale": "4",
+          "description": "Vertical padding for large buttons"
+        }
+      }
+    },
+    "card": {
+      "padding": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Standard card padding"
+      },
+      "paddingLarge": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Large card padding for featured content"
+      },
+      "gap": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Gap between card elements"
+      },
+      "gapSmall": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Tight gap between related card elements"
+      }
+    },
+    "dialog": {
+      "padding": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Dialog content padding"
+      },
+      "titleMargin": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Margin below dialog title"
+      },
+      "actionsGap": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Gap between dialog action buttons"
+      }
+    },
+    "list": {
+      "itemPadding": {
+        "value": "12px",
+        "scale": "3",
+        "description": "Padding for list items"
+      },
+      "itemGap": {
+        "value": "4px",
+        "scale": "1",
+        "description": "Gap between list items"
+      },
+      "sectionGap": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Gap between list sections"
+      }
+    },
+    "form": {
+      "fieldGap": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Gap between form fields"
+      },
+      "labelMargin": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Margin below form labels"
+      },
+      "sectionGap": {
+        "value": "32px",
+        "scale": "8",
+        "description": "Gap between form sections"
+      },
+      "inputPadding": {
+        "value": "12px",
+        "scale": "3",
+        "description": "Padding inside input fields"
+      }
+    },
+    "chip": {
+      "paddingX": {
+        "value": "12px",
+        "scale": "3",
+        "description": "Horizontal padding for chips"
+      },
+      "paddingY": {
+        "value": "6px",
+        "scale": "1.5",
+        "description": "Vertical padding for chips (not on standard scale)"
+      },
+      "gap": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Gap between chips in a group"
+      },
+      "iconGap": {
+        "value": "4px",
+        "scale": "1",
+        "description": "Gap between chip icon and text"
+      }
+    },
+    "nav": {
+      "itemPadding": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Padding for navigation items"
+      },
+      "itemGap": {
+        "value": "4px",
+        "scale": "1",
+        "description": "Gap between navigation items"
+      },
+      "sectionGap": {
+        "value": "32px",
+        "scale": "8",
+        "description": "Gap between navigation sections"
+      }
+    },
+    "page": {
+      "paddingX": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Horizontal page padding (mobile)"
+      },
+      "paddingY": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Vertical page padding"
+      },
+      "sectionGap": {
+        "value": "48px",
+        "scale": "12",
+        "description": "Gap between major page sections"
+      },
+      "maxWidth": {
+        "value": "1200px",
+        "description": "Maximum page content width"
+      }
+    },
+    "grid": {
+      "gap": {
+        "value": "16px",
+        "scale": "4",
+        "description": "Standard grid gap"
+      },
+      "gapSmall": {
+        "value": "8px",
+        "scale": "2",
+        "description": "Compact grid gap"
+      },
+      "gapLarge": {
+        "value": "24px",
+        "scale": "6",
+        "description": "Generous grid gap"
+      }
+    }
+  },
+  "responsive": {
+    "description": "Responsive spacing adjustments for different viewport sizes",
+    "mobile": {
+      "multiplier": 1.0,
+      "description": "Base spacing for mobile devices (< 768px)"
+    },
+    "tablet": {
+      "multiplier": 1.0,
+      "description": "Spacing for tablets (768px - 1024px)"
+    },
+    "desktop": {
+      "multiplier": 1.0,
+      "description": "Spacing for desktops (> 1024px)"
+    }
+  }
+}

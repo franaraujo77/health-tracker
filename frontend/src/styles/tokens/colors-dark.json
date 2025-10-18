@@ -1,0 +1,152 @@
+{
+  "$schema": "./schema.json",
+  "theme": "dark",
+  "seedColor": "#4CAF50",
+  "description": "Material Design 3 Dark Theme - Health Tracker. Generated with seed color #4CAF50 (green, representing health and wellness).",
+  "colors": {
+    "primary": {
+      "value": "#AED581",
+      "description": "Primary brand color - used for key components like FABs, prominent buttons, and active states"
+    },
+    "onPrimary": {
+      "value": "#1B5E20",
+      "description": "Text/icons on primary color"
+    },
+    "primaryContainer": {
+      "value": "#2E7D32",
+      "description": "Standout fill color for key components - less emphasis than primary"
+    },
+    "onPrimaryContainer": {
+      "value": "#C8E6C9",
+      "description": "Text/icons on primary container"
+    },
+    "secondary": {
+      "value": "#B8CCB9",
+      "description": "Secondary color for less prominent components"
+    },
+    "onSecondary": {
+      "value": "#243427",
+      "description": "Text/icons on secondary color"
+    },
+    "secondaryContainer": {
+      "value": "#3A4B3D",
+      "description": "Less prominent fill color for components"
+    },
+    "onSecondaryContainer": {
+      "value": "#D4E8D5",
+      "description": "Text/icons on secondary container"
+    },
+    "tertiary": {
+      "value": "#A1CDED",
+      "description": "Tertiary color for contrasting accents"
+    },
+    "onTertiary": {
+      "value": "#00344E",
+      "description": "Text/icons on tertiary color"
+    },
+    "tertiaryContainer": {
+      "value": "#1F4B66",
+      "description": "Contrasting container color"
+    },
+    "onTertiaryContainer": {
+      "value": "#C2E7FF",
+      "description": "Text/icons on tertiary container"
+    },
+    "error": {
+      "value": "#FFB4AB",
+      "description": "Error color for errors and critical states"
+    },
+    "onError": {
+      "value": "#690005",
+      "description": "Text/icons on error color"
+    },
+    "errorContainer": {
+      "value": "#93000A",
+      "description": "Container color for error states"
+    },
+    "onErrorContainer": {
+      "value": "#FFDAD6",
+      "description": "Text/icons on error container"
+    },
+    "background": {
+      "value": "#101410",
+      "description": "Background color for the app"
+    },
+    "onBackground": {
+      "value": "#E0E4DF",
+      "description": "Text/icons on background"
+    },
+    "surface": {
+      "value": "#101410",
+      "description": "Surface color for components"
+    },
+    "onSurface": {
+      "value": "#E0E4DF",
+      "description": "Text/icons on surface"
+    },
+    "surfaceVariant": {
+      "value": "#414941",
+      "description": "Alternative surface color for subtle contrast"
+    },
+    "onSurfaceVariant": {
+      "value": "#C1C9BF",
+      "description": "Text/icons on surface variant"
+    },
+    "surfaceDim": {
+      "value": "#101410",
+      "description": "Dimmed surface color"
+    },
+    "surfaceBright": {
+      "value": "#363A36",
+      "description": "Bright surface color"
+    },
+    "surfaceContainerLowest": {
+      "value": "#0B0F0B",
+      "description": "Lowest elevation surface container"
+    },
+    "surfaceContainerLow": {
+      "value": "#181D18",
+      "description": "Low elevation surface container"
+    },
+    "surfaceContainer": {
+      "value": "#1C211C",
+      "description": "Default surface container"
+    },
+    "surfaceContainerHigh": {
+      "value": "#272B27",
+      "description": "High elevation surface container"
+    },
+    "surfaceContainerHighest": {
+      "value": "#313631",
+      "description": "Highest elevation surface container"
+    },
+    "outline": {
+      "value": "#8B9389",
+      "description": "Subtle outline color for borders"
+    },
+    "outlineVariant": {
+      "value": "#414941",
+      "description": "Variant outline for less emphasis"
+    },
+    "inverseSurface": {
+      "value": "#E0E4DF",
+      "description": "Inverse surface color for snackbars"
+    },
+    "inverseOnSurface": {
+      "value": "#2D322D",
+      "description": "Text/icons on inverse surface"
+    },
+    "inversePrimary": {
+      "value": "#2E7D32",
+      "description": "Inverse primary color"
+    },
+    "scrim": {
+      "value": "#000000",
+      "description": "Scrim color for modal overlays"
+    },
+    "shadow": {
+      "value": "#000000",
+      "description": "Shadow color for elevation"
+    }
+  }
+}

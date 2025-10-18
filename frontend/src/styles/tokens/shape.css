@@ -1,0 +1,336 @@
+/**
+ * Material Design 3 - Shape Tokens
+ * Health Tracker Application
+ *
+ * M3 Shape System:
+ *   - 7 shape scale values (none, extra-small, small, medium, large, extra-large, full)
+ *   - Component-specific shape mappings
+ *   - Asymmetric corner patterns (top-only, bottom-only, left-only, right-only)
+ *   - Full rounding for pills (9999px) and circles (50%)
+ *
+ * Generated: 2025-10-16
+ * @see https://m3.material.io/styles/shape/overview
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════
+   * SHAPE SCALE - Base corner radius values
+   * ═══════════════════════════════════════════════════════════ */
+
+  /* None - 0px */
+  --md-sys-shape-none: 0px;
+
+  /* Extra Small - 4px */
+  --md-sys-shape-extra-small: 4px;
+
+  /* Small - 8px */
+  --md-sys-shape-small: 8px;
+
+  /* Medium - 12px */
+  --md-sys-shape-medium: 12px;
+
+  /* Large - 16px */
+  --md-sys-shape-large: 16px;
+
+  /* Extra Large - 28px */
+  --md-sys-shape-extra-large: 28px;
+
+  /* Full - 9999px (pill shape) or 50% (perfect circle) */
+  --md-sys-shape-full: 9999px;
+  --md-sys-shape-circle: 50%;
+
+  /* ═══════════════════════════════════════════════════════════
+   * COMPONENT-SPECIFIC SHAPES
+   * ═══════════════════════════════════════════════════════════ */
+
+  /* Button */
+  --md-sys-shape-button: var(--md-sys-shape-full);
+  --md-sys-shape-button-icon: var(--md-sys-shape-circle);
+  --md-sys-shape-button-extended: var(--md-sys-shape-large);
+
+  /* Card */
+  --md-sys-shape-card: var(--md-sys-shape-medium);
+  --md-sys-shape-card-large: var(--md-sys-shape-large);
+
+  /* Chip */
+  --md-sys-shape-chip: var(--md-sys-shape-small);
+
+  /* Dialog */
+  --md-sys-shape-dialog: var(--md-sys-shape-extra-large);
+  --md-sys-shape-dialog-fullscreen: var(--md-sys-shape-none);
+
+  /* FAB (Floating Action Button) */
+  --md-sys-shape-fab-small: var(--md-sys-shape-medium);
+  --md-sys-shape-fab: var(--md-sys-shape-large);
+  --md-sys-shape-fab-large: var(--md-sys-shape-extra-large);
+  --md-sys-shape-fab-extended: var(--md-sys-shape-large);
+
+  /* Text Field */
+  --md-sys-shape-text-field-filled: var(--md-sys-shape-extra-small) var(--md-sys-shape-extra-small) 0 0;
+  --md-sys-shape-text-field-outlined: var(--md-sys-shape-extra-small);
+
+  /* Navigation Drawer */
+  --md-sys-shape-nav-drawer: 0 var(--md-sys-shape-large) var(--md-sys-shape-large) 0;
+  --md-sys-shape-nav-drawer-modal: var(--md-sys-shape-large);
+
+  /* Bottom Sheet */
+  --md-sys-shape-bottom-sheet: var(--md-sys-shape-extra-large) var(--md-sys-shape-extra-large) 0 0;
+
+  /* Menu */
+  --md-sys-shape-menu: var(--md-sys-shape-extra-small);
+
+  /* Snackbar */
+  --md-sys-shape-snackbar: var(--md-sys-shape-extra-small);
+
+  /* Tooltip */
+  --md-sys-shape-tooltip: var(--md-sys-shape-extra-small);
+
+  /* Badge */
+  --md-sys-shape-badge: var(--md-sys-shape-full);
+
+  /* Avatar */
+  --md-sys-shape-avatar: var(--md-sys-shape-circle);
+
+  /* Switch */
+  --md-sys-shape-switch-track: var(--md-sys-shape-full);
+  --md-sys-shape-switch-thumb: var(--md-sys-shape-circle);
+
+  /* Slider */
+  --md-sys-shape-slider-track: var(--md-sys-shape-full);
+  --md-sys-shape-slider-thumb: var(--md-sys-shape-circle);
+
+  /* Progress Indicator */
+  --md-sys-shape-progress-linear: var(--md-sys-shape-full);
+  --md-sys-shape-progress-circular: var(--md-sys-shape-circle);
+
+  /* ═══════════════════════════════════════════════════════════
+   * ASYMMETRIC CORNER PATTERNS
+   * Top-only, bottom-only, left-only, right-only rounding
+   * ═══════════════════════════════════════════════════════════ */
+
+  /* Top Only */
+  --md-sys-shape-top-extra-small: 4px 4px 0 0;
+  --md-sys-shape-top-small: 8px 8px 0 0;
+  --md-sys-shape-top-medium: 12px 12px 0 0;
+  --md-sys-shape-top-large: 16px 16px 0 0;
+  --md-sys-shape-top-extra-large: 28px 28px 0 0;
+
+  /* Bottom Only */
+  --md-sys-shape-bottom-extra-small: 0 0 4px 4px;
+  --md-sys-shape-bottom-small: 0 0 8px 8px;
+  --md-sys-shape-bottom-medium: 0 0 12px 12px;
+  --md-sys-shape-bottom-large: 0 0 16px 16px;
+  --md-sys-shape-bottom-extra-large: 0 0 28px 28px;
+
+  /* Left Only */
+  --md-sys-shape-left-extra-small: 4px 0 0 4px;
+  --md-sys-shape-left-small: 8px 0 0 8px;
+  --md-sys-shape-left-medium: 12px 0 0 12px;
+  --md-sys-shape-left-large: 16px 0 0 16px;
+  --md-sys-shape-left-extra-large: 28px 0 0 28px;
+
+  /* Right Only */
+  --md-sys-shape-right-extra-small: 0 4px 4px 0;
+  --md-sys-shape-right-small: 0 8px 8px 0;
+  --md-sys-shape-right-medium: 0 12px 12px 0;
+  --md-sys-shape-right-large: 0 16px 16px 0;
+  --md-sys-shape-right-extra-large: 0 28px 28px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * UTILITY CLASSES
+ * Apply shape with border-radius only
+ * ═══════════════════════════════════════════════════════════ */
+
+.shape-none {
+  border-radius: var(--md-sys-shape-none);
+}
+
+.shape-extra-small {
+  border-radius: var(--md-sys-shape-extra-small);
+}
+
+.shape-small {
+  border-radius: var(--md-sys-shape-small);
+}
+
+.shape-medium {
+  border-radius: var(--md-sys-shape-medium);
+}
+
+.shape-large {
+  border-radius: var(--md-sys-shape-large);
+}
+
+.shape-extra-large {
+  border-radius: var(--md-sys-shape-extra-large);
+}
+
+.shape-full {
+  border-radius: var(--md-sys-shape-full);
+}
+
+.shape-circle {
+  border-radius: var(--md-sys-shape-circle);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * ASYMMETRIC UTILITY CLASSES
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Top Only */
+.shape-top-extra-small {
+  border-radius: var(--md-sys-shape-top-extra-small);
+}
+
+.shape-top-small {
+  border-radius: var(--md-sys-shape-top-small);
+}
+
+.shape-top-medium {
+  border-radius: var(--md-sys-shape-top-medium);
+}
+
+.shape-top-large {
+  border-radius: var(--md-sys-shape-top-large);
+}
+
+.shape-top-extra-large {
+  border-radius: var(--md-sys-shape-top-extra-large);
+}
+
+/* Bottom Only */
+.shape-bottom-extra-small {
+  border-radius: var(--md-sys-shape-bottom-extra-small);
+}
+
+.shape-bottom-small {
+  border-radius: var(--md-sys-shape-bottom-small);
+}
+
+.shape-bottom-medium {
+  border-radius: var(--md-sys-shape-bottom-medium);
+}
+
+.shape-bottom-large {
+  border-radius: var(--md-sys-shape-bottom-large);
+}
+
+.shape-bottom-extra-large {
+  border-radius: var(--md-sys-shape-bottom-extra-large);
+}
+
+/* Left Only */
+.shape-left-extra-small {
+  border-radius: var(--md-sys-shape-left-extra-small);
+}
+
+.shape-left-small {
+  border-radius: var(--md-sys-shape-left-small);
+}
+
+.shape-left-medium {
+  border-radius: var(--md-sys-shape-left-medium);
+}
+
+.shape-left-large {
+  border-radius: var(--md-sys-shape-left-large);
+}
+
+.shape-left-extra-large {
+  border-radius: var(--md-sys-shape-left-extra-large);
+}
+
+/* Right Only */
+.shape-right-extra-small {
+  border-radius: var(--md-sys-shape-right-extra-small);
+}
+
+.shape-right-small {
+  border-radius: var(--md-sys-shape-right-small);
+}
+
+.shape-right-medium {
+  border-radius: var(--md-sys-shape-right-medium);
+}
+
+.shape-right-large {
+  border-radius: var(--md-sys-shape-right-large);
+}
+
+.shape-right-extra-large {
+  border-radius: var(--md-sys-shape-right-extra-large);
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * COMPONENT SHAPE CLASSES
+ * Pre-configured shapes for common components
+ * ═══════════════════════════════════════════════════════════ */
+
+.shape-button {
+  border-radius: var(--md-sys-shape-button);
+}
+
+.shape-button-icon {
+  border-radius: var(--md-sys-shape-button-icon);
+}
+
+.shape-card {
+  border-radius: var(--md-sys-shape-card);
+}
+
+.shape-card-large {
+  border-radius: var(--md-sys-shape-card-large);
+}
+
+.shape-chip {
+  border-radius: var(--md-sys-shape-chip);
+}
+
+.shape-dialog {
+  border-radius: var(--md-sys-shape-dialog);
+}
+
+.shape-fab {
+  border-radius: var(--md-sys-shape-fab);
+}
+
+.shape-fab-small {
+  border-radius: var(--md-sys-shape-fab-small);
+}
+
+.shape-fab-large {
+  border-radius: var(--md-sys-shape-fab-large);
+}
+
+.shape-text-field-filled {
+  border-radius: var(--md-sys-shape-text-field-filled);
+}
+
+.shape-text-field-outlined {
+  border-radius: var(--md-sys-shape-text-field-outlined);
+}
+
+.shape-bottom-sheet {
+  border-radius: var(--md-sys-shape-bottom-sheet);
+}
+
+.shape-menu {
+  border-radius: var(--md-sys-shape-menu);
+}
+
+.shape-snackbar {
+  border-radius: var(--md-sys-shape-snackbar);
+}
+
+.shape-tooltip {
+  border-radius: var(--md-sys-shape-tooltip);
+}
+
+.shape-badge {
+  border-radius: var(--md-sys-shape-badge);
+}
+
+.shape-avatar {
+  border-radius: var(--md-sys-shape-avatar);
+}

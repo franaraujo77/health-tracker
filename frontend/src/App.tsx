@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { HealthDataEntryForm } from './components/HealthDataEntryForm';
 import { HealthMetricsList } from './components/HealthMetricsList';
+import { ThemeToggle } from './components/ThemeToggle';
 
 function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
@@ -41,20 +42,23 @@ function App() {
           <h1 style={{ margin: 0 }}>Health Tracker</h1>
           <p style={{ margin: '5px 0 0 0', color: '#666' }}>Welcome, {user?.name || user?.email}</p>
         </div>
-        <button
-          onClick={logout}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#f44336',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          Logout
-        </button>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <ThemeToggle variant="icon-button" />
+          <button
+            onClick={logout}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#f44336',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: '20px' }}>

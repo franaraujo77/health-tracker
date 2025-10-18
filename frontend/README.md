@@ -1,15 +1,49 @@
-# React + TypeScript + Vite
+# Health Tracker Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript 5.8 + Vite 7 frontend with Material Design 3 design tokens.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Latest React with improved performance
+- **TypeScript 5.8** - Type-safe development
+- **Vite 7** - Fast HMR and optimized builds
+- **Material Design 3** - Modern design system with design tokens
+- **TanStack Query** - Server state management
+- **XState** - State machines for complex flows
+- **Vitest** - Fast unit testing
 
-## React Compiler
+## Design Tokens
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The frontend uses a comprehensive Material Design 3 design token system for consistent, themeable styling. **374+ tokens** across 6 categories (colors, typography, spacing, elevation, shapes, state layers).
+
+### Quick Start
+
+```tsx
+import { tokens, components } from '@/styles/tokens';
+
+// Component shortcuts (fastest)
+const buttonStyle = {
+  borderRadius: components.button.shape,
+  padding: `${components.button.paddingY} ${components.button.paddingX}`,
+};
+
+// Type-safe accessors
+const cardStyle = {
+  backgroundColor: tokens.color.get('surface'),
+  borderRadius: tokens.shape.medium,
+  padding: tokens.spacing.get(4),
+  boxShadow: tokens.elevation.shadow(2),
+};
+```
+
+### Documentation
+
+See [Design Tokens Documentation](../docs/README.md#design-tokens) for:
+
+- [Complete Overview](../docs/design-tokens.md)
+- [Quick Reference](../docs/token-quick-reference.md)
+- [Usage Guide](../docs/tokens-usage-guide.md)
+- [Category-Specific Guides](../docs/README.md#detailed-guides)
 
 ## Expanding the ESLint configuration
 

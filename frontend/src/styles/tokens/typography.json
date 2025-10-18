@@ -1,0 +1,158 @@
+{
+  "$schema": "./schema.json",
+  "description": "Material Design 3 Typography Tokens - Health Tracker. Defines 15 type scales across 5 categories following M3 specifications.",
+  "fontFamilies": {
+    "brand": {
+      "value": "'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "description": "Primary brand font family for most UI text"
+    },
+    "plain": {
+      "value": "system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif",
+      "description": "System font stack for high performance and native feel"
+    },
+    "code": {
+      "value": "'Roboto Mono', 'Courier New', monospace",
+      "description": "Monospace font for code and numeric data"
+    }
+  },
+  "typeScale": {
+    "display": {
+      "large": {
+        "fontFamily": "brand",
+        "fontSize": "57px",
+        "lineHeight": "64px",
+        "fontWeight": 400,
+        "letterSpacing": "-0.25px",
+        "description": "Largest display text - hero sections, major headlines"
+      },
+      "medium": {
+        "fontFamily": "brand",
+        "fontSize": "45px",
+        "lineHeight": "52px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Medium display text - section headers"
+      },
+      "small": {
+        "fontFamily": "brand",
+        "fontSize": "36px",
+        "lineHeight": "44px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Small display text - card headers, dialog titles"
+      }
+    },
+    "headline": {
+      "large": {
+        "fontFamily": "brand",
+        "fontSize": "32px",
+        "lineHeight": "40px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Large headlines - page titles"
+      },
+      "medium": {
+        "fontFamily": "brand",
+        "fontSize": "28px",
+        "lineHeight": "36px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Medium headlines - section titles"
+      },
+      "small": {
+        "fontFamily": "brand",
+        "fontSize": "24px",
+        "lineHeight": "32px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Small headlines - subsection titles"
+      }
+    },
+    "title": {
+      "large": {
+        "fontFamily": "brand",
+        "fontSize": "22px",
+        "lineHeight": "28px",
+        "fontWeight": 400,
+        "letterSpacing": "0px",
+        "description": "Large titles - prominent list items, card headers"
+      },
+      "medium": {
+        "fontFamily": "brand",
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "fontWeight": 500,
+        "letterSpacing": "0.15px",
+        "description": "Medium titles - dialog headers, emphasized text"
+      },
+      "small": {
+        "fontFamily": "brand",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "fontWeight": 500,
+        "letterSpacing": "0.1px",
+        "description": "Small titles - list item headers, dense UI"
+      }
+    },
+    "body": {
+      "large": {
+        "fontFamily": "brand",
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "fontWeight": 400,
+        "letterSpacing": "0.5px",
+        "description": "Large body text - article content, long-form reading"
+      },
+      "medium": {
+        "fontFamily": "brand",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "fontWeight": 400,
+        "letterSpacing": "0.25px",
+        "description": "Medium body text - default paragraph text, descriptions"
+      },
+      "small": {
+        "fontFamily": "brand",
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "fontWeight": 400,
+        "letterSpacing": "0.4px",
+        "description": "Small body text - captions, helper text"
+      }
+    },
+    "label": {
+      "large": {
+        "fontFamily": "brand",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "fontWeight": 500,
+        "letterSpacing": "0.1px",
+        "description": "Large labels - prominent buttons, tabs"
+      },
+      "medium": {
+        "fontFamily": "brand",
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "fontWeight": 500,
+        "letterSpacing": "0.5px",
+        "description": "Medium labels - standard buttons, chips, form labels"
+      },
+      "small": {
+        "fontFamily": "brand",
+        "fontSize": "11px",
+        "lineHeight": "16px",
+        "fontWeight": 500,
+        "letterSpacing": "0.5px",
+        "description": "Small labels - timestamps, badges, overlines"
+      }
+    }
+  },
+  "responsive": {
+    "scaleFactor": {
+      "mobile": 1.0,
+      "tablet": 1.0,
+      "desktop": 1.0
+    },
+    "description": "Responsive scaling factors for different viewport sizes. Currently set to 1.0 (no scaling) but can be adjusted for better mobile/desktop experiences."
+  }
+}
