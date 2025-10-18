@@ -16,10 +16,10 @@ jobs:
   lint-and-test:
     name: Lint, Test & Build
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ./frontend
+    # This workflow handles an npm workspaces monorepo:
+    # - package-lock.json lives at repository root
+    # - npm ci runs at root to install all workspace dependencies
+    # - npm scripts run from ./frontend directory (where frontend/package.json is)
 
     steps:
       - name: Checkout code
@@ -33,25 +33,31 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: .
+        working-directory: .  # Install all workspace dependencies from root
 
       - name: Validate Design Tokens
         run: npm run tokens:check
+        working-directory: ./frontend
 
       - name: Lint TypeScript
         run: npm run lint
+        working-directory: ./frontend
 
       - name: Lint CSS
         run: npm run lint:css
+        working-directory: ./frontend
 
       - name: Type Check
         run: npm run type-check
+        working-directory: ./frontend
 
       - name: Run Tests
         run: npm run test:ci
+        working-directory: ./frontend
 
       - name: Build
         run: npm run build
+        working-directory: ./frontend
 
       - name: Upload build artifacts
         if: success()
