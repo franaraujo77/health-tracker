@@ -1,0 +1,265 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ErrorBoundary } from '../ErrorBoundary';
+import { RouteErrorBoundary } from '../RouteErrorBoundary';
+
+// Component that throws an error
+const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
+  if (shouldThrow) {
+    throw new Error('Test error');
+  }
+  return <div>No error</div>;
+};
+
+// Mock console.error to avoid cluttering test output
+const originalConsoleError = console.error;
+
+describe('ErrorBoundary', () => {
+  beforeEach(() => {
+    // Suppress console.error during tests
+    console.error = vi.fn();
+  });
+
+  afterEach(() => {
+    // Restore console.error
+    console.error = originalConsoleError;
+  });
+
+  describe('Root ErrorBoundary', () => {
+    it('should render children when no error occurs', () => {
+      render(
+        <ErrorBoundary>
+          <div>Test content</div>
+        </ErrorBoundary>
+      );
+
+      expect(screen.getByText('Test content')).toBeInTheDocument();
+    });
+
+    it('should catch errors and show fallback UI', () => {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+      expect(
+        screen.getByText("We're sorry, but something unexpected happened.")
+      ).toBeInTheDocument();
+    });
+
+    it('should show error details in development mode', () => {
+      // Set dev mode
+      const originalEnv = import.meta.env.DEV;
+      (import.meta.env as any).DEV = true;
+
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      // Error details should be present
+      expect(screen.getByText('Error details')).toBeInTheDocument();
+      expect(screen.getByText('Test error')).toBeInTheDocument();
+
+      // Restore original env
+      (import.meta.env as any).DEV = originalEnv;
+    });
+
+    it('should hide error details in production mode', () => {
+      // Set prod mode
+      const originalDev = import.meta.env.DEV;
+      const originalProd = import.meta.env.PROD;
+      (import.meta.env as any).DEV = false;
+      (import.meta.env as any).PROD = true;
+
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      // Error details should not be visible
+      expect(screen.queryByText('Error details')).not.toBeInTheDocument();
+
+      // Restore original env
+      (import.meta.env as any).DEV = originalDev;
+      (import.meta.env as any).PROD = originalProd;
+    });
+
+    it('should show Try Again button', () => {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      expect(screen.getByText('Try Again')).toBeInTheDocument();
+      expect(screen.getByText('Go Home')).toBeInTheDocument();
+    });
+
+    it('should navigate home on Go Home button click', async () => {
+      const user = userEvent.setup();
+
+      // Mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '' } as any;
+
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      const goHomeButton = screen.getByText('Go Home');
+      await user.click(goHomeButton);
+
+      await waitFor(() => {
+        expect(window.location.href).toBe('/');
+      });
+
+      // Restore window.location
+      (window as any).location = originalLocation;
+    });
+
+    it('should call onError when error is caught', () => {
+      const originalDev = import.meta.env.DEV;
+      (import.meta.env as any).DEV = true;
+
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
+
+      // Verify console.error was called
+      expect(console.error).toHaveBeenCalled();
+
+      (import.meta.env as any).DEV = originalDev;
+    });
+  });
+
+  describe('RouteErrorBoundary', () => {
+    it('should render children when no error occurs', () => {
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <div>Dashboard content</div>
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.getByText('Dashboard content')).toBeInTheDocument();
+    });
+
+    it('should catch errors and show route-specific fallback UI', () => {
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Error in Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Test error')).toBeInTheDocument();
+    });
+
+    it('should show route name in error message', () => {
+      render(
+        <RouteErrorBoundary routeName="Settings">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.getByText('Error in Settings')).toBeInTheDocument();
+    });
+
+    it('should show technical details in development mode', () => {
+      const originalEnv = import.meta.env.DEV;
+      (import.meta.env as any).DEV = true;
+
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.getByText('Technical details')).toBeInTheDocument();
+
+      (import.meta.env as any).DEV = originalEnv;
+    });
+
+    it('should hide technical details in production mode', () => {
+      const originalDev = import.meta.env.DEV;
+      const originalProd = import.meta.env.PROD;
+      (import.meta.env as any).DEV = false;
+      (import.meta.env as any).PROD = true;
+
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.queryByText('Technical details')).not.toBeInTheDocument();
+
+      (import.meta.env as any).DEV = originalDev;
+      (import.meta.env as any).PROD = originalProd;
+    });
+
+    it('should show Retry and Go Home buttons', () => {
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      expect(screen.getByText('Retry')).toBeInTheDocument();
+      expect(screen.getByText('Go Home')).toBeInTheDocument();
+    });
+
+    it('should navigate home on Go Home button click', async () => {
+      const user = userEvent.setup();
+
+      // Mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { ...originalLocation, href: '' } as any;
+
+      render(
+        <RouteErrorBoundary routeName="Dashboard">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      const goHomeButton = screen.getByText('Go Home');
+      await user.click(goHomeButton);
+
+      await waitFor(() => {
+        expect(window.location.href).toBe('/');
+      });
+
+      // Restore window.location
+      (window as any).location = originalLocation;
+    });
+
+    it('should call onError with route context when error is caught', () => {
+      const originalDev = import.meta.env.DEV;
+      (import.meta.env as any).DEV = true;
+
+      render(
+        <RouteErrorBoundary routeName="Settings">
+          <ThrowError shouldThrow={true} />
+        </RouteErrorBoundary>
+      );
+
+      // Verify console.error was called with route context
+      expect(console.error).toHaveBeenCalled();
+
+      (import.meta.env as any).DEV = originalDev;
+    });
+  });
+});
