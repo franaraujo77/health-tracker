@@ -35,6 +35,7 @@
     "material-symbols": "^0.37.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-error-boundary": "^6.0.0",
     "xstate": "^5.22.0"
   },
   "devDependencies": {
