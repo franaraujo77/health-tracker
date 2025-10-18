@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:verify": "npm run build && npm run verify:no-mocks",
+    "verify:no-mocks": "node scripts/verify-no-mocks.cjs",
     "lint": "eslint .",
     "lint:css": "stylelint '**/*.css'",
     "lint:all": "npm run lint && npm run lint:css",
