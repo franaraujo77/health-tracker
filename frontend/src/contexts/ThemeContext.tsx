@@ -7,6 +7,8 @@
  * @packageDocumentation
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   generateThemeFromColor,
@@ -231,5 +233,6 @@ export function useTheme(): ThemeContextValue {
 
 /**
  * Export context for advanced use cases
+ * Note: This export is intentional for advanced use cases (e.g., custom hooks, testing)
  */
 export { ThemeContext };

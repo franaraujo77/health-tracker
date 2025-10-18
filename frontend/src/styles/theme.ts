@@ -75,7 +75,8 @@ export function getSavedTheme(): Theme | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved === 'dark' || saved === 'light' ? saved : null;
-  } catch (error) {
+  } catch {
+    // localStorage might be unavailable (private browsing, etc.)
     return null;
   }
 }

@@ -5,28 +5,28 @@
 
 /* Base icon class */
 .md-icon {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
+
+  /* Inherit color from parent */
+  color: currentcolor;
+  direction: ltr;
+  display: inline-flex;
   flex-shrink: 0;
-  user-select: none;
-  vertical-align: middle;
+
+  /* Feature settings for variable font */
+  font-feature-settings: 'liga';
 
   /* Smooth font rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-
-  /* Inherit color from parent */
-  color: currentColor;
+  justify-content: center;
+  overflow-wrap: normal;
+  text-rendering: optimizelegibility;
+  user-select: none;
+  vertical-align: middle;
 
   /* Prevent text selection and wrapping */
   white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-
-  /* Feature settings for variable font */
-  font-feature-settings: 'liga';
 }
 
 /* Accessibility: Reduced motion */
@@ -37,33 +37,33 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .md-icon {
-    font-weight: 500;
+    font-weight: var(--md-sys-typescale-label-large-weight);
   }
 }
 
 /* Common icon size utilities */
 .md-icon-small {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: var(--md-sys-spacing-4-5);
+  height: var(--md-sys-spacing-4-5);
+  width: var(--md-sys-spacing-4-5);
 }
 
 .md-icon-medium {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
+  font-size: var(--md-sys-spacing-6);
+  height: var(--md-sys-spacing-6);
+  width: var(--md-sys-spacing-6);
 }
 
 .md-icon-large {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+  font-size: var(--md-sys-spacing-8);
+  height: var(--md-sys-spacing-8);
+  width: var(--md-sys-spacing-8);
 }
 
 .md-icon-xlarge {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+  font-size: var(--md-sys-spacing-12);
+  height: var(--md-sys-spacing-12);
+  width: var(--md-sys-spacing-12);
 }

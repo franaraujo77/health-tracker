@@ -10,6 +10,7 @@
  */
 
 import { configureAxe } from 'jest-axe';
+import type { AxeResults, Result } from 'axe-core';
 
 /**
  * Configure axe-core with custom rules for M3 components
@@ -109,20 +110,20 @@ export const axeConfig = {
  * });
  * ```
  */
-export async function runAxe(container: HTMLElement, config?: any) {
+export async function runAxe(container: HTMLElement, config?: Parameters<typeof axe>[1]) {
   return await axe(container, config);
 }
 
 /**
  * Helper to get a summary of accessibility violations
  */
-export function getViolationSummary(results: any): string {
+export function getViolationSummary(results: AxeResults): string {
   if (results.violations.length === 0) {
     return '✓ No accessibility violations found';
   }
 
   return results.violations
-    .map((violation: any) => {
+    .map((violation: Result) => {
       const nodes = violation.nodes.length;
       return `• ${violation.id}: ${violation.help} (${nodes} instance${nodes > 1 ? 's' : ''})`;
     })
