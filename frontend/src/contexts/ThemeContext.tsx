@@ -231,5 +231,7 @@ export function useTheme(): ThemeContextValue {
 
 /**
  * Export context for advanced use cases
+ * Note: This export is intentional for advanced use cases (e.g., custom hooks, testing)
+ * eslint-disable-next-line react-refresh/only-export-components
  */
 export { ThemeContext };

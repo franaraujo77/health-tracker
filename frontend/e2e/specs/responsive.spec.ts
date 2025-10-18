@@ -3,7 +3,7 @@
  * Tests component behavior across different viewport sizes
  */
 
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 // Define viewport sizes to test
 const viewports = {
