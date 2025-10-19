@@ -12,6 +12,22 @@ on:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
 
+  # Allow this workflow to be called by other workflows (e.g., validation-orchestrator)
+  workflow_call:
+    outputs:
+      build-status:
+        description: 'Status of Maven build'
+        value: ${{ jobs.test.outputs.build-status }}
+      unit-test-status:
+        description: 'Status of unit tests'
+        value: ${{ jobs.test.outputs.unit-test-status }}
+      integration-test-status:
+        description: 'Status of integration tests'
+        value: ${{ jobs.test.outputs.integration-test-status }}
+      coverage-status:
+        description: 'Status of code coverage'
+        value: ${{ jobs.coverage.outputs.coverage-status }}
+
 # Cancel in-progress runs for the same workflow and branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,6 +42,11 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    outputs:
+      build-status: ${{ steps.set-outputs.outputs.build-status }}
+      unit-test-status: ${{ steps.set-outputs.outputs.unit-test-status }}
+      integration-test-status: ${{ steps.set-outputs.outputs.integration-test-status }}
 
     services:
       postgres:
@@ -65,6 +86,8 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run tests
+        id: run-tests
+        continue-on-error: true
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/healthtracker_test
           SPRING_DATASOURCE_USERNAME: test
@@ -77,6 +100,8 @@ jobs:
         run: ./mvnw test -B
 
       - name: Build JAR package
+        id: build-jar
+        continue-on-error: true
         run: ./mvnw clean package -DskipTests -B
 
       - name: Upload JAR artifact
@@ -107,11 +132,42 @@ jobs:
             echo "No test reports found" >> $GITHUB_STEP_SUMMARY
           fi
 
+      - name: Set validation outputs
+        id: set-outputs
+        if: always()
+        run: |
+          # Build status
+          if [ "${{ steps.build-jar.outcome }}" = "success" ]; then
+            echo "build-status=success" >> $GITHUB_OUTPUT
+          else
+            echo "build-status=failure" >> $GITHUB_OUTPUT
+          fi
+
+          # For now, treat all tests as unit tests
+          # In a more sophisticated setup, we'd separate unit and integration tests
+          if [ "${{ steps.run-tests.outcome }}" = "success" ]; then
+            echo "unit-test-status=success" >> $GITHUB_OUTPUT
+            echo "integration-test-status=success" >> $GITHUB_OUTPUT
+          else
+            echo "unit-test-status=failure" >> $GITHUB_OUTPUT
+            echo "integration-test-status=failure" >> $GITHUB_OUTPUT
+          fi
+
+          # Fail the job if any checks failed
+          if [ "${{ steps.run-tests.outcome }}" != "success" ] || \
+             [ "${{ steps.build-jar.outcome }}" != "success" ]; then
+            echo "::error::One or more backend validations failed"
+            exit 1
+          fi
+
   # Job 2: Code coverage
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
     needs: test
+
+    outputs:
+      coverage-status: ${{ steps.set-coverage-output.outputs.coverage-status }}
 
     services:
       postgres:
@@ -140,6 +196,8 @@ jobs:
           cache: 'maven'
 
       - name: Run tests with coverage
+        id: run-coverage
+        continue-on-error: true
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/healthtracker_test
           SPRING_DATASOURCE_USERNAME: test
@@ -164,6 +222,18 @@ jobs:
           echo "## Code Coverage Report" >> $GITHUB_STEP_SUMMARY
           if [ -f target/site/jacoco/index.html ]; then
             echo "Coverage report generated successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Set coverage output
+        id: set-coverage-output
+        if: always()
+        run: |
+          # Coverage status based on jacoco execution
+          if [ "${{ steps.run-coverage.outcome }}" = "success" ]; then
+            echo "coverage-status=success" >> $GITHUB_OUTPUT
+          else
+            echo "coverage-status=failure" >> $GITHUB_OUTPUT
+            echo "::warning::Code coverage check did not meet threshold"
           fi
 
   # Job 3: Security scanning

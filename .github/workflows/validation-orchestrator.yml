@@ -41,25 +41,12 @@ jobs:
     # Timeout after 15 minutes to prevent hanging jobs
     timeout-minutes: 15
 
-  # This job will be implemented in subsequent tasks
-  # It will call the backend validation workflow
+  # Call the refactored backend validation workflow
   validate-backend:
-    name: Backend Validation (Placeholder)
-    runs-on: ubuntu-latest
-    outputs:
-      build-status: ${{ steps.placeholder.outputs.build-status }}
-      unit-test-status: ${{ steps.placeholder.outputs.unit-test-status }}
-      integration-test-status: ${{ steps.placeholder.outputs.integration-test-status }}
-      coverage-status: ${{ steps.placeholder.outputs.coverage-status }}
-    steps:
-      - name: Placeholder for backend validation
-        id: placeholder
-        run: |
-          echo "build-status=success" >> $GITHUB_OUTPUT
-          echo "unit-test-status=success" >> $GITHUB_OUTPUT
-          echo "integration-test-status=success" >> $GITHUB_OUTPUT
-          echo "coverage-status=success" >> $GITHUB_OUTPUT
-          echo "Backend validation placeholder - will be replaced with workflow_call"
+    name: Backend Validation
+    uses: ./.github/workflows/backend-ci.yml
+    # Timeout after 20 minutes to prevent hanging jobs
+    timeout-minutes: 20
 
   # This job will be implemented in subsequent tasks
   # It will call the security validation workflow
@@ -133,25 +120,30 @@ jobs:
           fi
 
           # Backend validation checks
-          if [ "${{ needs.validate-backend.outputs.build-status }}" != "success" ]; then
+          BACKEND_BUILD="${{ needs.validate-backend.outputs.build-status || 'unknown' }}"
+          BACKEND_UNIT_TEST="${{ needs.validate-backend.outputs.unit-test-status || 'unknown' }}"
+          BACKEND_INTEGRATION_TEST="${{ needs.validate-backend.outputs.integration-test-status || 'unknown' }}"
+          BACKEND_COVERAGE="${{ needs.validate-backend.outputs.coverage-status || 'unknown' }}"
+
+          if [ "$BACKEND_BUILD" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Backend: Build failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-backend.outputs.unit-test-status }}" != "success" ]; then
+          if [ "$BACKEND_UNIT_TEST" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Backend: Unit tests failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-backend.outputs.integration-test-status }}" != "success" ]; then
+          if [ "$BACKEND_INTEGRATION_TEST" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Backend: Integration tests failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-backend.outputs.coverage-status }}" != "success" ]; then
+          if [ "$BACKEND_COVERAGE" != "success" ]; then
             ALL_PASSED=false
             ERRORS+=("Backend: Coverage threshold not met")
           fi
