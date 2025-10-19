@@ -107,11 +107,26 @@ function sendMetricToAnalytics(metric: Metric): void {
 }
 
 /**
+ * Emit metric as custom event for dashboard
+ */
+function emitMetricEvent(metric: Metric): void {
+  const event = new CustomEvent('web-vitals-metric', {
+    detail: {
+      ...metric,
+      timestamp: Date.now(),
+      url: window.location.href,
+    },
+  });
+  window.dispatchEvent(event);
+}
+
+/**
  * Handle metric report
  */
 function handleMetric(metric: Metric): void {
   logMetricToConsole(metric);
   sendMetricToAnalytics(metric);
+  emitMetricEvent(metric);
 }
 
 /**

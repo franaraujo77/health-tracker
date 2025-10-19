@@ -18,6 +18,11 @@ const HealthDataEntryForm = lazy(() =>
 const HealthMetricsList = lazy(() =>
   import('./components/HealthMetricsList').then((module) => ({ default: module.HealthMetricsList }))
 );
+const PerformanceDashboard = lazy(() =>
+  import('./components/PerformanceDashboard').then((module) => ({
+    default: module.PerformanceDashboard,
+  }))
+);
 
 function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
@@ -109,6 +114,10 @@ function App() {
             <div style={{ marginTop: '40px', borderTop: '2px solid #e0e0e0', paddingTop: '40px' }}>
               <h2>Metrics List (React Query)</h2>
               <HealthMetricsList />
+            </div>
+
+            <div style={{ marginTop: '40px', borderTop: '2px solid #e0e0e0', paddingTop: '40px' }}>
+              <PerformanceDashboard />
             </div>
           </Suspense>
         </div>

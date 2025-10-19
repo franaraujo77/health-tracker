@@ -1,0 +1,197 @@
+/**
+ * Performance Dashboard Styles
+ *
+ * Material Design 3 inspired styling for the performance dashboard component.
+ */
+
+.performance-dashboard {
+  padding: var(--md-sys-spacing-4);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.performance-dashboard h2 {
+  font-size: var(--md-sys-typescale-headline-medium-size, 28px);
+  font-weight: var(--md-sys-typescale-headline-medium-weight, 400);
+  line-height: var(--md-sys-typescale-headline-medium-line-height, 36px);
+  letter-spacing: var(--md-sys-typescale-headline-medium-tracking, 0);
+  color: var(--md-sys-color-on-surface);
+  margin: 0 0 var(--md-sys-spacing-2) 0;
+}
+
+.dashboard-description {
+  font-size: var(--md-sys-typescale-body-medium-size, 14px);
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0 0 var(--md-sys-spacing-4) 0;
+}
+
+.no-data {
+  padding: var(--md-sys-spacing-6) var(--md-sys-spacing-4);
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-medium, 12px);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-4);
+}
+
+/* Metric Card */
+.metric-card {
+  background: var(--md-sys-color-surface-container);
+  border-radius: var(--md-sys-shape-corner-large, 16px);
+  padding: var(--md-sys-spacing-3);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.metric-card:hover {
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: var(--md-sys-elevation-1);
+}
+
+.metric-card.metric-good {
+  border-left: 4px solid var(--md-sys-color-tertiary);
+}
+
+.metric-card.metric-needs-improvement {
+  border-left: 4px solid #ffa726; /* Warning orange */
+}
+
+.metric-card.metric-poor {
+  border-left: 4px solid var(--md-sys-color-error);
+}
+
+/* Metric Header */
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-2);
+  margin-bottom: var(--md-sys-spacing-2);
+}
+
+.metric-emoji {
+  font-size: 24px;
+}
+
+.metric-name {
+  font-size: var(--md-sys-typescale-title-medium-size, 16px);
+  font-weight: var(--md-sys-typescale-title-medium-weight, 500);
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+}
+
+/* Metric Value */
+.metric-value {
+  font-size: var(--md-sys-typescale-headline-small-size, 24px);
+  font-weight: var(--md-sys-typescale-headline-small-weight, 400);
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--md-sys-spacing-2);
+}
+
+/* Metric Info */
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+  font-size: var(--md-sys-typescale-body-small-size, 12px);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.metric-rating {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.metric-threshold {
+  color: var(--md-sys-color-tertiary);
+}
+
+.metric-samples {
+  font-style: italic;
+}
+
+/* Dashboard Info */
+.dashboard-info {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-medium, 12px);
+  padding: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-3);
+}
+
+.dashboard-info h3 {
+  font-size: var(--md-sys-typescale-title-medium-size, 16px);
+  font-weight: var(--md-sys-typescale-title-medium-weight, 500);
+  color: var(--md-sys-color-on-surface);
+  margin: 0 0 var(--md-sys-spacing-2) 0;
+}
+
+.dashboard-info ul {
+  margin: 0;
+  padding-left: var(--md-sys-spacing-3);
+  list-style-type: none;
+}
+
+.dashboard-info li {
+  font-size: var(--md-sys-typescale-body-small-size, 12px);
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: var(--md-sys-spacing-1);
+  position: relative;
+  padding-left: var(--md-sys-spacing-2);
+}
+
+.dashboard-info li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--md-sys-color-primary);
+}
+
+.dashboard-info strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 500;
+}
+
+/* Dashboard Actions */
+.dashboard-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.clear-button {
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small, 8px);
+  font-size: var(--md-sys-typescale-label-large-size, 14px);
+  font-weight: var(--md-sys-typescale-label-large-weight, 500);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.clear-button:hover {
+  background: var(--md-sys-color-surface-container-highest);
+  box-shadow: var(--md-sys-elevation-1);
+}
+
+.clear-button:active {
+  background: var(--md-sys-color-surface-container);
+  transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .performance-dashboard {
+    padding: var(--md-sys-spacing-2);
+  }
+}
