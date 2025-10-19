@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from '../ProtectedRoute';
-import { AuthProvider } from '@/contexts/AuthContext';
 import * as AuthContext from '@/contexts/AuthContext';
 import type { ReactNode } from 'react';
 

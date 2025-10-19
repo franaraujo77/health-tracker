@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useTheme, ThemeProvider } from '../ThemeContext';
 import * as colorUtils from '@/styles/colorUtils';
 import type { ReactNode } from 'react';
@@ -580,11 +580,7 @@ describe('ThemeContext', () => {
 
       const firstCallCount = vi.mocked(colorUtils.generateThemeFromColor).mock.calls.length;
 
-      // Rerender with new seed color
-      const newWrapper = ({ children }: { children: ReactNode }) => (
-        <ThemeProvider seedColor="#2196F3">{children}</ThemeProvider>
-      );
-
+      // Rerender with same seed color
       rerender();
 
       // Should not regenerate on rerender with same seed color

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -48,8 +49,10 @@ describe('AuthContext', () => {
     vi.clearAllMocks();
     tokenStorage.clearTokens();
     // Set to dev mode for tests
-    (import.meta.env as any).DEV = true;
-    (import.meta.env as any).PROD = false;
+    // @ts-expect-error - Mocking environment variable for testing
+    import.meta.env.DEV = true;
+    // @ts-expect-error - Mocking environment variable for testing
+    import.meta.env.PROD = false;
   });
 
   afterEach(() => {

@@ -117,9 +117,13 @@ const ICON_PATHS: Record<IconName, string> = {
  */
 export function Icon({
   name,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   filled: _filled = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   weight: _weight = 400,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   grade: _grade = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   opticalSize: _opticalSize = 24,
   size = 24,
   className = '',

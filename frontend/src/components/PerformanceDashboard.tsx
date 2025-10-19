@@ -140,9 +140,9 @@ export function PerformanceDashboard() {
       });
     };
 
-    window.addEventListener('web-vitals-metric' as any, handleMetric as EventListener);
+    window.addEventListener('web-vitals-metric', handleMetric as EventListener);
     return () => {
-      window.removeEventListener('web-vitals-metric' as any, handleMetric as EventListener);
+      window.removeEventListener('web-vitals-metric', handleMetric as EventListener);
     };
   }, []);
 

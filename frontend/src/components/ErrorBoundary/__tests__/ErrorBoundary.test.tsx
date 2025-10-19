@@ -61,7 +61,6 @@ describe('ErrorBoundary', () => {
       // Set dev mode
       const originalEnv = import.meta.env.DEV;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -76,7 +75,6 @@ describe('ErrorBoundary', () => {
 
       // Restore original env
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalEnv;
     });
 
@@ -85,9 +83,7 @@ describe('ErrorBoundary', () => {
       const originalDev = import.meta.env.DEV;
       const originalProd = import.meta.env.PROD;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = false;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = true;
 
@@ -102,9 +98,7 @@ describe('ErrorBoundary', () => {
 
       // Restore original env
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = originalProd;
     });
@@ -140,7 +134,6 @@ describe('ErrorBoundary', () => {
     it('should call onError when error is caught', () => {
       const originalDev = import.meta.env.DEV;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -152,7 +145,6 @@ describe('ErrorBoundary', () => {
       // Verify console.error was called
       expect(console.error).toHaveBeenCalled();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
     });
