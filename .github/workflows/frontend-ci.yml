@@ -52,9 +52,17 @@ jobs:
         run: npm run type-check
         working-directory: ./frontend
 
-      - name: Run Tests
-        run: npm run test:ci
+      - name: Run tests with coverage
+        run: npm run test:coverage
         working-directory: ./frontend
+
+      - name: Upload coverage reports
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: frontend/coverage/
+          retention-days: 7
 
       - name: Build
         run: npm run build
