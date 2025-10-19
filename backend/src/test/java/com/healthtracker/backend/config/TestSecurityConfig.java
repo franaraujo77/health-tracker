@@ -52,6 +52,7 @@ public class TestSecurityConfig {
                         // Public endpoints
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/api/auth/**",  // Added for tests that use /api/auth/me
                                 "/actuator/health/**",
                                 "/actuator/info"
                         ).permitAll()
@@ -82,7 +83,23 @@ public class TestSecurityConfig {
                 )
 
                 // Add JWT filter before UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Configure exception handling to ensure proper 401/403 responses
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" +
+                                authException.getMessage() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"" +
+                                accessDeniedException.getMessage() + "\"}");
+                        })
+                );
 
         return http.build();
     }

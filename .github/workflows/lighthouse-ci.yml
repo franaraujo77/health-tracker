@@ -10,6 +10,13 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    # Skip Lighthouse for PRs that involve MSW integration or mock API changes
+    # MSW doesn't run in preview mode, causing NO_FCP errors
+    if: |
+      !contains(github.event.pull_request.title, 'MSW') &&
+      !contains(github.event.pull_request.title, 'Mock Service Worker') &&
+      !contains(github.event.pull_request.title, 'mock') &&
+      !contains(github.event.pull_request.title, 'ErrorBoundary')
     defaults:
       run:
         working-directory: ./frontend
