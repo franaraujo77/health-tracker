@@ -19,6 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -28,6 +33,7 @@ import java.util.Arrays;
  * Handles user registration, login, and token refresh
  * Uses httpOnly cookies for refresh tokens to prevent XSS attacks
  */
+@Tag(name = "Authentication", description = "User authentication and registration endpoints")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -135,6 +141,16 @@ public class AuthenticationController {
      *
      * @return Current user profile information
      */
+    @Operation(
+        summary = "Get current user profile",
+        description = "Retrieves the profile information of the currently authenticated user. Requires a valid JWT token in the Authorization header.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() {
         // Get authenticated user from security context
