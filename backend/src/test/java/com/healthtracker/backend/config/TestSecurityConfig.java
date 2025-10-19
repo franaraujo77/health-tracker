@@ -49,10 +49,12 @@ public class TestSecurityConfig {
 
                 // Configure authorization (same as production)
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public endpoints (authentication endpoints that don't require a token)
                         .requestMatchers(
-                                "/api/v1/auth/**",
-                                "/api/auth/**",  // Added for tests that use /api/auth/me
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout",
                                 "/actuator/health/**",
                                 "/actuator/info"
                         ).permitAll()
@@ -73,7 +75,7 @@ public class TestSecurityConfig {
                         .requestMatchers("/actuator/**")
                         .hasRole("ADMIN")
 
-                        // All other requests must be authenticated
+                        // All other requests must be authenticated (including /api/auth/me)
                         .anyRequest().authenticated()
                 )
 
