@@ -1,0 +1,121 @@
+name: Claude Code Review (Conditional)
+
+# This workflow triggers after the validation orchestrator completes
+# and conditionally runs Claude Code review only when all validations pass
+
+on:
+  workflow_run:
+    workflows: ["Validation Orchestrator"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+  id-token: write
+  checks: write
+  statuses: write
+
+# Group by PR number to cancel old runs
+concurrency:
+  group: claude-review-${{ github.event.workflow_run.pull_requests[0].number }}
+  cancel-in-progress: true
+
+# Workflow-level timeout (30 minutes)
+timeout-minutes: 30
+
+jobs:
+  # Job 1: Evaluate whether Claude review should run
+  evaluate:
+    name: Evaluate Validation Status
+    runs-on: ubuntu-latest
+    # Only run if the validation orchestrator workflow was triggered by a pull request
+    if: github.event.workflow_run.event == 'pull_request'
+
+    outputs:
+      should_review: ${{ steps.decision.outputs.should_review }}
+      pr_number: ${{ steps.pr.outputs.pr_number }}
+      validation_summary: ${{ steps.decision.outputs.validation_summary }}
+      all_passed: ${{ steps.decision.outputs.all_passed }}
+      has_critical_failures: ${{ steps.decision.outputs.has_critical_failures }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get PR number
+        id: pr
+        run: |
+          PR_NUMBER=${{ github.event.workflow_run.pull_requests[0].number }}
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "PR Number: ${PR_NUMBER}"
+
+      - name: Download validation artifacts
+        id: download
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: validation-report-${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Parse validation results and make decision
+        id: decision
+        run: |
+          # Check if artifact was downloaded successfully
+          if [ ! -f "error-report.json" ]; then
+            echo "::warning::Validation report not found, defaulting to skip review"
+            echo "should_review=false" >> $GITHUB_OUTPUT
+            echo "all_passed=unknown" >> $GITHUB_OUTPUT
+            echo "has_critical_failures=unknown" >> $GITHUB_OUTPUT
+            echo "validation_summary=Validation report not available" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Parse the JSON report
+          ALL_PASSED=$(jq -r '.all_passed' error-report.json)
+          HAS_CRITICAL_FAILURES=$(jq -r '.has_critical_failures' error-report.json)
+          ERROR_COUNT=$(jq '.errors | length' error-report.json)
+
+          echo "all_passed=${ALL_PASSED}" >> $GITHUB_OUTPUT
+          echo "has_critical_failures=${HAS_CRITICAL_FAILURES}" >> $GITHUB_OUTPUT
+
+          # Log decision reasoning
+          echo "## Decision Logic" >> $GITHUB_STEP_SUMMARY
+          echo "- All Passed: ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+          echo "- Has Critical Failures: ${HAS_CRITICAL_FAILURES}" >> $GITHUB_OUTPUT
+          echo "- Error Count: ${ERROR_COUNT}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Decision: Trigger Claude review ONLY when all validations pass
+          # This ensures we only spend Claude API credits on clean, working code
+          if [ "${ALL_PASSED}" = "true" ]; then
+            echo "should_review=true" >> $GITHUB_OUTPUT
+            echo "validation_summary=✅ All validations passed - proceeding with Claude Code review" >> $GITHUB_OUTPUT
+            echo "**Decision:** ✅ Trigger Claude Code Review" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** All validations passed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "should_review=false" >> $GITHUB_OUTPUT
+            if [ "${HAS_CRITICAL_FAILURES}" = "true" ]; then
+              echo "validation_summary=❌ Critical validation failures detected - skipping Claude review" >> $GITHUB_OUTPUT
+              echo "**Decision:** ❌ Skip Claude Code Review" >> $GITHUB_STEP_SUMMARY
+              echo "**Reason:** Critical validation failures must be fixed first" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "validation_summary=⚠️ Non-critical validation issues detected - skipping Claude review" >> $GITHUB_OUTPUT
+              echo "**Decision:** ⚠️ Skip Claude Code Review" >> $GITHUB_STEP_SUMMARY
+              echo "**Reason:** Non-critical validation issues should be addressed first" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          # Display error summary if there are errors
+          if [ "${ERROR_COUNT}" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Validation Errors" >> $GITHUB_STEP_SUMMARY
+            jq -r '.errors[] | "- \(.severity | ascii_upcase): \(.message)"' error-report.json >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Placeholder for remaining jobs - will be implemented in subsequent tasks
+  # Job 2: Run Claude Code Review (Task 3)
+  # Job 3: Post skip notification (Task 4)
+  # Job 4: Update GitHub Status (Task 5)
