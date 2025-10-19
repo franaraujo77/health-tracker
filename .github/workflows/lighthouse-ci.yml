@@ -57,14 +57,97 @@ jobs:
             // Read Lighthouse results
             const resultsPath = path.join(process.cwd(), 'frontend', '.lighthouseci');
 
+            // Parse manifest.json to get latest results
+            let performanceScore = null;
+            let metrics = {};
+            let hasRegression = false;
+            let regressionDetails = [];
+
+            try {
+              const manifestPath = path.join(resultsPath, 'manifest.json');
+              if (fs.existsSync(manifestPath)) {
+                const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                if (manifest.length > 0) {
+                  const latestRun = manifest[manifest.length - 1];
+                  const reportPath = path.join(resultsPath, latestRun.jsonPath);
+                  const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+                  performanceScore = Math.round(report.categories.performance.score * 100);
+
+                  // Extract key metrics
+                  metrics.lcp = Math.round(report.audits['largest-contentful-paint'].numericValue);
+                  metrics.cls = report.audits['cumulative-layout-shift'].numericValue.toFixed(3);
+                  metrics.tbt = Math.round(report.audits['total-blocking-time'].numericValue);
+                  metrics.fcp = Math.round(report.audits['first-contentful-paint'].numericValue);
+
+                  // Check for regressions (performance drop > 5 points or metric threshold violations)
+                  const thresholds = {
+                    performance: 90,
+                    lcp: 2500,
+                    cls: 0.1,
+                    tbt: 200,
+                    fcp: 1800
+                  };
+
+                  if (performanceScore < thresholds.performance) {
+                    const drop = thresholds.performance - performanceScore;
+                    if (drop > 5) {
+                      hasRegression = true;
+                      regressionDetails.push(`⚠️ **Performance Score**: ${performanceScore} (dropped ${drop} points from threshold)`);
+                    }
+                  }
+
+                  if (metrics.lcp > thresholds.lcp) {
+                    hasRegression = true;
+                    regressionDetails.push(`⚠️ **LCP**: ${metrics.lcp}ms (exceeds ${thresholds.lcp}ms threshold)`);
+                  }
+
+                  if (parseFloat(metrics.cls) > thresholds.cls) {
+                    hasRegression = true;
+                    regressionDetails.push(`⚠️ **CLS**: ${metrics.cls} (exceeds ${thresholds.cls} threshold)`);
+                  }
+
+                  if (metrics.tbt > thresholds.tbt) {
+                    hasRegression = true;
+                    regressionDetails.push(`⚠️ **TBT**: ${metrics.tbt}ms (exceeds ${thresholds.tbt}ms threshold)`);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error parsing Lighthouse results:', error);
+            }
+
             let comment = '## 🔦 Lighthouse CI Results\n\n';
-            comment += 'Performance audits completed! Check the artifacts for detailed reports.\n\n';
-            comment += '### Core Web Vitals Thresholds\n';
+
+            // Add regression alert if detected
+            if (hasRegression) {
+              comment += '### ⚠️ Performance Regression Detected\n\n';
+              comment += regressionDetails.join('\n') + '\n\n';
+            }
+
+            // Add current metrics
+            if (performanceScore !== null) {
+              const scoreEmoji = performanceScore >= 90 ? '✅' : performanceScore >= 50 ? '⚠️' : '❌';
+              comment += `### Current Performance Metrics\n\n`;
+              comment += `${scoreEmoji} **Performance Score**: ${performanceScore}/100\n\n`;
+              comment += `**Core Web Vitals:**\n`;
+              comment += `- LCP: ${metrics.lcp}ms ${metrics.lcp <= 2500 ? '✅' : '❌'}\n`;
+              comment += `- CLS: ${metrics.cls} ${parseFloat(metrics.cls) <= 0.1 ? '✅' : '❌'}\n`;
+              comment += `- TBT: ${metrics.tbt}ms ${metrics.tbt <= 200 ? '✅' : '❌'}\n`;
+              comment += `- FCP: ${metrics.fcp}ms ${metrics.fcp <= 1800 ? '✅' : '❌'}\n\n`;
+            }
+
+            comment += '### Performance Thresholds\n';
             comment += '- ✅ Performance Score: ≥90\n';
             comment += '- ✅ LCP (Largest Contentful Paint): <2.5s\n';
             comment += '- ✅ CLS (Cumulative Layout Shift): <0.1\n';
-            comment += '- ✅ TBT (Total Blocking Time): <200ms\n\n';
+            comment += '- ✅ TBT (Total Blocking Time): <200ms\n';
+            comment += '- ✅ FCP (First Contentful Paint): <1.8s\n\n';
             comment += '[View detailed Lighthouse reports in artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+
+            // Add historical tracking notice
+            comment += '\n---\n';
+            comment += '📊 **Historical Tracking**: Results are uploaded to temporary public storage for trend analysis.\n';
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
