@@ -1,10 +1,22 @@
+import { lazy, Suspense } from 'react';
 import './App.css';
 import { useAuth } from './contexts/AuthContext';
-import { LoginPage } from './pages/LoginPage';
-import { HealthDataEntryForm } from './components/HealthDataEntryForm';
-import { HealthMetricsList } from './components/HealthMetricsList';
 import { ThemeToggle } from './components/ThemeToggle';
 import { RouteErrorBoundary } from './components/ErrorBoundary';
+import { LoadingSpinner } from './components/LoadingSpinner';
+
+// Lazy load page and heavy components for code splitting
+const LoginPage = lazy(() =>
+  import('./pages/LoginPage').then((module) => ({ default: module.LoginPage }))
+);
+const HealthDataEntryForm = lazy(() =>
+  import('./components/HealthDataEntryForm').then((module) => ({
+    default: module.HealthDataEntryForm,
+  }))
+);
+const HealthMetricsList = lazy(() =>
+  import('./components/HealthMetricsList').then((module) => ({ default: module.HealthMetricsList }))
+);
 
 function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
@@ -27,7 +39,9 @@ function App() {
   if (!isAuthenticated) {
     return (
       <RouteErrorBoundary routeName="Authentication">
-        <LoginPage />
+        <Suspense fallback={<LoadingSpinner />}>
+          <LoginPage />
+        </Suspense>
       </RouteErrorBoundary>
     );
   }
@@ -72,15 +86,23 @@ function App() {
         <div style={{ padding: '20px' }}>
           <p>XState 5.x State Machine + React Query + Axios JWT Demo</p>
 
-          <div style={{ marginTop: '40px' }}>
-            <h2>Data Entry (XState)</h2>
-            <HealthDataEntryForm />
-          </div>
+          <Suspense
+            fallback={
+              <div style={{ padding: '40px', textAlign: 'center' }}>
+                <LoadingSpinner />
+              </div>
+            }
+          >
+            <div style={{ marginTop: '40px' }}>
+              <h2>Data Entry (XState)</h2>
+              <HealthDataEntryForm />
+            </div>
 
-          <div style={{ marginTop: '40px', borderTop: '2px solid #e0e0e0', paddingTop: '40px' }}>
-            <h2>Metrics List (React Query)</h2>
-            <HealthMetricsList />
-          </div>
+            <div style={{ marginTop: '40px', borderTop: '2px solid #e0e0e0', paddingTop: '40px' }}>
+              <h2>Metrics List (React Query)</h2>
+              <HealthMetricsList />
+            </div>
+          </Suspense>
         </div>
       </div>
     </RouteErrorBoundary>

@@ -1,17 +1,22 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import './index.css';
-import App from './App.tsx';
-import { ComponentShowcase } from './pages/ComponentShowcase';
 import { startInspector } from './lib/xstate';
 import { queryClient } from './lib/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { initializeTheme } from './styles/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavigationProvider } from './contexts/NavigationProvider';
+import { LoadingSpinner } from './components/LoadingSpinner';
+
+// Lazy load page components for code splitting
+const App = lazy(() => import('./App.tsx'));
+const ComponentShowcase = lazy(() =>
+  import('./pages/ComponentShowcase').then((module) => ({ default: module.ComponentShowcase }))
+);
 
 // Initialize theme before React renders to prevent FOUC
 initializeTheme();
@@ -29,14 +34,16 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <NavigationProvider>
           <QueryClientProvider client={queryClient}>
-            {isShowcase ? (
-              <ComponentShowcase />
-            ) : (
-              <AuthProvider>
-                <App />
-                <ReactQueryDevtools initialIsOpen={false} />
-              </AuthProvider>
-            )}
+            <Suspense fallback={<LoadingSpinner />}>
+              {isShowcase ? (
+                <ComponentShowcase />
+              ) : (
+                <AuthProvider>
+                  <App />
+                  <ReactQueryDevtools initialIsOpen={false} />
+                </AuthProvider>
+              )}
+            </Suspense>
           </QueryClientProvider>
         </NavigationProvider>
       </BrowserRouter>
