@@ -14,11 +14,6 @@
  */
 @import url('./styles/utilities/text-overflow.css');
 
-/**
- * Import Material Symbols icon font
- */
-@import url('material-symbols/outlined.css');
-
 :root {
   background-color: var(--md-sys-color-background);
 
