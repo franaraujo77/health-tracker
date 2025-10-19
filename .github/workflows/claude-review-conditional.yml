@@ -115,7 +115,171 @@ jobs:
             jq -r '.errors[] | "- \(.severity | ascii_upcase): \(.message)"' error-report.json >> $GITHUB_STEP_SUMMARY
           fi
 
-  # Placeholder for remaining jobs - will be implemented in subsequent tasks
-  # Job 2: Run Claude Code Review (Task 3)
-  # Job 3: Post skip notification (Task 4)
-  # Job 4: Update GitHub Status (Task 5)
+  # Job 2: Run Claude Code Review (only when all validations pass)
+  claude-review:
+    name: Run Claude Code Review
+    runs-on: ubuntu-latest
+    needs: evaluate
+    if: needs.evaluate.outputs.should_review == 'true'
+
+    steps:
+      - name: Set status to pending
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ github.event.workflow_run.head_sha }}',
+              state: 'pending',
+              target_url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              description: 'Claude Code review in progress...',
+              context: 'Claude Code Review (Conditional)'
+            });
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed files in the PR
+          gh pr view ${{ needs.evaluate.outputs.pr_number }} \
+            --json files \
+            --jq '.files[].path' > changed-files.txt
+
+          echo "Changed files:"
+          cat changed-files.txt
+
+          # Store as multiline output
+          {
+            echo 'files<<EOF'
+            cat changed-files.txt
+            echo EOF
+          } >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ needs.evaluate.outputs.pr_number }}
+
+            ✅ **All validations have passed!** Frontend builds, backend tests, and security scans are all successful.
+
+            Please perform a comprehensive code review focusing on:
+            - Code quality and best practices
+            - Potential bugs or edge cases
+            - Performance considerations
+            - Security concerns
+            - Test coverage adequacy
+            - Architecture and design patterns
+
+            Changed files in this PR:
+            ${{ steps.changed-files.outputs.files }}
+
+            Use the repository's CLAUDE.md for guidance on style and conventions.
+            Be constructive and thorough in your feedback.
+
+            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+
+      - name: Set status to success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ github.event.workflow_run.head_sha }}',
+              state: 'success',
+              target_url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              description: 'Claude Code review completed',
+              context: 'Claude Code Review (Conditional)'
+            });
+
+      - name: Set status to failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ github.event.workflow_run.head_sha }}',
+              state: 'failure',
+              target_url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              description: 'Claude Code review failed',
+              context: 'Claude Code Review (Conditional)'
+            });
+
+  # Job 3: Post skip notification when validations fail
+  skip-notification:
+    name: Post Skip Notification
+    runs-on: ubuntu-latest
+    needs: evaluate
+    if: needs.evaluate.outputs.should_review == 'false'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { all_passed, has_critical_failures, validation_summary } = {
+              all_passed: '${{ needs.evaluate.outputs.all_passed }}',
+              has_critical_failures: '${{ needs.evaluate.outputs.has_critical_failures }}',
+              validation_summary: '${{ needs.evaluate.outputs.validation_summary }}'
+            };
+
+            let commentBody = '## 🤖 Claude Code Review Status\n\n';
+            commentBody += `${validation_summary}\n\n`;
+
+            if (has_critical_failures === 'true') {
+              commentBody += '### ❌ Critical Validation Failures\n\n';
+              commentBody += 'Claude Code review has been **skipped** because critical validation failures were detected. ';
+              commentBody += 'Please fix the failing validations first:\n\n';
+            } else if (all_passed === 'false') {
+              commentBody += '### ⚠️ Non-Critical Validation Issues\n\n';
+              commentBody += 'Claude Code review has been **skipped** because validation issues were detected. ';
+              commentBody += 'Please address these issues first:\n\n';
+            } else {
+              commentBody += '### ℹ️ Validation Status Unknown\n\n';
+              commentBody += 'Claude Code review has been **skipped** because validation results could not be determined.\n\n';
+            }
+
+            commentBody += `**Validation Run:** [View Details](${context.payload.workflow_run.html_url})\n`;
+            commentBody += `**Orchestrator Run:** ${{ github.event.workflow_run.id }}\n\n`;
+            commentBody += '---\n';
+            commentBody += '*Once all validations pass, Claude Code review will run automatically.*';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.evaluate.outputs.pr_number }},
+              body: commentBody
+            });
+
+      - name: Set status to success (review skipped)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ github.event.workflow_run.head_sha }}',
+              state: 'success',
+              target_url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              description: 'Skipped - fix validations first',
+              context: 'Claude Code Review (Conditional)'
+            });
