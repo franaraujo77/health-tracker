@@ -1,0 +1,10 @@
+/**
+ * Dark Theme Tokens (Lazy Loaded)
+ *
+ * Material Design 3 color tokens for dark theme.
+ * This file is lazy loaded only when dark theme is active.
+ *
+ * @see m3-dark.css for detailed color definitions
+ */
+
+@import url('./m3-dark.css');
