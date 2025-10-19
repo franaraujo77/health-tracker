@@ -81,7 +81,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<UserResponse> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 UserResponse.class
@@ -105,7 +105,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 String.class
@@ -125,7 +125,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 String.class
@@ -145,7 +145,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 String.class
@@ -165,7 +165,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 String.class
@@ -188,7 +188,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 String.class
@@ -215,7 +215,7 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act
         ResponseEntity<UserResponse> response = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 UserResponse.class
@@ -239,14 +239,14 @@ class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
         // Act - Make multiple requests
         ResponseEntity<UserResponse> response1 = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 UserResponse.class
         );
 
         ResponseEntity<UserResponse> response2 = restTemplate.exchange(
-                getApiUrl("/auth/me"),
+                getApiUrl("/v1/auth/me"),
                 HttpMethod.GET,
                 request,
                 UserResponse.class

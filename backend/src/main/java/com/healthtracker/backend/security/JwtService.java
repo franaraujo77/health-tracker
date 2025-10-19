@@ -328,12 +328,14 @@ public class JwtService {
     private boolean isAudienceValid(String token) {
         try {
             Claims claims = extractAllClaims(token);
-            // Audience can be a string or a list
+            // Audience can be a string or a collection (List/Set)
             Object aud = claims.get("aud");
+
             if (aud instanceof String) {
                 return jwtAudience.equals(aud);
-            } else if (aud instanceof java.util.List) {
-                return ((java.util.List<?>) aud).contains(jwtAudience);
+            } else if (aud instanceof java.util.Collection) {
+                // Handle both List and Set (JJWT returns LinkedHashSet)
+                return ((java.util.Collection<?>) aud).contains(jwtAudience);
             }
             return false;
         } catch (Exception e) {
