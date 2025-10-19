@@ -39,6 +39,7 @@ logging:
 # JWT configuration for tests
 jwt:
   secret: test-secret-key-that-is-at-least-256-bits-long-for-HS256-algorithm
+  audience: health-tracker-app
 
 # Encryption configuration for tests
 encryption:
