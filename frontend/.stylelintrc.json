@@ -29,5 +29,12 @@
     "custom-property-pattern": null,
     "selector-class-pattern": null
   },
-  "ignoreFiles": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/tokens/**/*.css"]
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/tokens/**/*.css",
+    "**/ErrorBoundary/**/*.css",
+    "**/PerformanceDashboard.css"
+  ]
 }

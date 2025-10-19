@@ -38,7 +38,11 @@ logging:
 
 # JWT configuration for tests
 jwt:
-  secret: test-secret-key-that-is-at-least-256-bits-long-for-HS256-algorithm
+  secret: mKr2gfwhHTrNoVHGe4W2e7nOp6GoYQpp+rMqMtQcQ2Y=
+  access-token-expiration: 1800000  # 30 minutes
+  refresh-token-expiration: 2592000000  # 30 days
+  issuer: health-tracker-api
+  audience: health-tracker-app
 
 # Encryption configuration for tests
 encryption:

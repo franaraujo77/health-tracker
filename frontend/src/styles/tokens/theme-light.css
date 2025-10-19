@@ -1,0 +1,10 @@
+/**
+ * Light Theme Tokens (Lazy Loaded)
+ *
+ * Material Design 3 color tokens for light theme.
+ * This file is lazy loaded only when light theme is active.
+ *
+ * @see m3-light.css for detailed color definitions
+ */
+
+@import url('./m3-light.css');

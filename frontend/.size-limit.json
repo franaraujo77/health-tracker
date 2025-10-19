@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Main Bundle",
+    "path": "dist/assets/index-*.js",
+    "limit": "300 KB",
+    "gzip": true
+  },
+  {
+    "name": "React Vendor",
+    "path": "dist/assets/react-vendor-*.js",
+    "limit": "100 KB",
+    "gzip": true
+  },
+  {
+    "name": "XState Vendor",
+    "path": "dist/assets/xstate-vendor-*.js",
+    "limit": "100 KB",
+    "gzip": true
+  },
+  {
+    "name": "Total JS",
+    "path": "dist/assets/*.js",
+    "limit": "500 KB",
+    "gzip": true
+  },
+  {
+    "name": "Total CSS",
+    "path": "dist/assets/*.css",
+    "limit": "50 KB",
+    "gzip": true
+  }
+]

@@ -10,6 +10,9 @@ interface User {
   id: string;
   email: string;
   name?: string;
+  roles?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
@@ -22,59 +25,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-/**
- * Mock authentication functions
- * In production, these will use the apiClient to call backend endpoints
- */
-const mockLogin = async (
-  email: string,
-  password: string
-): Promise<{ user: User; accessToken: string; refreshToken: string }> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Mock validation
-  if (!email || !password) {
-    throw new Error('Email and password are required');
-  }
-
-  // Mock user data
-  return {
-    user: {
-      id: '1',
-      email,
-      name: email.split('@')[0],
-    },
-    accessToken: 'mock-access-token',
-    refreshToken: 'mock-refresh-token',
-  };
-};
-
-const mockRegister = async (
-  email: string,
-  password: string,
-  name?: string
-): Promise<{ user: User; accessToken: string; refreshToken: string }> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Mock validation
-  if (!email || !password) {
-    throw new Error('Email and password are required');
-  }
-
-  // Mock user data
-  return {
-    user: {
-      id: '1',
-      email,
-      name: name || email.split('@')[0],
-    },
-    accessToken: 'mock-access-token',
-    refreshToken: 'mock-refresh-token',
-  };
-};
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -97,16 +47,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           tokenStorage.setAccessToken(accessToken);
 
           // Fetch user profile
-          // TODO: Implement /auth/me endpoint
-          // const userResponse = await apiClient.get('/v1/auth/me');
-          // setUser(userResponse.data);
-
-          // Mock user data for now
-          setUser({
-            id: '1',
-            email: 'user@example.com',
-            name: 'Test User',
-          });
+          if (import.meta.env.DEV) {
+            // Development mode: use mock user profile
+            const { mockUserProfile } = await import('../mocks/auth');
+            setUser(mockUserProfile);
+          } else {
+            // Production mode: fetch from /auth/me endpoint
+            const userResponse = await apiClient.get('/v1/auth/me');
+            setUser(userResponse.data);
+          }
         }
       } catch (error) {
         // No valid refresh token or it expired
@@ -123,25 +72,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // TODO: Replace mock with real API call when backend is ready
-    // For now, use mock data
-    const response = await mockLogin(email, password);
+    // SECURITY: Use mocks only in development mode
+    // Production builds will use real API endpoints
+    if (import.meta.env.DEV) {
+      // Development mode: use mock authentication
+      const { mockLogin } = await import('../mocks/auth');
+      const response = await mockLogin(email, password);
 
-    // SECURITY: Only store access token in memory
-    // Refresh token is automatically stored in httpOnly cookie by backend
-    tokenStorage.setAccessToken(response.accessToken);
+      tokenStorage.setAccessToken(response.accessToken);
+      setUser(response.user);
+    } else {
+      // Production mode: use real API
+      const response = await apiClient.post('/v1/auth/login', { email, password });
+      tokenStorage.setAccessToken(response.data.accessToken);
 
-    // Set user
-    setUser(response.user);
-
-    /* Production implementation:
-    const response = await apiClient.post('/v1/auth/login', { email, password });
-    tokenStorage.setAccessToken(response.data.accessToken);
-
-    // Fetch user profile
-    const userResponse = await apiClient.get('/v1/auth/me');
-    setUser(userResponse.data);
-    */
+      // Fetch user profile
+      const userResponse = await apiClient.get('/v1/auth/me');
+      setUser(userResponse.data);
+    }
   };
 
   const logout = async () => {
@@ -150,24 +98,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    // TODO: Replace mock with real API call when backend is ready
-    const response = await mockRegister(email, password, name);
+    // SECURITY: Use mocks only in development mode
+    // Production builds will use real API endpoints
+    if (import.meta.env.DEV) {
+      // Development mode: use mock authentication
+      const { mockRegister } = await import('../mocks/auth');
+      const response = await mockRegister(email, password, name);
 
-    // SECURITY: Only store access token in memory
-    // Refresh token is automatically stored in httpOnly cookie by backend
-    tokenStorage.setAccessToken(response.accessToken);
+      tokenStorage.setAccessToken(response.accessToken);
+      setUser(response.user);
+    } else {
+      // Production mode: use real API
+      const response = await apiClient.post('/v1/auth/register', { email, password, name });
+      tokenStorage.setAccessToken(response.data.accessToken);
 
-    // Set user
-    setUser(response.user);
-
-    /* Production implementation:
-    const response = await apiClient.post('/v1/auth/register', { email, password, name });
-    tokenStorage.setAccessToken(response.data.accessToken);
-
-    // Fetch user profile
-    const userResponse = await apiClient.get('/v1/auth/me');
-    setUser(userResponse.data);
-    */
+      // Fetch user profile
+      const userResponse = await apiClient.get('/v1/auth/me');
+      setUser(userResponse.data);
+    }
   };
 
   return (

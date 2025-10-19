@@ -1,0 +1,18 @@
+/**
+ * Core Design Tokens (Always Loaded)
+ *
+ * Theme-independent tokens that are required on every page load:
+ * - Typography (fonts, sizes, weights)
+ * - Spacing (margins, paddings, gaps)
+ * - Elevation (shadows, z-index)
+ * - Shape (border radius, corners)
+ * - State layers (interaction opacity values)
+ *
+ * Theme-specific color tokens are loaded separately via theme-light.css or theme-dark.css
+ */
+
+@import url('./typography.css');
+@import url('./spacing.css');
+@import url('./elevation.css');
+@import url('./shape.css');
+@import url('./state-layers.css');

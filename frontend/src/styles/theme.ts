@@ -1,6 +1,6 @@
 /**
  * Material Design 3 Theme Management
- * Handles theme switching and persistence
+ * Handles theme switching and persistence with lazy-loaded theme CSS
  */
 
 import type { Theme } from './tokens/types';
@@ -9,16 +9,49 @@ const STORAGE_KEY = 'health-tracker-theme';
 const THEME_ATTRIBUTE = 'data-theme';
 
 /**
+ * Track which theme CSS modules have been loaded to avoid re-importing
+ */
+const loadedThemes = new Set<Theme>();
+
+/**
+ * Dynamically load theme-specific CSS
+ * Uses Vite's dynamic import for code splitting
+ *
+ * @param theme - Theme to load ('light' | 'dark')
+ */
+async function loadThemeCSS(theme: Theme): Promise<void> {
+  // Skip if already loaded
+  if (loadedThemes.has(theme)) {
+    return;
+  }
+
+  try {
+    if (theme === 'dark') {
+      await import('./tokens/theme-dark.css');
+    } else {
+      await import('./tokens/theme-light.css');
+    }
+    loadedThemes.add(theme);
+  } catch (error) {
+    console.error(`Failed to load ${theme} theme CSS:`, error);
+  }
+}
+
+/**
  * Apply a theme to the document
+ * Loads theme CSS dynamically before applying
  *
  * @param theme - Theme to apply ('light' | 'dark')
  *
  * @example
  * ```tsx
- * setTheme('dark'); // Switches to dark theme
+ * await setTheme('dark'); // Switches to dark theme
  * ```
  */
-export function setTheme(theme: Theme): void {
+export async function setTheme(theme: Theme): Promise<void> {
+  // Load theme CSS first to prevent FOUC
+  await loadThemeCSS(theme);
+
   document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
 
   try {
@@ -84,7 +117,7 @@ export function getSavedTheme(): Theme | null {
 /**
  * Toggle between light and dark themes
  *
- * @returns The new theme after toggling
+ * @returns Promise that resolves to the new theme after toggling
  *
  * @example
  * ```tsx
@@ -93,31 +126,36 @@ export function getSavedTheme(): Theme | null {
  * </button>
  * ```
  */
-export function toggleTheme(): Theme {
+export async function toggleTheme(): Promise<Theme> {
   const currentTheme = getTheme();
   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  setTheme(newTheme);
+  await setTheme(newTheme);
   return newTheme;
 }
 
 /**
  * Initialize theme on app load
  * Priority: saved preference > system preference > light
+ * Loads theme CSS synchronously to prevent FOUC
  *
  * Call this function in your app's entry point (main.tsx or App.tsx)
+ * before React renders
  *
  * @example
  * ```tsx
  * // In main.tsx
  * import { initializeTheme } from './styles/theme';
  *
- * initializeTheme();
+ * initializeTheme(); // Call before createRoot().render()
  * ```
  */
 export function initializeTheme(): void {
   const savedTheme = getSavedTheme();
   const theme = savedTheme || getSystemTheme();
-  setTheme(theme);
+
+  // Load theme CSS synchronously to prevent FOUC
+  // Use void to fire-and-forget the promise
+  void setTheme(theme);
 }
 
 /**
@@ -146,7 +184,7 @@ export function watchSystemTheme(): () => void {
     // Only auto-switch if user hasn't set a preference
     const savedTheme = getSavedTheme();
     if (!savedTheme) {
-      setTheme(event.matches ? 'dark' : 'light');
+      void setTheme(event.matches ? 'dark' : 'light');
     }
   };
 
