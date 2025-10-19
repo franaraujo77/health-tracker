@@ -36,6 +36,7 @@ public class TestSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final org.springframework.security.authentication.AuthenticationProvider authenticationProvider;
 
     @Bean
     @Primary
@@ -86,6 +87,9 @@ public class TestSecurityConfig {
 
                 // Add JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Configure authentication provider
+                .authenticationProvider(authenticationProvider)
 
                 // Configure exception handling to ensure proper 401/403 responses
                 .exceptionHandling(exceptions -> exceptions
