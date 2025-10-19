@@ -253,6 +253,149 @@ graph LR
 - **Solid Arrow (-->)**: Direct dependency
 - **Dotted Arrow (-.->)**: Phase completion dependency
 
+### System Architecture
+
+The diagram below shows the complete system architecture with all layers and data flow.
+
+```mermaid
+graph TB
+    subgraph GitHub["🔷 GitHub Events Layer"]
+        PR[Pull Request Event<br/>opened/synchronize/reopened]
+        PR_Context[PR Context<br/>branch, commit, files]
+    end
+
+    subgraph Validation["🟦 Validation Layer - Parallel Execution"]
+        FE[Frontend CI<br/>frontend-ci.yml]
+        BE[Backend CI<br/>backend-ci.yml]
+        SEC[Security Validation<br/>security-validation.yml]
+
+        FE_OUT["📊 Outputs:<br/>• lint_status<br/>• type_status<br/>• test_status<br/>• build_status"]
+        BE_OUT["📊 Outputs:<br/>• build_status<br/>• unit_test_status<br/>• integration_test_status<br/>• coverage_status"]
+        SEC_OUT["📊 Outputs:<br/>• dependency_scan_status<br/>• sast_status"]
+    end
+
+    subgraph Orchestration["🟨 Orchestration Layer"]
+        AGG[Aggregate Results Job<br/>workflow_run trigger]
+
+        subgraph AggLogic["Decision Logic"]
+            COLLECT[Collect Validation Outputs<br/>via GitHub API]
+            ANALYZE[Analyze Results<br/>categorize by severity]
+            CREATE_REPORT[Create error-report.json<br/>+ validation metadata]
+        end
+
+        POST[Post Status Comment Job<br/>depends_on: aggregate-results]
+    end
+
+    subgraph Artifacts["💾 Artifacts & Storage Layer"]
+        ERROR_JSON["error-report.json<br/>• validation results<br/>• failed checks<br/>• severity levels"]
+        VAL_REPORT["validation-report<br/>• summary markdown<br/>• detailed logs"]
+        UPLOAD[Upload Artifacts<br/>retention: 30 days]
+    end
+
+    subgraph Claude["🟪 Claude Review Layer - Conditional"]
+        EVAL[Evaluate Job<br/>claude-review-conditional.yml]
+
+        subgraph EvalLogic["Review Decision Logic"]
+            DOWNLOAD[Download Artifacts<br/>error-report.json]
+            DECIDE{"Decision:<br/>All Passed?"}
+            SET_OUTPUT[Set should_review output]
+        end
+
+        CLAUDE_JOB[Claude Review Job<br/>if: should_review == 'true']
+        SKIP_JOB[Skip Notification Job<br/>if: should_review == 'false']
+    end
+
+    subgraph Notifications["🟩 Notification Layer"]
+        STATUS_COMMENT[PR Status Comment<br/>validation results table]
+        CLAUDE_COMMENT[Claude Review Comment<br/>conditional on validation]
+        GITHUB_STATUS[GitHub Status API<br/>commit status updates]
+    end
+
+    subgraph Feedback["🔄 Feedback Loop"]
+        DEV[Developer Actions<br/>view comments, fix issues]
+        RERUN[Re-trigger Validation<br/>push new commits]
+    end
+
+    %% GitHub Events Flow
+    PR --> PR_Context
+    PR_Context -->|workflow_dispatch| FE
+    PR_Context -->|workflow_dispatch| BE
+    PR_Context -->|workflow_dispatch| SEC
+
+    %% Validation Layer Flow
+    FE --> FE_OUT
+    BE --> BE_OUT
+    SEC --> SEC_OUT
+
+    %% Orchestration Trigger
+    FE_OUT -->|workflow_run completed| AGG
+    BE_OUT -->|workflow_run completed| AGG
+    SEC_OUT -->|workflow_run completed| AGG
+
+    %% Aggregation Logic
+    AGG --> COLLECT
+    COLLECT --> ANALYZE
+    ANALYZE --> CREATE_REPORT
+    CREATE_REPORT --> UPLOAD
+
+    %% Artifacts Creation
+    UPLOAD --> ERROR_JSON
+    UPLOAD --> VAL_REPORT
+
+    %% Orchestration to Notification
+    AGG -->|depends_on| POST
+    ERROR_JSON --> POST
+    POST --> STATUS_COMMENT
+    POST --> GITHUB_STATUS
+
+    %% Claude Review Conditional Flow
+    AGG -->|workflow_run completed| EVAL
+    EVAL --> DOWNLOAD
+    DOWNLOAD --> ERROR_JSON
+    ERROR_JSON --> DECIDE
+
+    DECIDE -->|all_passed=true| SET_OUTPUT
+    SET_OUTPUT -->|should_review=true| CLAUDE_JOB
+    SET_OUTPUT -->|should_review=false| SKIP_JOB
+
+    %% Claude Review to Notification
+    CLAUDE_JOB --> CLAUDE_COMMENT
+    SKIP_JOB --> CLAUDE_COMMENT
+
+    %% Notifications to Feedback
+    STATUS_COMMENT --> DEV
+    CLAUDE_COMMENT --> DEV
+    DEV --> RERUN
+    RERUN --> PR
+
+    %% Styling
+    classDef github fill:#0969da,stroke:#0550ae,color:#fff
+    classDef validation fill:#1f6feb,stroke:#1158c7,color:#fff
+    classDef orchestration fill:#fbbf24,stroke:#f59e0b,color:#000
+    classDef claude fill:#a855f7,stroke:#9333ea,color:#fff
+    classDef artifacts fill:#64748b,stroke:#475569,color:#fff
+    classDef notification fill:#10b981,stroke:#059669,color:#fff
+    classDef feedback fill:#ec4899,stroke:#db2777,color:#fff
+
+    class PR,PR_Context github
+    class FE,BE,SEC,FE_OUT,BE_OUT,SEC_OUT validation
+    class AGG,COLLECT,ANALYZE,CREATE_REPORT,POST orchestration
+    class ERROR_JSON,VAL_REPORT,UPLOAD artifacts
+    class EVAL,DOWNLOAD,DECIDE,SET_OUTPUT,CLAUDE_JOB,SKIP_JOB claude
+    class STATUS_COMMENT,CLAUDE_COMMENT,GITHUB_STATUS notification
+    class DEV,RERUN feedback
+```
+
+**Architecture Layers:**
+
+- **🔷 GitHub Events**: PR triggers and context
+- **🟦 Validation**: Parallel workflow execution (Frontend, Backend, Security)
+- **🟨 Orchestration**: Result aggregation and decision logic
+- **💾 Artifacts**: Persistent storage for validation data
+- **🟪 Claude Review**: Conditional AI-powered code review
+- **🟩 Notifications**: PR comments and status updates
+- **🔄 Feedback**: Developer actions and iteration loop
+
 ---
 
 ## Workflows Overview
