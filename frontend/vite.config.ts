@@ -1,9 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: 'dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap', // Interactive treemap visualization
+    }),
+  ],
   server: {
     port: 3000,
   },
@@ -17,6 +27,13 @@ export default defineConfig({
       // Additional tree-shaking optimizations
       treeshake: {
         moduleSideEffects: false,
+      },
+      output: {
+        // Manual vendor chunks for better caching
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'xstate-vendor': ['xstate', '@xstate/react'],
+        },
       },
     },
   },

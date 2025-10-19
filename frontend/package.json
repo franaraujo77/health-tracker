@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:analyze": "tsc -b && vite build",
+    "analyze": "npm run build:analyze && open dist/stats.html",
     "build:verify": "npm run build && npm run verify:no-mocks",
     "verify:no-mocks": "node scripts/verify-no-mocks.cjs",
     "lint": "eslint .",
@@ -62,6 +64,7 @@
     "jest-axe": "^10.0.0",
     "jsdom": "^27.0.0",
     "playwright": "^1.56.1",
+    "rollup-plugin-visualizer": "^6.0.5",
     "stylelint": "^16.25.0",
     "stylelint-config-standard": "^39.0.1",
     "stylelint-order": "^7.0.0",
