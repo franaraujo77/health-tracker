@@ -1,61 +1,61 @@
 .error-boundary-fallback {
-  display: flex;
   align-items: center;
+  background-color: var(--md-sys-color-surface, #fef7ff);
+  color: var(--md-sys-color-on-surface, #1d1b20);
+  display: flex;
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
-  background-color: var(--md-sys-color-surface, #fef7ff);
-  color: var(--md-sys-color-on-surface, #1d1b20);
 }
 
 .error-container {
-  max-width: 600px;
-  padding: 2.5rem;
   background-color: var(--md-sys-color-surface-container, #f3edf7);
   border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+  max-width: 600px;
+  padding: 2.5rem;
   text-align: center;
 }
 
 .error-container h1 {
-  margin: 0 0 1rem 0;
   color: var(--md-sys-color-error, #ba1a1a);
   font-size: 2rem;
   font-weight: 500;
+  margin: 0 0 1rem;
 }
 
 .error-message {
-  margin: 0 0 2rem 0;
   color: var(--md-sys-color-on-surface-variant, #49454f);
   font-size: 1rem;
   line-height: 1.5;
+  margin: 0 0 2rem;
 }
 
 .error-details {
+  background-color: var(--md-sys-color-surface, #fef7ff);
+  border: 1px solid var(--md-sys-color-outline, #79747e);
+  border-radius: 0.5rem;
   margin: 2rem 0;
   padding: 1rem;
-  background-color: var(--md-sys-color-surface, #fef7ff);
-  border-radius: 0.5rem;
   text-align: left;
-  border: 1px solid var(--md-sys-color-outline, #79747e);
 }
 
 .error-details summary {
+  color: var(--md-sys-color-on-surface, #1d1b20);
   cursor: pointer;
   font-weight: 500;
-  color: var(--md-sys-color-on-surface, #1d1b20);
   margin-bottom: 0.5rem;
 }
 
 .error-details pre {
-  margin: 0.5rem 0 0 0;
-  padding: 0.75rem;
   background-color: var(--md-sys-color-surface-variant, #e7e0ec);
   border-radius: 0.25rem;
-  overflow-x: auto;
+  color: var(--md-sys-color-on-surface-variant, #49454f);
   font-size: 0.875rem;
   line-height: 1.4;
-  color: var(--md-sys-color-on-surface-variant, #49454f);
+  margin: 0.5rem 0 0;
+  overflow-x: auto;
+  padding: 0.75rem;
 }
 
 .error-actions {
@@ -66,18 +66,18 @@
 }
 
 .error-actions button {
-  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.5rem;
+  cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  cursor: pointer;
+  padding: 0.75rem 1.5rem;
   transition: all 0.2s ease;
 }
 
 .error-actions .btn-primary {
   background-color: var(--md-sys-color-primary, #6750a4);
-  color: var(--md-sys-color-on-primary, #ffffff);
+  color: var(--md-sys-color-on-primary, #fff);
 }
 
 .error-actions .btn-primary:hover {
@@ -87,7 +87,7 @@
 
 .error-actions .btn-secondary {
   background-color: var(--md-sys-color-secondary, #625b71);
-  color: var(--md-sys-color-on-secondary, #ffffff);
+  color: var(--md-sys-color-on-secondary, #fff);
 }
 
 .error-actions .btn-secondary:hover {
