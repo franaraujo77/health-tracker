@@ -20,12 +20,19 @@ export interface AuthResponse {
   refreshToken?: string; // Excluded from response body (sent via httpOnly cookie)
 }
 
+// API base URL - matches the configuration in lib/axios.ts
+const API_BASE_URL = 'http://localhost:8080/api';
+
+// Use minimal delays in test environment to prevent timeouts
+const TEST_ENV = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+const DELAY_MS = TEST_ENV ? 0 : 500;
+
 /**
  * POST /api/v1/auth/login
  * Authenticates user with email and password
  */
-const loginHandler = http.post('/api/v1/auth/login', async ({ request }) => {
-  await delay(1000); // Simulate network delay
+const loginHandler = http.post(`${API_BASE_URL}/v1/auth/login`, async ({ request }) => {
+  await delay(DELAY_MS); // Simulate network delay
 
   const body = (await request.json()) as { email: string; password: string };
 
@@ -64,8 +71,8 @@ const loginHandler = http.post('/api/v1/auth/login', async ({ request }) => {
  * POST /api/v1/auth/register
  * Registers a new user account
  */
-const registerHandler = http.post('/api/v1/auth/register', async ({ request }) => {
-  await delay(1000); // Simulate network delay
+const registerHandler = http.post(`${API_BASE_URL}/v1/auth/register`, async ({ request }) => {
+  await delay(DELAY_MS); // Simulate network delay
 
   const body = (await request.json()) as { email: string; password: string; name?: string };
 
@@ -104,37 +111,41 @@ const registerHandler = http.post('/api/v1/auth/register', async ({ request }) =
  * POST /api/v1/auth/refresh
  * Refreshes access token using refresh token from httpOnly cookie
  */
-const refreshHandler = http.post('/api/v1/auth/refresh', async ({ cookies }) => {
-  await delay(500); // Simulate network delay
+const refreshHandler = http.post(
+  `${API_BASE_URL}/v1/auth/refresh`,
+  async ({ request, cookies }) => {
+    await delay(DELAY_MS); // Simulate network delay
 
-  // Check for refresh token in cookies
-  const refreshToken = cookies.refresh_token;
+    // Check for refresh token in cookies (try both methods for compatibility)
+    const cookieHeader = request.headers.get('cookie') || '';
+    const hasRefreshToken = cookieHeader.includes('refresh_token=') || cookies.refresh_token;
 
-  if (!refreshToken) {
-    return HttpResponse.json({ message: 'Refresh token not found' }, { status: 401 });
+    if (!hasRefreshToken) {
+      return HttpResponse.json({ message: 'Refresh token not found' }, { status: 401 });
+    }
+
+    // Mock response with new access token
+    const response = {
+      accessToken: 'mock-refreshed-access-token',
+    };
+
+    // Simulate setting new refresh token cookie
+    return HttpResponse.json(response, {
+      status: 200,
+      headers: {
+        'Set-Cookie':
+          'refresh_token=mock-new-refresh-token; Path=/api/v1/auth; HttpOnly; SameSite=Strict',
+      },
+    });
   }
-
-  // Mock response with new access token
-  const response = {
-    accessToken: 'mock-refreshed-access-token',
-  };
-
-  // Simulate setting new refresh token cookie
-  return HttpResponse.json(response, {
-    status: 200,
-    headers: {
-      'Set-Cookie':
-        'refresh_token=mock-new-refresh-token; Path=/api/v1/auth; HttpOnly; SameSite=Strict',
-    },
-  });
-});
+);
 
 /**
  * GET /api/v1/auth/me
  * Returns authenticated user profile
  */
-const meHandler = http.get('/api/v1/auth/me', async ({ request }) => {
-  await delay(500); // Simulate network delay
+const meHandler = http.get(`${API_BASE_URL}/v1/auth/me`, async ({ request }) => {
+  await delay(DELAY_MS); // Simulate network delay
 
   // Check for Authorization header
   const authHeader = request.headers.get('Authorization');
@@ -160,8 +171,8 @@ const meHandler = http.get('/api/v1/auth/me', async ({ request }) => {
  * POST /api/v1/auth/logout
  * Logs out user by clearing refresh token cookie
  */
-const logoutHandler = http.post('/api/v1/auth/logout', async () => {
-  await delay(300); // Simulate network delay
+const logoutHandler = http.post(`${API_BASE_URL}/v1/auth/logout`, async () => {
+  await delay(DELAY_MS); // Simulate network delay
 
   // Clear refresh token cookie
   return HttpResponse.json(null, {
@@ -176,8 +187,8 @@ const logoutHandler = http.post('/api/v1/auth/logout', async () => {
  * GET /api/v1/auth/csrf
  * Returns CSRF token (for compatibility)
  */
-const csrfHandler = http.get('/api/v1/auth/csrf', async () => {
-  await delay(200);
+const csrfHandler = http.get(`${API_BASE_URL}/v1/auth/csrf`, async () => {
+  await delay(DELAY_MS);
 
   return HttpResponse.json(null, {
     status: 200,
