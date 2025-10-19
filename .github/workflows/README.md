@@ -396,6 +396,56 @@ graph TB
 - **🟩 Notifications**: PR comments and status updates
 - **🔄 Feedback**: Developer actions and iteration loop
 
+### Claude Review Decision Logic
+
+The diagram below shows exactly when Claude Code review triggers versus skips based on validation results.
+
+```mermaid
+graph TD
+    Start([PR Push Event]) --> CheckValidations{Are ALL<br/>validations passed?<br/><code>all_passed = true</code>}
+
+    CheckValidations -->|Yes| CheckCritical{Any critical<br/>failures detected?<br/><code>has_critical_failures</code>}
+    CheckValidations -->|No| SkipNonCritical[SKIP Claude Review]
+
+    CheckCritical -->|No| TriggerReview[✅ TRIGGER Claude Review]
+    CheckCritical -->|Yes| SkipCritical[❌ SKIP Claude Review]
+
+    SkipNonCritical --> ExplainNonCritical[Reason: Not all validations passed<br/>Check error-report.json for details]
+    SkipCritical --> ExplainCritical[Reason: Critical validation failures<br/>Must fix before review]
+    TriggerReview --> Explain[All checks passed<br/>Code ready for AI review]
+
+    style TriggerReview fill:#90EE90,stroke:#006400,stroke-width:3px,color:#000
+    style SkipNonCritical fill:#FFB6C6,stroke:#8B0000,stroke-width:2px,color:#000
+    style SkipCritical fill:#FFB6C6,stroke:#8B0000,stroke-width:2px,color:#000
+    style CheckValidations fill:#FFE4B5,stroke:#FF8C00,stroke-width:2px,color:#000
+    style CheckCritical fill:#FFE4B5,stroke:#FF8C00,stroke-width:2px,color:#000
+    style Start fill:#87CEEB,stroke:#4682B4,stroke-width:2px,color:#000
+    style Explain fill:#E0FFE0,stroke:#228B22,stroke-width:1px,color:#000
+    style ExplainNonCritical fill:#FFE0E0,stroke:#DC143C,stroke-width:1px,color:#000
+    style ExplainCritical fill:#FFE0E0,stroke:#DC143C,stroke-width:1px,color:#000
+```
+
+**Decision Rules:**
+
+✅ **TRIGGER Review** when:
+
+- `all_passed = true` AND `has_critical_failures = false`
+
+❌ **SKIP Review** when:
+
+- `all_passed = false` OR `has_critical_failures = true`
+
+**Critical Validations** (failure blocks Claude review):
+
+- Frontend: Type check, Tests, Build
+- Backend: Build, Unit tests, Integration tests
+- Security: Dependency scan, SAST
+
+**Non-Critical Validations** (failure still blocks review):
+
+- Frontend: Linting
+- Backend: Coverage threshold
+
 ---
 
 ## Workflows Overview
