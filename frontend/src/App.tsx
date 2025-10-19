@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import './App.css';
 import { useAuth } from './contexts/AuthContext';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -9,6 +10,9 @@ import { prefetchNextRoutes } from './utils/prefetch';
 // Lazy load page and heavy components for code splitting
 const LoginPage = lazy(() =>
   import('./pages/LoginPage').then((module) => ({ default: module.LoginPage }))
+);
+const AuthError = lazy(() =>
+  import('./pages/AuthError').then((module) => ({ default: module.AuthError }))
 );
 const HealthDataEntryForm = lazy(() =>
   import('./components/HealthDataEntryForm').then((module) => ({
@@ -26,6 +30,7 @@ const PerformanceDashboard = lazy(() =>
 
 function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const location = useLocation();
 
   // Prefetch routes based on authentication state
   useEffect(() => {
@@ -33,6 +38,17 @@ function App() {
       prefetchNextRoutes(isAuthenticated);
     }
   }, [isAuthenticated, isLoading]);
+
+  // Show error page if on /error route (handles redirect loop errors)
+  if (location.pathname === '/error') {
+    return (
+      <RouteErrorBoundary routeName="Error">
+        <Suspense fallback={<LoadingSpinner />}>
+          <AuthError />
+        </Suspense>
+      </RouteErrorBoundary>
+    );
+  }
 
   if (isLoading) {
     return (
