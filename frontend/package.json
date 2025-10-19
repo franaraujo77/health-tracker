@@ -29,6 +29,8 @@
     "size": "size-limit",
     "size:why": "size-limit --why",
     "check:bundle-size": "node scripts/check-bundle-size.cjs",
+    "lighthouse": "lhci autorun",
+    "lighthouse:local": "npm run build && npm run lighthouse",
     "tokens:validate": "tsc --noEmit src/styles/tokens/index.ts",
     "tokens:check": "npm run tokens:validate && echo '✓ Design tokens are valid'",
     "prebuild": "npm run tokens:check"
@@ -49,6 +51,7 @@
   "devDependencies": {
     "@axe-core/react": "^4.10.2",
     "@eslint/js": "^9.36.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.56.1",
     "@size-limit/preset-app": "^11.2.0",
     "@statelyai/inspect": "^0.4.0",
