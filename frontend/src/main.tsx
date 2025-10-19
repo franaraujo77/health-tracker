@@ -12,6 +12,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavigationProvider } from './contexts/NavigationProvider';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { prefetchNextRoutes } from './utils/prefetch';
+import { initWebVitals } from './utils/webVitals';
 
 // Lazy load page components for code splitting
 const App = lazy(() => import('./App.tsx'));
@@ -31,7 +32,7 @@ const isShowcase = url.searchParams.get('showcase') === 'true';
 
 /**
  * Prefetch Wrapper Component
- * Triggers route prefetching after initial render
+ * Triggers route prefetching and web vitals tracking after initial render
  */
 function AppWithPrefetch({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -40,6 +41,9 @@ function AppWithPrefetch({ children }: { children: React.ReactNode }) {
     if (!isShowcase) {
       prefetchNextRoutes(false);
     }
+
+    // Initialize Web Vitals tracking
+    initWebVitals();
   }, []);
 
   return <>{children}</>;
