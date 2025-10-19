@@ -3,6 +3,9 @@ package com.healthtracker.backend.controller;
 import com.healthtracker.backend.dto.auth.AuthenticationResponse;
 import com.healthtracker.backend.dto.auth.LoginRequest;
 import com.healthtracker.backend.dto.auth.RegisterRequest;
+import com.healthtracker.backend.dto.auth.UserResponse;
+import com.healthtracker.backend.entity.User;
+import com.healthtracker.backend.repository.UserRepository;
 import com.healthtracker.backend.service.AuthenticationService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -29,6 +34,7 @@ import java.util.Arrays;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final UserRepository userRepository;
 
     @Value("${jwt.refresh-token-expiration:2592000000}")
     private long refreshTokenExpiration;
@@ -121,6 +127,39 @@ public class AuthenticationController {
         // Spring Security's CsrfFilter automatically generates and sets XSRF-TOKEN cookie
         // for any request. This endpoint provides a dedicated way for frontend to initialize CSRF.
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Get current authenticated user information
+     * Requires valid JWT token in Authorization header
+     *
+     * @return Current user profile information
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        // Get authenticated user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+
+        // Fetch user from database
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Map to response DTO
+        UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .roles(user.getRoles())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+
+        return ResponseEntity.ok(userResponse);
     }
 
     /**
