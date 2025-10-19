@@ -87,7 +87,7 @@ describe('App', () => {
 
   describe('Authenticated State', () => {
     it('should show dashboard when user is authenticated', async () => {
-      const { container } = renderApp();
+      renderApp();
 
       // Wait for loading to complete
       await waitFor(() => {
@@ -175,8 +175,6 @@ describe('App', () => {
       // Check for theme toggle
       await waitFor(
         () => {
-          // ThemeToggle should be rendered
-          const themeButton = screen.queryByRole('button', { name: /theme/i });
           // ThemeToggle might not have aria-label, so we just check if dashboard is rendered
           const dashboard = screen.queryByText('Health Tracker');
           if (dashboard) {

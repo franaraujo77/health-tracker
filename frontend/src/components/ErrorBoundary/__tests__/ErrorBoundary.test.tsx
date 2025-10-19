@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from '../ErrorBoundary';
@@ -60,6 +60,8 @@ describe('ErrorBoundary', () => {
     it('should show error details in development mode', () => {
       // Set dev mode
       const originalEnv = import.meta.env.DEV;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -73,6 +75,8 @@ describe('ErrorBoundary', () => {
       expect(screen.getByText('Test error')).toBeInTheDocument();
 
       // Restore original env
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalEnv;
     });
 
@@ -80,7 +84,11 @@ describe('ErrorBoundary', () => {
       // Set prod mode
       const originalDev = import.meta.env.DEV;
       const originalProd = import.meta.env.PROD;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = true;
 
       renderWithRouter(
@@ -93,7 +101,11 @@ describe('ErrorBoundary', () => {
       expect(screen.queryByText('Error details')).not.toBeInTheDocument();
 
       // Restore original env
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = originalProd;
     });
 
@@ -127,6 +139,8 @@ describe('ErrorBoundary', () => {
 
     it('should call onError when error is caught', () => {
       const originalDev = import.meta.env.DEV;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -138,6 +152,8 @@ describe('ErrorBoundary', () => {
       // Verify console.error was called
       expect(console.error).toHaveBeenCalled();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
     });
   });
@@ -177,6 +193,7 @@ describe('ErrorBoundary', () => {
 
     it('should show technical details in development mode', () => {
       const originalEnv = import.meta.env.DEV;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -187,13 +204,16 @@ describe('ErrorBoundary', () => {
 
       expect(screen.getByText('Technical details')).toBeInTheDocument();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalEnv;
     });
 
     it('should hide technical details in production mode', () => {
       const originalDev = import.meta.env.DEV;
       const originalProd = import.meta.env.PROD;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = true;
 
       renderWithRouter(
@@ -204,7 +224,9 @@ describe('ErrorBoundary', () => {
 
       expect(screen.queryByText('Technical details')).not.toBeInTheDocument();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).PROD = originalProd;
     });
 
@@ -238,6 +260,7 @@ describe('ErrorBoundary', () => {
 
     it('should call onError with route context when error is caught', () => {
       const originalDev = import.meta.env.DEV;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = true;
 
       renderWithRouter(
@@ -249,6 +272,7 @@ describe('ErrorBoundary', () => {
       // Verify console.error was called with route context
       expect(console.error).toHaveBeenCalled();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (import.meta.env as any).DEV = originalDev;
     });
   });
