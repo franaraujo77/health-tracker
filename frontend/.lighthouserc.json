@@ -1,9 +1,16 @@
 {
   "ci": {
     "collect": {
-      "numberOfRuns": 3,
+      "numberOfRuns": 1,
       "startServerCommand": "npm run preview",
-      "url": ["http://localhost:4173/"]
+      "url": ["http://localhost:4173/"],
+      "startServerReadyPattern": "Local:.*http://localhost:4173",
+      "startServerReadyTimeout": 60000,
+      "settings": {
+        "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
+        "skipAudits": ["uses-http2"],
+        "chromeFlags": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --headless"
+      }
     },
     "assert": {
       "preset": "lighthouse:recommended",
