@@ -446,6 +446,190 @@ graph TD
 - Frontend: Linting
 - Backend: Coverage threshold
 
+### Running Validations Locally
+
+Run validations on your local machine before pushing to catch issues early and save CI/CD resources.
+
+#### Prerequisites
+
+**Frontend:**
+
+```bash
+cd frontend
+npm install
+```
+
+**Backend:**
+
+```bash
+cd backend
+# Ensure Java 21 is installed
+java -version
+
+# Set JAVA_HOME if needed
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/microsoft-25.jdk/Contents/Home
+```
+
+#### Frontend Validation Commands
+
+```bash
+cd frontend
+
+# Lint check (ESLint)
+npm run lint
+
+# Type check (TypeScript)
+npm run type-check
+
+# Run tests (Vitest)
+npm test
+
+# Build (Vite)
+npm run build
+
+# Run all validations
+npm run lint && npm run type-check && npm test && npm run build
+```
+
+#### Backend Validation Commands
+
+```bash
+cd backend
+
+# Compile/Build
+mvn clean compile
+
+# Unit tests
+mvn test
+
+# Integration tests (requires PostgreSQL)
+mvn verify
+
+# Coverage check
+mvn test jacoco:report
+# View: target/site/jacoco/index.html
+
+# Run all validations
+mvn clean verify jacoco:report
+```
+
+#### Security Validation Commands
+
+**Frontend Dependencies:**
+
+```bash
+cd frontend
+
+# npm audit
+npm audit
+
+# Check for vulnerabilities
+npm audit --audit-level=moderate
+```
+
+**Backend Dependencies:**
+
+```bash
+cd backend
+
+# OWASP Dependency Check
+mvn org.owasp:dependency-check-maven:check
+
+# View report: target/dependency-check-report.html
+```
+
+#### Quick Validation Script
+
+Create a script to run all validations:
+
+**`scripts/validate-local.sh`:**
+
+```bash
+#!/bin/bash
+set -e
+
+echo "🔍 Running local validations..."
+
+# Frontend
+echo "📦 Frontend validations..."
+cd frontend
+npm run lint
+npm run type-check
+npm test -- --run
+npm run build
+cd ..
+
+# Backend
+echo "☕ Backend validations..."
+cd backend
+mvn clean verify
+cd ..
+
+echo "✅ All local validations passed!"
+```
+
+Make executable:
+
+```bash
+chmod +x scripts/validate-local.sh
+./scripts/validate-local.sh
+```
+
+#### Pre-commit Hook (Recommended)
+
+The repository already has Husky pre-commit hooks configured that run:
+
+- **Frontend**: ESLint, Prettier
+- **Conventional commit message validation**
+
+To skip hooks (not recommended):
+
+```bash
+git commit --no-verify -m "message"
+```
+
+#### IDE Integration
+
+**VS Code** (recommended extensions):
+
+- `dbaeumer.vscode-eslint` - ESLint
+- `esbenp.prettier-vscode` - Prettier
+- `ms-vscode.vscode-typescript-next` - TypeScript
+- `orta.vscode-jest` - Jest/Vitest
+
+**IntelliJ IDEA**:
+
+- Enable Maven auto-import
+- Configure Code Style → Java → Import from .editorconfig
+- Enable ESLint for frontend code
+
+#### Tips for Faster Local Validation
+
+1. **Run only what changed**:
+
+   ```bash
+   # Frontend: lint only staged files
+   npm run lint -- --fix $(git diff --cached --name-only --diff-filter=ACM "*.ts" "*.tsx")
+
+   # Backend: test only specific class
+   mvn test -Dtest=MyTestClass
+   ```
+
+2. **Use watch mode during development**:
+
+   ```bash
+   # Frontend
+   npm test -- --watch
+
+   # Backend (with spring-boot-devtools)
+   mvn spring-boot:run
+   ```
+
+3. **Skip slow tests locally** (mark with `@Tag("slow")` in Java, `it.skip` in Vitest):
+   ```bash
+   mvn test -DexcludedGroups=slow
+   ```
+
 ---
 
 ## Workflows Overview
