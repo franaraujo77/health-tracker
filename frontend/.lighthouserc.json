@@ -9,7 +9,7 @@
       "settings": {
         "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
         "skipAudits": ["uses-http2"],
-        "chromeFlags": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --headless"
+        "chromeFlags": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --headless"
       }
     },
     "assert": {

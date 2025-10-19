@@ -29,6 +29,27 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Wait for preview server to be ready
+        run: |
+          npm run preview &
+          SERVER_PID=$!
+          echo "Preview server started with PID: $SERVER_PID"
+
+          for i in {1..30}; do
+            if curl -s http://localhost:4173/ > /dev/null 2>&1; then
+              echo "✓ Server is ready!"
+              sleep 2
+              break
+            fi
+            echo "Waiting for server to be ready... ($i/30)"
+            sleep 2
+          done
+
+          if ! curl -s http://localhost:4173/ > /dev/null 2>&1; then
+            echo "✗ Server failed to start"
+            exit 1
+          fi
+
       - name: Run Lighthouse CI
         run: |
           npm install -g @lhci/cli@0.14.x
