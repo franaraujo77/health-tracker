@@ -49,27 +49,45 @@ function AppWithPrefetch({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <BrowserRouter>
-        <NavigationProvider>
-          <QueryClientProvider client={queryClient}>
-            <AppWithPrefetch>
-              <Suspense fallback={<LoadingSpinner />}>
-                {isShowcase ? (
-                  <ComponentShowcase />
-                ) : (
-                  <AuthProvider>
-                    <App />
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </AuthProvider>
-                )}
-              </Suspense>
-            </AppWithPrefetch>
-          </QueryClientProvider>
-        </NavigationProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
-  </StrictMode>
-);
+/**
+ * Start MSW in development mode before rendering the app
+ * SECURITY: This only runs in development builds
+ */
+async function enableMocking() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('./mocks/browser');
+
+    // Start the worker and wait for it to be ready
+    return worker.start({
+      onUnhandledRequest: 'bypass', // Allow unmocked requests to pass through
+    });
+  }
+}
+
+// Start app with MSW enabled in development
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <NavigationProvider>
+            <QueryClientProvider client={queryClient}>
+              <AppWithPrefetch>
+                <Suspense fallback={<LoadingSpinner />}>
+                  {isShowcase ? (
+                    <ComponentShowcase />
+                  ) : (
+                    <AuthProvider>
+                      <App />
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </AuthProvider>
+                  )}
+                </Suspense>
+              </AppWithPrefetch>
+            </QueryClientProvider>
+          </NavigationProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </StrictMode>
+  );
+});
