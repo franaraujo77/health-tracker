@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from 'react';
+import { StrictMode, Suspense, lazy, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import { initializeTheme } from './styles/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavigationProvider } from './contexts/NavigationProvider';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { prefetchNextRoutes } from './utils/prefetch';
 
 // Lazy load page components for code splitting
 const App = lazy(() => import('./App.tsx'));
@@ -28,22 +29,40 @@ startInspector();
 const url = new URL(window.location.href);
 const isShowcase = url.searchParams.get('showcase') === 'true';
 
+/**
+ * Prefetch Wrapper Component
+ * Triggers route prefetching after initial render
+ */
+function AppWithPrefetch({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Prefetch routes for unauthenticated users (login page scenario)
+    // The authenticated case is handled in App.tsx after auth state is known
+    if (!isShowcase) {
+      prefetchNextRoutes(false);
+    }
+  }, []);
+
+  return <>{children}</>;
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <NavigationProvider>
           <QueryClientProvider client={queryClient}>
-            <Suspense fallback={<LoadingSpinner />}>
-              {isShowcase ? (
-                <ComponentShowcase />
-              ) : (
-                <AuthProvider>
-                  <App />
-                  <ReactQueryDevtools initialIsOpen={false} />
-                </AuthProvider>
-              )}
-            </Suspense>
+            <AppWithPrefetch>
+              <Suspense fallback={<LoadingSpinner />}>
+                {isShowcase ? (
+                  <ComponentShowcase />
+                ) : (
+                  <AuthProvider>
+                    <App />
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  </AuthProvider>
+                )}
+              </Suspense>
+            </AppWithPrefetch>
           </QueryClientProvider>
         </NavigationProvider>
       </BrowserRouter>

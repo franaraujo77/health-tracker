@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import './App.css';
 import { useAuth } from './contexts/AuthContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { RouteErrorBoundary } from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { prefetchNextRoutes } from './utils/prefetch';
 
 // Lazy load page and heavy components for code splitting
 const LoginPage = lazy(() =>
@@ -20,6 +21,13 @@ const HealthMetricsList = lazy(() =>
 
 function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+
+  // Prefetch routes based on authentication state
+  useEffect(() => {
+    if (!isLoading) {
+      prefetchNextRoutes(isAuthenticated);
+    }
+  }, [isAuthenticated, isLoading]);
 
   if (isLoading) {
     return (
