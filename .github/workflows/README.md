@@ -191,6 +191,68 @@ graph LR
 - **claude-review-conditional.yml** - Conditional Claude Code review trigger
 - **generate-status-comment.js** - Status reporter script
 
+### Epic Story Dependency Graph
+
+This epic was implemented in 10 user stories across 3 phases. The diagram below shows the dependencies and critical path.
+
+```mermaid
+graph LR
+    %% Define styles
+    classDef done fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    classDef doing fill:#FFC107,stroke:#F57F17,stroke-width:2px,color:#000
+    classDef critical stroke:#F44336,stroke-width:4px
+
+    %% Stories
+    S1[Story 1:<br/>Orchestrator<br/>✓]
+    S2[Story 2:<br/>Frontend<br/>✓]
+    S3[Story 3:<br/>Backend<br/>✓]
+    S4[Story 4:<br/>Claude Review<br/>✓]
+    S5[Story 5:<br/>Reporter<br/>✓]
+    S6[Story 6:<br/>Security<br/>✓]
+    S7[Story 7:<br/>Documentation<br/>⏳]
+    S8[Story 8:<br/>Tests<br/>⏳]
+    S9[Story 9:<br/>Monitoring<br/>⏳]
+    S10[Story 10:<br/>Rollback<br/>⏳]
+
+    %% Phase 1 & 2 Dependencies
+    S1 ==>|Critical| S2
+    S1 --> S3
+    S1 --> S6
+    S2 ==>|Critical| S4
+    S3 --> S4
+    S1 --> S4
+    S4 ==>|Critical| S5
+    S1 --> S5
+
+    %% Phase 3 Dependencies (simplified)
+    S2 -.-> Phase3
+    S3 -.-> Phase3
+    S4 -.-> Phase3
+    S5 -.-> Phase3
+    S6 -.-> Phase3
+
+    Phase3[All Phase 1-2<br/>Complete]
+    Phase3 --> S7
+    Phase3 --> S8
+    Phase3 --> S9
+    Phase3 --> S10
+
+    %% Apply styles
+    class S1,S2,S3,S4,S5,S6 done
+    class S7,S8,S9,S10 doing
+    class S1,S2,S4,S5 critical
+```
+
+**Critical Path**: Story 1 → Story 2 → Story 4 → Story 5
+
+**Legend:**
+
+- **Green (✓)**: Completed stories
+- **Yellow (⏳)**: In-progress stories
+- **Thick Arrow (==>)**: Critical path
+- **Solid Arrow (-->)**: Direct dependency
+- **Dotted Arrow (-.->)**: Phase completion dependency
+
 ---
 
 ## Workflows Overview
