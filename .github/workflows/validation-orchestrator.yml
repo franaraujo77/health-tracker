@@ -48,21 +48,13 @@ jobs:
     # Timeout after 20 minutes to prevent hanging jobs
     timeout-minutes: 20
 
-  # This job will be implemented in subsequent tasks
-  # It will call the security validation workflow
+  # Call the security validation workflow
   validate-security:
-    name: Security Validation (Placeholder)
-    runs-on: ubuntu-latest
-    outputs:
-      dependency-scan-status: ${{ steps.placeholder.outputs.dependency-scan-status }}
-      sast-status: ${{ steps.placeholder.outputs.sast-status }}
-    steps:
-      - name: Placeholder for security validation
-        id: placeholder
-        run: |
-          echo "dependency-scan-status=success" >> $GITHUB_OUTPUT
-          echo "sast-status=success" >> $GITHUB_OUTPUT
-          echo "Security validation placeholder - will be replaced with workflow_call"
+    name: Security Validation
+    uses: ./.github/workflows/security-validation.yml
+    # Timeout after 15 minutes to prevent hanging jobs
+    timeout-minutes: 15
+    secrets: inherit  # Pass secrets for Snyk and SonarQube
 
   # Aggregates results from all validation jobs
   aggregate-results:
@@ -149,13 +141,16 @@ jobs:
           fi
 
           # Security validation checks
-          if [ "${{ needs.validate-security.outputs.dependency-scan-status }}" != "success" ]; then
+          SECURITY_DEPENDENCY="${{ needs.validate-security.outputs.dependency-scan-status || 'unknown' }}"
+          SECURITY_SAST="${{ needs.validate-security.outputs.sast-status || 'unknown' }}"
+
+          if [ "$SECURITY_DEPENDENCY" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Security: Dependency scan failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-security.outputs.sast-status }}" != "success" ]; then
+          if [ "$SECURITY_SAST" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Security: SAST scan failed (CRITICAL)")
