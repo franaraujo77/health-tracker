@@ -34,25 +34,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # This job will be implemented in subsequent tasks
-  # It will call the frontend validation workflow
+  # Call the refactored frontend validation workflow
   validate-frontend:
-    name: Frontend Validation (Placeholder)
-    runs-on: ubuntu-latest
-    outputs:
-      lint-status: ${{ steps.placeholder.outputs.lint-status }}
-      type-status: ${{ steps.placeholder.outputs.type-status }}
-      test-status: ${{ steps.placeholder.outputs.test-status }}
-      build-status: ${{ steps.placeholder.outputs.build-status }}
-    steps:
-      - name: Placeholder for frontend validation
-        id: placeholder
-        run: |
-          echo "lint-status=success" >> $GITHUB_OUTPUT
-          echo "type-status=success" >> $GITHUB_OUTPUT
-          echo "test-status=success" >> $GITHUB_OUTPUT
-          echo "build-status=success" >> $GITHUB_OUTPUT
-          echo "Frontend validation placeholder - will be replaced with workflow_call"
+    name: Frontend Validation
+    uses: ./.github/workflows/frontend-ci.yml
+    # Timeout after 15 minutes to prevent hanging jobs
+    timeout-minutes: 15
 
   # This job will be implemented in subsequent tasks
   # It will call the backend validation workflow
@@ -117,24 +104,29 @@ jobs:
           ERRORS=()
 
           # Frontend validation checks
-          if [ "${{ needs.validate-frontend.outputs.lint-status }}" != "success" ]; then
+          FRONTEND_LINT="${{ needs.validate-frontend.outputs.lint-status || 'unknown' }}"
+          FRONTEND_TYPE="${{ needs.validate-frontend.outputs.type-status || 'unknown' }}"
+          FRONTEND_TEST="${{ needs.validate-frontend.outputs.test-status || 'unknown' }}"
+          FRONTEND_BUILD="${{ needs.validate-frontend.outputs.build-status || 'unknown' }}"
+
+          if [ "$FRONTEND_LINT" != "success" ]; then
             ALL_PASSED=false
             ERRORS+=("Frontend: Linting failed")
           fi
 
-          if [ "${{ needs.validate-frontend.outputs.type-status }}" != "success" ]; then
+          if [ "$FRONTEND_TYPE" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Frontend: Type checking failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-frontend.outputs.test-status }}" != "success" ]; then
+          if [ "$FRONTEND_TEST" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Frontend: Tests failed (CRITICAL)")
           fi
 
-          if [ "${{ needs.validate-frontend.outputs.build-status }}" != "success" ]; then
+          if [ "$FRONTEND_BUILD" != "success" ]; then
             ALL_PASSED=false
             HAS_CRITICAL_FAILURES=true
             ERRORS+=("Frontend: Build failed (CRITICAL)")
