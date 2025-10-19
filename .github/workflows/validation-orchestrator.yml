@@ -256,3 +256,87 @@ jobs:
           name: validation-report-${{ github.run_id }}
           path: validation-reports/
           retention-days: 30
+
+  # Post validation status comment to PR
+  post-status-comment:
+    name: Post Validation Status Comment
+    runs-on: ubuntu-latest
+    needs: aggregate-results
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download validation report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: validation-report-${{ github.run_id }}
+          path: validation-reports/
+
+      - name: Generate status comment
+        id: generate-comment
+        run: |
+          # Check if error report exists
+          if [ ! -f "validation-reports/error-report.json" ]; then
+            echo "::warning::Validation report not found"
+            exit 0
+          fi
+
+          # Prepare options JSON
+          cat > options.json <<EOF
+          {
+            "workflowRunId": "${{ github.run_id }}",
+            "workflowRunUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "validationData": {
+              "frontend": {
+                "lintStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "typeStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "testStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "buildStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              },
+              "backend": {
+                "buildStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "unitTestStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "integrationTestStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "coverageStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              },
+              "security": {
+                "dependencyScanStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "sastStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              }
+            }
+          }
+          EOF
+
+          # Generate comment
+          node .github/scripts/generate-status-comment.js validation-reports/error-report.json "$(cat options.json)" > comment.md
+
+          # Output comment body for next step
+          {
+            echo 'comment-body<<EOF'
+            cat comment.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Find existing status comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- validation-status-reporter -->'
+
+      - name: Create or update status comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.generate-comment.outputs.comment-body }}
+          edit-mode: replace
