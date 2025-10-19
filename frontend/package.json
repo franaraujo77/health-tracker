@@ -28,6 +28,7 @@
     "test:e2e:report": "playwright show-report",
     "size": "size-limit",
     "size:why": "size-limit --why",
+    "check:bundle-size": "node scripts/check-bundle-size.cjs",
     "tokens:validate": "tsc --noEmit src/styles/tokens/index.ts",
     "tokens:check": "npm run tokens:validate && echo '✓ Design tokens are valid'",
     "prebuild": "npm run tokens:check"
@@ -63,7 +64,9 @@
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "glob": "^10.4.5",
     "globals": "^16.4.0",
+    "gzip-size": "^7.0.0",
     "jest-axe": "^10.0.0",
     "jsdom": "^27.0.0",
     "playwright": "^1.56.1",
