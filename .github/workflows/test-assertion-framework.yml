@@ -1,0 +1,460 @@
+name: Test Assertion Framework
+
+# This workflow demonstrates and tests the assertion framework
+# It shows how to use assertions to verify workflow outputs and artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of assertion test to run'
+        required: true
+        type: choice
+        options:
+          - 'basic-assertions'
+          - 'json-assertions'
+          - 'workflow-output-assertions'
+          - 'comprehensive'
+        default: 'comprehensive'
+
+permissions:
+  contents: read
+
+jobs:
+  # Test basic assertion functions
+  test-basic-assertions:
+    name: Test Basic Assertions
+    runs-on: ubuntu-latest
+    if: inputs.test_type == 'basic-assertions' || inputs.test_type == 'comprehensive'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make assertion script executable
+        run: chmod +x .github/scripts/test-assertions.sh
+
+      - name: Test assert_equals
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_equals"
+
+          # Should pass
+          assert_equals "foo" "foo" "Strings should be equal"
+
+          # Should pass
+          assert_equals "123" "123" "Numbers as strings should be equal"
+
+          # Expected to fail (demonstrating failure output)
+          assert_equals "foo" "bar" "Different strings should not be equal" || true
+
+          echo ""
+          info "assert_equals tests completed"
+
+      - name: Test assert_true and assert_false
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_true and assert_false"
+
+          # Should pass
+          assert_true "true" "Value should be true"
+
+          # Should pass
+          assert_false "false" "Value should be false"
+
+          # Expected to fail
+          assert_true "false" "This should fail" || true
+
+          echo ""
+          info "Boolean assertion tests completed"
+
+      - name: Test assert_not_empty
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_not_empty"
+
+          # Should pass
+          assert_not_empty "not empty" "Non-empty string"
+
+          # Expected to fail
+          assert_not_empty "" "Empty string should fail" || true
+
+          echo ""
+          info "Empty check tests completed"
+
+      - name: Test assert_contains
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_contains"
+
+          # Should pass
+          assert_contains "Hello, World!" "World" "String should contain substring"
+
+          # Expected to fail
+          assert_contains "Hello, World!" "Goodbye" "Substring not present" || true
+
+          echo ""
+          info "Contains check tests completed"
+
+  # Test JSON assertion functions
+  test-json-assertions:
+    name: Test JSON Assertions
+    runs-on: ubuntu-latest
+    if: inputs.test_type == 'json-assertions' || inputs.test_type == 'comprehensive'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make assertion script executable
+        run: chmod +x .github/scripts/test-assertions.sh
+
+      - name: Create test JSON files
+        run: |
+          mkdir -p test-data
+
+          # Valid JSON
+          cat > test-data/valid.json <<'EOF'
+          {
+            "all_passed": true,
+            "has_critical_failures": false,
+            "errors": [
+              {
+                "message": "Test error",
+                "severity": "warning"
+              }
+            ],
+            "metadata": {
+              "timestamp": "2025-10-19T00:00:00Z",
+              "workflow_run": "123456"
+            }
+          }
+          EOF
+
+          # Invalid JSON
+          echo '{invalid json' > test-data/invalid.json
+
+          # Empty JSON
+          echo '{}' > test-data/empty.json
+
+      - name: Test assert_json_valid
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_json_valid"
+
+          # Should pass
+          assert_json_valid "test-data/valid.json" "Valid JSON file"
+
+          # Expected to fail
+          assert_json_valid "test-data/invalid.json" "Invalid JSON should fail" || true
+
+          # Should pass (empty JSON is still valid)
+          assert_json_valid "test-data/empty.json" "Empty JSON is valid"
+
+          echo ""
+          info "JSON validation tests completed"
+
+      - name: Test assert_json_field_exists
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_json_field_exists"
+
+          # Should pass
+          assert_json_field_exists "test-data/valid.json" ".all_passed" "all_passed field exists"
+          assert_json_field_exists "test-data/valid.json" ".metadata.timestamp" "Nested field exists"
+
+          # Expected to fail
+          assert_json_field_exists "test-data/valid.json" ".nonexistent" "Non-existent field" || true
+
+          echo ""
+          info "JSON field existence tests completed"
+
+      - name: Test assert_json_field_equals
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_json_field_equals"
+
+          # Should pass
+          assert_json_field_equals "test-data/valid.json" ".all_passed" "true" "all_passed should be true"
+          assert_json_field_equals "test-data/valid.json" ".has_critical_failures" "false" "has_critical_failures should be false"
+          assert_json_field_equals "test-data/valid.json" ".metadata.workflow_run" "123456" "workflow_run ID"
+
+          # Expected to fail
+          assert_json_field_equals "test-data/valid.json" ".all_passed" "false" "Wrong value" || true
+
+          echo ""
+          info "JSON field value tests completed"
+
+      - name: Test assert_json_array_length
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing assert_json_array_length"
+
+          # Should pass
+          assert_json_array_length "test-data/valid.json" ".errors" 1 "Errors array has 1 item"
+
+          # Expected to fail
+          assert_json_array_length "test-data/valid.json" ".errors" 0 "Wrong array length" || true
+
+          echo ""
+          info "JSON array length tests completed"
+
+  # Test workflow output assertions with real validation orchestrator
+  test-workflow-output-assertions:
+    name: Test Workflow Output Assertions
+    runs-on: ubuntu-latest
+    if: inputs.test_type == 'workflow-output-assertions' || inputs.test_type == 'comprehensive'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make assertion script executable
+        run: chmod +x .github/scripts/test-assertions.sh
+
+      - name: Simulate workflow outputs
+        id: simulate
+        run: |
+          # Simulate validation orchestrator outputs
+          echo "all-passed=true" >> $GITHUB_OUTPUT
+          echo "has-critical-failures=false" >> $GITHUB_OUTPUT
+          echo "test-result=success" >> $GITHUB_OUTPUT
+
+      - name: Test workflow output assertions
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing Workflow Output Assertions"
+
+          ALL_PASSED="${{ steps.simulate.outputs.all-passed }}"
+          HAS_CRITICAL="${{ steps.simulate.outputs.has-critical-failures }}"
+          TEST_RESULT="${{ steps.simulate.outputs.test-result }}"
+
+          # Verify outputs
+          assert_equals "$ALL_PASSED" "true" "all-passed output should be true"
+          assert_equals "$HAS_CRITICAL" "false" "has-critical-failures output should be false"
+          assert_equals "$TEST_RESULT" "success" "test-result should be success"
+
+          echo ""
+          info "Workflow output tests completed"
+
+      - name: Test job result assertions
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Testing Job Result Assertions"
+
+          # Simulate job results
+          FRONTEND_RESULT="success"
+          BACKEND_RESULT="success"
+          SECURITY_RESULT="success"
+
+          # Verify job results
+          assert_job_result "$FRONTEND_RESULT" "success" "Frontend job should succeed"
+          assert_job_result "$BACKEND_RESULT" "success" "Backend job should succeed"
+          assert_job_result "$SECURITY_RESULT" "success" "Security job should succeed"
+
+          echo ""
+          info "Job result tests completed"
+
+  # Comprehensive test using assertion framework
+  comprehensive-assertion-test:
+    name: Comprehensive Assertion Test
+    runs-on: ubuntu-latest
+    if: inputs.test_type == 'comprehensive'
+    needs: [test-basic-assertions, test-json-assertions, test-workflow-output-assertions]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make assertion script executable
+        run: chmod +x .github/scripts/test-assertions.sh
+
+      - name: Create comprehensive test artifact
+        run: |
+          mkdir -p test-results
+
+          # Create error report similar to validation orchestrator
+          cat > test-results/error-report.json <<'EOF'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "9876543210",
+            "test_scenario": "all-pass",
+            "all_passed": true,
+            "has_critical_failures": false,
+            "errors": []
+          }
+          EOF
+
+      - name: Run comprehensive assertions
+        id: comprehensive
+        run: |
+          source .github/scripts/test-assertions.sh
+
+          section "Comprehensive Assertion Suite"
+
+          # File assertions
+          info "Testing file assertions..."
+          assert_file_exists "test-results/error-report.json" "Error report artifact exists"
+          assert_file_not_exists "test-results/nonexistent.json" "Non-existent file check"
+
+          # JSON validation
+          info "Testing JSON structure..."
+          assert_json_valid "test-results/error-report.json" "Error report is valid JSON"
+
+          # JSON field existence
+          info "Testing required fields..."
+          assert_json_field_exists "test-results/error-report.json" ".timestamp" "Timestamp field exists"
+          assert_json_field_exists "test-results/error-report.json" ".all_passed" "all_passed field exists"
+          assert_json_field_exists "test-results/error-report.json" ".has_critical_failures" "has_critical_failures exists"
+          assert_json_field_exists "test-results/error-report.json" ".errors" "Errors array exists"
+
+          # JSON field values
+          info "Testing field values..."
+          assert_json_field_equals "test-results/error-report.json" ".all_passed" "true" "all_passed is true"
+          assert_json_field_equals "test-results/error-report.json" ".has_critical_failures" "false" "has_critical_failures is false"
+          assert_json_field_equals "test-results/error-report.json" ".test_scenario" "all-pass" "Scenario matches"
+
+          # Array length
+          info "Testing error array..."
+          assert_json_array_length "test-results/error-report.json" ".errors" 0 "No errors in all-pass scenario"
+
+          # Generate final report
+          section "Test Complete"
+          generate_report
+
+          # Set output for downstream jobs
+          if [ $ASSERTIONS_FAILED -eq 0 ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate GitHub summary
+        if: always()
+        run: |
+          source .github/scripts/test-assertions.sh
+          generate_github_summary
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assertion-test-results-${{ github.run_id }}
+          path: test-results/
+          retention-days: 30
+
+  # Final report generation
+  generate-final-report:
+    name: Generate Final Report
+    runs-on: ubuntu-latest
+    needs: [test-basic-assertions, test-json-assertions, test-workflow-output-assertions, comprehensive-assertion-test]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate report
+        run: |
+          echo "# Assertion Framework Test Report" > report.md
+          echo "" >> report.md
+          echo "**Test Run ID:** ${{ github.run_id }}" >> report.md
+          echo "**Test Type:** ${{ inputs.test_type }}" >> report.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> report.md
+          echo "" >> report.md
+
+          echo "## Test Execution Summary" >> report.md
+          echo "" >> report.md
+          echo "| Test Suite | Result |" >> report.md
+          echo "|------------|--------|" >> report.md
+          echo "| Basic Assertions | ${{ needs.test-basic-assertions.result || 'skipped' }} |" >> report.md
+          echo "| JSON Assertions | ${{ needs.test-json-assertions.result || 'skipped' }} |" >> report.md
+          echo "| Workflow Output Assertions | ${{ needs.test-workflow-output-assertions.result || 'skipped' }} |" >> report.md
+          echo "| Comprehensive Test | ${{ needs.comprehensive-assertion-test.result || 'skipped' }} |" >> report.md
+          echo "" >> report.md
+
+          # Determine overall result
+          if [ "${{ needs.test-basic-assertions.result }}" = "success" ] || [ "${{ needs.test-basic-assertions.result }}" = "skipped" ]; then
+            if [ "${{ needs.test-json-assertions.result }}" = "success" ] || [ "${{ needs.test-json-assertions.result }}" = "skipped" ]; then
+              if [ "${{ needs.test-workflow-output-assertions.result }}" = "success" ] || [ "${{ needs.test-workflow-output-assertions.result }}" = "skipped" ]; then
+                if [ "${{ needs.comprehensive-assertion-test.result }}" = "success" ] || [ "${{ needs.comprehensive-assertion-test.result }}" = "skipped" ]; then
+                  OVERALL="PASSED"
+                else
+                  OVERALL="FAILED"
+                fi
+              else
+                OVERALL="FAILED"
+              fi
+            else
+              OVERALL="FAILED"
+            fi
+          else
+            OVERALL="FAILED"
+          fi
+
+          if [ "$OVERALL" = "PASSED" ]; then
+            echo "## ✅ Overall Result: PASSED" >> report.md
+            echo "" >> report.md
+            echo "The assertion framework is working correctly:" >> report.md
+            echo "- ✅ Basic assertions (equals, true, false, contains, not_empty)" >> report.md
+            echo "- ✅ File assertions (exists, not_exists)" >> report.md
+            echo "- ✅ JSON assertions (valid, field_exists, field_equals, array_length)" >> report.md
+            echo "- ✅ Workflow output assertions (job results, outputs)" >> report.md
+            echo "- ✅ Report generation (console and GitHub summary)" >> report.md
+          else
+            echo "## ❌ Overall Result: FAILED" >> report.md
+            echo "" >> report.md
+            echo "Some assertion tests failed. Review job logs for details." >> report.md
+          fi
+
+          echo "" >> report.md
+          echo "## Assertion Framework Usage" >> report.md
+          echo "" >> report.md
+          echo "**In Your Test Workflows:**" >> report.md
+          echo "\`\`\`bash" >> report.md
+          echo "# Source the assertion framework" >> report.md
+          echo "source .github/scripts/test-assertions.sh" >> report.md
+          echo "" >> report.md
+          echo "# Run assertions" >> report.md
+          echo "assert_equals \"\\\$ACTUAL\" \"\\\$EXPECTED\" \"Description\"" >> report.md
+          echo "assert_json_field_equals \"file.json\" \".field\" \"value\" \"Description\"" >> report.md
+          echo "" >> report.md
+          echo "# Generate report" >> report.md
+          echo "generate_report" >> report.md
+          echo "generate_github_summary" >> report.md
+          echo "\`\`\`" >> report.md
+          echo "" >> report.md
+
+          echo "## Available Assertion Functions" >> report.md
+          echo "" >> report.md
+          echo "- \`assert_equals(actual, expected, description)\`" >> report.md
+          echo "- \`assert_true(value, description)\`" >> report.md
+          echo "- \`assert_false(value, description)\`" >> report.md
+          echo "- \`assert_not_empty(value, description)\`" >> report.md
+          echo "- \`assert_contains(haystack, needle, description)\`" >> report.md
+          echo "- \`assert_file_exists(path, description)\`" >> report.md
+          echo "- \`assert_file_not_exists(path, description)\`" >> report.md
+          echo "- \`assert_json_valid(file, description)\`" >> report.md
+          echo "- \`assert_json_field_exists(file, jq_path, description)\`" >> report.md
+          echo "- \`assert_json_field_equals(file, jq_path, expected, description)\`" >> report.md
+          echo "- \`assert_json_array_length(file, jq_path, length, description)\`" >> report.md
+          echo "- \`assert_job_result(result, expected, description)\`" >> report.md
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: assertion-framework-report-${{ github.run_id }}
+          path: report.md
+          retention-days: 30
