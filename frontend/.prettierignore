@@ -1,0 +1,19 @@
+# Build outputs
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/
+
+# Test reports
+playwright-report/
+
+# Generated files
+*.generated.*
+.vite/
+
+# Lock files (don't format these)
+package-lock.json
