@@ -15,6 +15,9 @@ on:
   # Allow this workflow to be called by other workflows (e.g., validation-orchestrator)
   workflow_call:
     outputs:
+      format-status:
+        description: 'Status of formatting checks'
+        value: ${{ jobs.lint-and-test.outputs.format-status }}
       lint-status:
         description: 'Status of linting checks'
         value: ${{ jobs.lint-and-test.outputs.lint-status }}
@@ -38,6 +41,7 @@ jobs:
     # - npm scripts run from ./frontend directory (where frontend/package.json is)
 
     outputs:
+      format-status: ${{ steps.set-outputs.outputs.format-status }}
       lint-status: ${{ steps.set-outputs.outputs.lint-status }}
       type-status: ${{ steps.set-outputs.outputs.type-status }}
       test-status: ${{ steps.set-outputs.outputs.test-status }}
@@ -60,6 +64,12 @@ jobs:
 
       - name: Validate Design Tokens
         run: npm run tokens:check
+        working-directory: ./frontend
+
+      - name: Check Code Formatting
+        id: format-check
+        continue-on-error: true
+        run: npm run format:check
         working-directory: ./frontend
 
       - name: Lint TypeScript
@@ -128,6 +138,13 @@ jobs:
         id: set-outputs
         if: always()
         run: |
+          # Format check status
+          if [ "${{ steps.format-check.outcome }}" = "success" ]; then
+            echo "format-status=success" >> $GITHUB_OUTPUT
+          else
+            echo "format-status=failure" >> $GITHUB_OUTPUT
+          fi
+
           # Determine lint status (both TS and CSS must pass)
           if [ "${{ steps.lint-ts.outcome }}" = "success" ] && [ "${{ steps.lint-css.outcome }}" = "success" ]; then
             echo "lint-status=success" >> $GITHUB_OUTPUT
@@ -156,8 +173,9 @@ jobs:
             echo "build-status=failure" >> $GITHUB_OUTPUT
           fi
 
-          # Fail the job if any critical checks failed
-          if [ "${{ steps.type-check.outcome }}" != "success" ] || \
+          # Fail the job if any critical checks failed (including formatting)
+          if [ "${{ steps.format-check.outcome }}" != "success" ] || \
+             [ "${{ steps.type-check.outcome }}" != "success" ] || \
              [ "${{ steps.test.outcome }}" != "success" ] || \
              [ "${{ steps.build.outcome }}" != "success" ]; then
             echo "::error::One or more critical frontend validations failed"
