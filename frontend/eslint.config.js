@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import security from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
+import prettierConfig from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
@@ -22,6 +23,7 @@ export default defineConfig([
       reactRefresh.configs.vite,
       security.configs.recommended,
       jsxA11y.flatConfigs.recommended,
+      prettierConfig, // Must be last to disable conflicting rules
     ],
     plugins: {
       import: importPlugin,
@@ -161,6 +163,7 @@ export default defineConfig([
       reactHooks.configs['recommended-latest'],
       security.configs.recommended,
       jsxA11y.flatConfigs.recommended,
+      prettierConfig, // Must be last to disable conflicting rules
     ],
     languageOptions: {
       ecmaVersion: 2020,
