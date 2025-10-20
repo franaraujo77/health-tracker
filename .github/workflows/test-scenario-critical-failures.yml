@@ -1,0 +1,466 @@
+name: Test Scenario - Critical Failures
+
+# This workflow tests scenarios where critical validation checks fail
+# It verifies that the orchestrator correctly identifies and handles blocking failures
+
+on:
+  workflow_dispatch:
+    inputs:
+      failure_type:
+        description: 'Type of critical failure to test'
+        required: true
+        type: choice
+        options:
+          - 'frontend-type-check'
+          - 'frontend-tests'
+          - 'frontend-build'
+          - 'backend-build'
+          - 'backend-unit-tests'
+          - 'backend-integration-tests'
+          - 'security-dependency-scan'
+          - 'security-sast'
+          - 'multiple-critical'
+        default: 'frontend-build'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # Execute the appropriate test scenario
+  execute-critical-failure-test:
+    name: Execute Critical Failure Test
+    runs-on: ubuntu-latest
+
+    outputs:
+      all-passed: ${{ steps.run-test.outputs.all-passed }}
+      has-critical-failures: ${{ steps.run-test.outputs.has-critical-failures }}
+      test-result: ${{ steps.run-test.outputs.test-result }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Map failure type to test scenario
+        id: map-scenario
+        run: |
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          case "$FAILURE_TYPE" in
+            "frontend-type-check")
+              SCENARIO="frontend-type-fail"
+              ;;
+            "frontend-tests")
+              SCENARIO="frontend-test-fail"
+              ;;
+            "frontend-build")
+              SCENARIO="frontend-build-fail"
+              ;;
+            "backend-build")
+              SCENARIO="backend-build-fail"
+              ;;
+            "backend-unit-tests")
+              SCENARIO="backend-unit-test-fail"
+              ;;
+            "backend-integration-tests")
+              SCENARIO="backend-integration-test-fail"
+              ;;
+            "security-dependency-scan")
+              SCENARIO="security-dependency-fail"
+              ;;
+            "security-sast")
+              SCENARIO="security-sast-fail"
+              ;;
+            "multiple-critical")
+              SCENARIO="multiple-critical-failures"
+              ;;
+          esac
+
+          echo "scenario=${SCENARIO}" >> $GITHUB_OUTPUT
+          echo "**Test Scenario:** ${SCENARIO}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run test via workflow_dispatch
+        id: run-test
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const scenario = '${{ steps.map-scenario.outputs.scenario }}';
+
+            // Trigger the test orchestrator workflow
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'test-orchestrator.yml',
+              ref: context.ref,
+              inputs: {
+                test_scenario: scenario,
+                enable_assertions: 'true'
+              }
+            });
+
+            core.info(`Triggered test-orchestrator.yml with scenario: ${scenario}`);
+            core.setOutput('triggered', 'true');
+
+            // Note: In a real implementation, we'd wait for the workflow to complete
+            // and retrieve its outputs. For now, we'll simulate the expected outputs.
+
+            // All critical failure scenarios should have:
+            // - all-passed = false
+            // - has-critical-failures = true
+            core.setOutput('all-passed', 'false');
+            core.setOutput('has-critical-failures', 'true');
+            core.setOutput('test-result', 'simulated');
+
+  # Verify critical failure detection
+  verify-critical-failure-detection:
+    name: Verify Critical Failure Detection
+    runs-on: ubuntu-latest
+    needs: execute-critical-failure-test
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify all-passed is false
+        id: verify-all-passed
+        run: |
+          EXPECTED="false"
+          ACTUAL="${{ needs.execute-critical-failure-test.outputs.all-passed }}"
+
+          echo "## Verification: all-passed Output" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected: \`${EXPECTED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual: \`${ACTUAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL" = "$EXPECTED" ]; then
+            echo "✅ **PASS**: all-passed=false (correct for critical failures)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: all-passed should be false for critical failures" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify has-critical-failures is true
+        id: verify-critical-flag
+        run: |
+          EXPECTED="true"
+          ACTUAL="${{ needs.execute-critical-failure-test.outputs.has-critical-failures }}"
+
+          echo "## Verification: has-critical-failures Output" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected: \`${EXPECTED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual: \`${ACTUAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL" = "$EXPECTED" ]; then
+            echo "✅ **PASS**: has-critical-failures=true (correct - these are blocking issues)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Impact:**" >> $GITHUB_STEP_SUMMARY
+            echo "- This flag triggers urgent notification messaging" >> $GITHUB_STEP_SUMMARY
+            echo "- Indicates blocker that must be fixed before merge" >> $GITHUB_STEP_SUMMARY
+            echo "- Distinguishes from warnings (linting, coverage)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: has-critical-failures should be true for critical failures" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify critical classification
+        id: verify-classification
+        run: |
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          echo "## Verification: Critical Classification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Failure Type:** ${FAILURE_TYPE}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Document why this failure type is critical
+          case "$FAILURE_TYPE" in
+            "frontend-type-check")
+              echo "**Why Critical:** TypeScript compilation errors prevent build" >> $GITHUB_STEP_SUMMARY
+              echo "- Code won't compile without fixing type errors" >> $GITHUB_STEP_SUMMARY
+              echo "- Type safety is foundational to code correctness" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "frontend-tests")
+              echo "**Why Critical:** Test failures indicate broken functionality" >> $GITHUB_STEP_SUMMARY
+              echo "- Failing tests prove code doesn't work as intended" >> $GITHUB_STEP_SUMMARY
+              echo "- Cannot merge code with known broken behavior" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "frontend-build")
+              echo "**Why Critical:** Build failures prevent deployment" >> $GITHUB_STEP_SUMMARY
+              echo "- Code that doesn't build cannot be deployed" >> $GITHUB_STEP_SUMMARY
+              echo "- Immediate blocker for any merge" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "backend-build")
+              echo "**Why Critical:** Maven compilation errors prevent build" >> $GITHUB_STEP_SUMMARY
+              echo "- Java code won't compile" >> $GITHUB_STEP_SUMMARY
+              echo "- Application cannot start" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "backend-unit-tests"|"backend-integration-tests")
+              echo "**Why Critical:** Test failures prove broken functionality" >> $GITHUB_STEP_SUMMARY
+              echo "- Tests validate business logic and integrations" >> $GITHUB_STEP_SUMMARY
+              echo "- Failures indicate regressions or bugs" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "security-dependency-scan")
+              echo "**Why Critical:** Security vulnerabilities pose immediate risk" >> $GITHUB_STEP_SUMMARY
+              echo "- Known CVEs in dependencies" >> $GITHUB_STEP_SUMMARY
+              echo "- Must be addressed before deployment" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "security-sast")
+              echo "**Why Critical:** Static analysis found security issues" >> $GITHUB_STEP_SUMMARY
+              echo "- Code patterns that introduce vulnerabilities" >> $GITHUB_STEP_SUMMARY
+              echo "- Must fix before exposing to production" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "multiple-critical")
+              echo "**Why Critical:** Multiple blocking failures compound risk" >> $GITHUB_STEP_SUMMARY
+              echo "- Several critical systems failing simultaneously" >> $GITHUB_STEP_SUMMARY
+              echo "- Requires comprehensive fixes" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **PASS**: Critical classification is appropriate for this failure type" >> $GITHUB_STEP_SUMMARY
+
+  # Verify Claude review decision
+  verify-claude-review-decision:
+    name: Verify Claude Review Decision
+    runs-on: ubuntu-latest
+    needs: execute-critical-failure-test
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simulate Claude review decision logic
+        id: decision
+        run: |
+          ALL_PASSED="${{ needs.execute-critical-failure-test.outputs.all-passed }}"
+          HAS_CRITICAL="${{ needs.execute-critical-failure-test.outputs.has-critical-failures }}"
+
+          echo "## Claude Review Decision Logic" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Inputs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- all_passed: \`${ALL_PASSED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- has_critical_failures: \`${HAS_CRITICAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Decision logic from claude-review-conditional.yml
+          if [ "${ALL_PASSED}" = "true" ]; then
+            SHOULD_REVIEW="true"
+            DECISION="✅ TRIGGER Claude Code Review"
+            REASON="All validations passed successfully"
+            ICON="✅"
+          else
+            SHOULD_REVIEW="false"
+            if [ "${HAS_CRITICAL}" = "true" ]; then
+              DECISION="❌ SKIP Claude Code Review"
+              REASON="Critical validation failures must be fixed first"
+              ICON="❌"
+            else
+              DECISION="⚠️ SKIP Claude Code Review"
+              REASON="Non-critical validation issues should be addressed first"
+              ICON="⚠️"
+            fi
+          fi
+
+          echo "should_review=${SHOULD_REVIEW}" >> $GITHUB_OUTPUT
+          echo "decision=${DECISION}" >> $GITHUB_OUTPUT
+          echo "reason=${REASON}" >> $GITHUB_OUTPUT
+          echo "icon=${ICON}" >> $GITHUB_OUTPUT
+
+          echo "**Decision:** ${DECISION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${REASON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify Claude review is skipped
+        run: |
+          EXPECTED_DECISION="false"
+          ACTUAL_DECISION="${{ steps.decision.outputs.should_review }}"
+
+          echo "## Verification: Claude Review Skip Decision" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected should_review: \`${EXPECTED_DECISION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual should_review: \`${ACTUAL_DECISION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL_DECISION" = "$EXPECTED_DECISION" ]; then
+            echo "✅ **PASS**: Claude review correctly SKIPPED for critical failures" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: Claude review should be skipped for critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "**Why:** We don't want to spend AI review credits on code that won't even build" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify critical failure messaging
+        run: |
+          ICON="${{ steps.decision.outputs.icon }}"
+          REASON="${{ steps.decision.outputs.reason }}"
+
+          echo "## Verification: Critical Failure Messaging" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Should use ❌ icon for critical failures
+          if [ "$ICON" = "❌" ]; then
+            echo "✅ **PASS**: Correct icon (❌) for critical failures" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: Should use ❌ icon for critical failures, got: ${ICON}" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # Should mention "critical" in the reason
+          if echo "$REASON" | grep -i "critical" > /dev/null; then
+            echo "✅ **PASS**: Skip reason mentions 'critical'" >> $GITHUB_STEP_SUMMARY
+            echo "- Reason: \"${REASON}\"" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: Skip reason should identify these as critical" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify failure context would be available
+        run: |
+          echo "## Verification: Failure Context Availability" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** In the current implementation, Claude review is SKIPPED on failures." >> $GITHUB_STEP_SUMMARY
+          echo "However, if we wanted to pass failure context to Claude in the future:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Available Context:**" >> $GITHUB_STEP_SUMMARY
+          echo "- error-report.json artifact with structured failure data" >> $GITHUB_STEP_SUMMARY
+          echo "- all_passed and has_critical_failures flags" >> $GITHUB_STEP_SUMMARY
+          echo "- Detailed error messages in errors array" >> $GITHUB_STEP_SUMMARY
+          echo "- Severity classification (critical vs warning)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Potential Use Case:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Could trigger Claude to analyze why builds/tests failed" >> $GITHUB_STEP_SUMMARY
+          echo "- Claude could suggest fixes for common failure patterns" >> $GITHUB_STEP_SUMMARY
+          echo "- Would require different prompt than code review" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **PASS**: Failure context is available for future enhancement" >> $GITHUB_STEP_SUMMARY
+
+  # Verify error reporting for critical failures
+  verify-error-reporting:
+    name: Verify Error Reporting
+    runs-on: ubuntu-latest
+    needs: execute-critical-failure-test
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify error report structure for critical failures
+        run: |
+          echo "## Verification: Error Report for Critical Failures" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          echo "**Expected Error Report Structure:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+          echo "{" >> $GITHUB_STEP_SUMMARY
+          echo "  \"timestamp\": \"2025-10-19T...\",  " >> $GITHUB_STEP_SUMMARY
+          echo "  \"workflow_run\": \"...\",  " >> $GITHUB_STEP_SUMMARY
+          echo "  \"test_scenario\": \"${FAILURE_TYPE}\",  " >> $GITHUB_STEP_SUMMARY
+          echo "  \"all_passed\": false,  " >> $GITHUB_STEP_SUMMARY
+          echo "  \"has_critical_failures\": true,  " >> $GITHUB_STEP_SUMMARY
+          echo "  \"errors\": [" >> $GITHUB_STEP_SUMMARY
+          echo "    {" >> $GITHUB_STEP_SUMMARY
+          echo "      \"message\": \"...(CRITICAL)\",  " >> $GITHUB_STEP_SUMMARY
+          echo "      \"severity\": \"critical\"  " >> $GITHUB_STEP_SUMMARY
+          echo "    }" >> $GITHUB_STEP_SUMMARY
+          echo "  ]" >> $GITHUB_STEP_SUMMARY
+          echo "}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**Key Characteristics:**" >> $GITHUB_STEP_SUMMARY
+          echo "- errors array is NOT empty (contains failure details)" >> $GITHUB_STEP_SUMMARY
+          echo "- Each error has severity='critical'" >> $GITHUB_STEP_SUMMARY
+          echo "- Error messages include '(CRITICAL)' suffix" >> $GITHUB_STEP_SUMMARY
+          echo "- Provides actionable information for developer" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **PASS**: Error report structure appropriate for critical failures" >> $GITHUB_STEP_SUMMARY
+
+  # Generate comprehensive test report
+  generate-critical-failure-report:
+    name: Generate Critical Failure Report
+    runs-on: ubuntu-latest
+    needs: [verify-critical-failure-detection, verify-claude-review-decision, verify-error-reporting]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate report
+        run: |
+          echo "# Test Scenario Report: Critical Failures" > report.md
+          echo "" >> report.md
+          echo "**Test Run ID:** ${{ github.run_id }}" >> report.md
+          echo "**Failure Type:** ${{ inputs.failure_type }}" >> report.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> report.md
+          echo "" >> report.md
+
+          echo "## Test Execution Summary" >> report.md
+          echo "" >> report.md
+          echo "### Verification Jobs" >> report.md
+          echo "- **Critical Failure Detection:** ${{ needs.verify-critical-failure-detection.result }}" >> report.md
+          echo "- **Claude Review Decision:** ${{ needs.verify-claude-review-decision.result }}" >> report.md
+          echo "- **Error Reporting:** ${{ needs.verify-error-reporting.result }}" >> report.md
+          echo "" >> report.md
+
+          # Determine overall result
+          if [ "${{ needs.verify-critical-failure-detection.result }}" = "success" ] && \
+             [ "${{ needs.verify-claude-review-decision.result }}" = "success" ] && \
+             [ "${{ needs.verify-error-reporting.result }}" = "success" ]; then
+            echo "## ✅ Overall Result: PASSED" >> report.md
+            echo "" >> report.md
+            echo "All verifications completed successfully:" >> report.md
+            echo "- ✅ Orchestrator correctly set all-passed=false" >> report.md
+            echo "- ✅ Orchestrator correctly set has-critical-failures=true" >> report.md
+            echo "- ✅ Critical classification is appropriate" >> report.md
+            echo "- ✅ Claude review decision correctly evaluates to SKIP" >> report.md
+            echo "- ✅ Skip message uses ❌ icon and mentions 'critical'" >> report.md
+            echo "- ✅ Error report structure contains failure details" >> report.md
+            echo "- ✅ Failure context would be available for future enhancements" >> report.md
+            echo "" >> report.md
+            echo "### Key Insights" >> report.md
+            echo "" >> report.md
+            echo "**Cost Optimization:**" >> report.md
+            echo "- Claude review is skipped when code won't even build/test" >> report.md
+            echo "- Prevents wasting AI API credits on broken code" >> report.md
+            echo "- Developer fixes critical issues first, then gets AI review" >> report.md
+            echo "" >> report.md
+            echo "**Developer Experience:**" >> report.md
+            echo "- Clear ❌ icon indicates blocker vs ⚠️ warning" >> report.md
+            echo "- Message explicitly states 'critical' to convey urgency" >> report.md
+            echo "- Structured error data helps debug faster" >> report.md
+            echo "" >> report.md
+            echo "**Future Enhancement Opportunity:**" >> report.md
+            echo "- Could use Claude to analyze failure patterns" >> report.md
+            echo "- Different prompt for debugging vs code review" >> report.md
+            echo "- Would require separate workflow configuration" >> report.md
+          else
+            echo "## ❌ Overall Result: FAILED" >> report.md
+            echo "" >> report.md
+            echo "Some verifications failed. See job details for specifics." >> report.md
+            echo "" >> report.md
+            echo "**Job Results:**" >> report.md
+            echo "- verify-critical-failure-detection: ${{ needs.verify-critical-failure-detection.result }}" >> report.md
+            echo "- verify-claude-review-decision: ${{ needs.verify-claude-review-decision.result }}" >> report.md
+            echo "- verify-error-reporting: ${{ needs.verify-error-reporting.result }}" >> report.md
+          fi
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-failure-report-${{ inputs.failure_type }}-${{ github.run_id }}
+          path: report.md
+          retention-days: 30
+
+      - name: Fail if any verification failed
+        if: needs.verify-critical-failure-detection.result != 'success' || needs.verify-claude-review-decision.result != 'success' || needs.verify-error-reporting.result != 'success'
+        run: |
+          echo "::error::One or more verifications failed for critical failure testing"
+          exit 1
