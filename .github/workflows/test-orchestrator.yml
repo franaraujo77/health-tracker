@@ -1,0 +1,540 @@
+name: Pipeline Integration Tests
+
+# This workflow provides integration testing for the validation orchestrator pipeline
+# It can be triggered manually with configurable parameters to simulate various scenarios
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Test scenario to execute'
+        required: true
+        type: choice
+        options:
+          - 'all-pass'
+          - 'frontend-lint-fail'
+          - 'frontend-type-fail'
+          - 'frontend-test-fail'
+          - 'frontend-build-fail'
+          - 'backend-build-fail'
+          - 'backend-unit-test-fail'
+          - 'backend-integration-test-fail'
+          - 'backend-coverage-fail'
+          - 'security-dependency-fail'
+          - 'security-sast-fail'
+          - 'multiple-critical-failures'
+          - 'mixed-failures'
+      enable_assertions:
+        description: 'Enable assertion checks'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: test-orchestrator-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  # Mock Frontend Validation Job
+  mock-frontend-validation:
+    name: Mock Frontend Validation
+    runs-on: ubuntu-latest
+
+    outputs:
+      lint-status: ${{ steps.set-outputs.outputs.lint-status }}
+      type-status: ${{ steps.set-outputs.outputs.type-status }}
+      test-status: ${{ steps.set-outputs.outputs.test-status }}
+      build-status: ${{ steps.set-outputs.outputs.build-status }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simulate frontend validations
+        id: set-outputs
+        run: |
+          SCENARIO="${{ inputs.test_scenario }}"
+
+          # Default to success
+          LINT_STATUS="success"
+          TYPE_STATUS="success"
+          TEST_STATUS="success"
+          BUILD_STATUS="success"
+
+          # Apply scenario-specific failures
+          case "$SCENARIO" in
+            "frontend-lint-fail")
+              LINT_STATUS="failure"
+              echo "::warning::Simulating lint failure"
+              ;;
+            "frontend-type-fail")
+              TYPE_STATUS="failure"
+              echo "::error::Simulating type check failure (CRITICAL)"
+              ;;
+            "frontend-test-fail")
+              TEST_STATUS="failure"
+              echo "::error::Simulating test failure (CRITICAL)"
+              ;;
+            "frontend-build-fail")
+              BUILD_STATUS="failure"
+              echo "::error::Simulating build failure (CRITICAL)"
+              ;;
+            "multiple-critical-failures")
+              TYPE_STATUS="failure"
+              TEST_STATUS="failure"
+              BUILD_STATUS="failure"
+              echo "::error::Simulating multiple critical failures"
+              ;;
+            "mixed-failures")
+              LINT_STATUS="failure"
+              BUILD_STATUS="failure"
+              echo "::warning::Simulating mixed failures"
+              ;;
+          esac
+
+          # Set outputs
+          echo "lint-status=${LINT_STATUS}" >> $GITHUB_OUTPUT
+          echo "type-status=${TYPE_STATUS}" >> $GITHUB_OUTPUT
+          echo "test-status=${TEST_STATUS}" >> $GITHUB_OUTPUT
+          echo "build-status=${BUILD_STATUS}" >> $GITHUB_OUTPUT
+
+          # Log to summary
+          echo "## Frontend Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint: ${LINT_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Type Check: ${TYPE_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${TEST_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${BUILD_STATUS}" >> $GITHUB_STEP_SUMMARY
+
+          # Fail the job if any critical check failed
+          if [ "$TYPE_STATUS" = "failure" ] || [ "$TEST_STATUS" = "failure" ] || [ "$BUILD_STATUS" = "failure" ]; then
+            exit 1
+          fi
+
+  # Mock Backend Validation Job
+  mock-backend-validation:
+    name: Mock Backend Validation
+    runs-on: ubuntu-latest
+
+    outputs:
+      build-status: ${{ steps.set-outputs.outputs.build-status }}
+      unit-test-status: ${{ steps.set-outputs.outputs.unit-test-status }}
+      integration-test-status: ${{ steps.set-outputs.outputs.integration-test-status }}
+      coverage-status: ${{ steps.set-outputs.outputs.coverage-status }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simulate backend validations
+        id: set-outputs
+        run: |
+          SCENARIO="${{ inputs.test_scenario }}"
+
+          # Default to success
+          BUILD_STATUS="success"
+          UNIT_TEST_STATUS="success"
+          INTEGRATION_TEST_STATUS="success"
+          COVERAGE_STATUS="success"
+
+          # Apply scenario-specific failures
+          case "$SCENARIO" in
+            "backend-build-fail")
+              BUILD_STATUS="failure"
+              echo "::error::Simulating build failure (CRITICAL)"
+              ;;
+            "backend-unit-test-fail")
+              UNIT_TEST_STATUS="failure"
+              echo "::error::Simulating unit test failure (CRITICAL)"
+              ;;
+            "backend-integration-test-fail")
+              INTEGRATION_TEST_STATUS="failure"
+              echo "::error::Simulating integration test failure (CRITICAL)"
+              ;;
+            "backend-coverage-fail")
+              COVERAGE_STATUS="failure"
+              echo "::warning::Simulating coverage threshold failure"
+              ;;
+            "multiple-critical-failures")
+              BUILD_STATUS="failure"
+              UNIT_TEST_STATUS="failure"
+              echo "::error::Simulating multiple critical failures"
+              ;;
+            "mixed-failures")
+              COVERAGE_STATUS="failure"
+              echo "::warning::Simulating coverage failure"
+              ;;
+          esac
+
+          # Set outputs
+          echo "build-status=${BUILD_STATUS}" >> $GITHUB_OUTPUT
+          echo "unit-test-status=${UNIT_TEST_STATUS}" >> $GITHUB_OUTPUT
+          echo "integration-test-status=${INTEGRATION_TEST_STATUS}" >> $GITHUB_OUTPUT
+          echo "coverage-status=${COVERAGE_STATUS}" >> $GITHUB_OUTPUT
+
+          # Log to summary
+          echo "## Backend Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${BUILD_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Tests: ${UNIT_TEST_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration Tests: ${INTEGRATION_TEST_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: ${COVERAGE_STATUS}" >> $GITHUB_STEP_SUMMARY
+
+          # Fail the job if any critical check failed
+          if [ "$BUILD_STATUS" = "failure" ] || [ "$UNIT_TEST_STATUS" = "failure" ] || [ "$INTEGRATION_TEST_STATUS" = "failure" ]; then
+            exit 1
+          fi
+
+  # Mock Security Validation Job
+  mock-security-validation:
+    name: Mock Security Validation
+    runs-on: ubuntu-latest
+
+    outputs:
+      dependency-scan-status: ${{ steps.set-outputs.outputs.dependency-scan-status }}
+      sast-status: ${{ steps.set-outputs.outputs.sast-status }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Simulate security validations
+        id: set-outputs
+        run: |
+          SCENARIO="${{ inputs.test_scenario }}"
+
+          # Default to success
+          DEPENDENCY_SCAN_STATUS="success"
+          SAST_STATUS="success"
+
+          # Apply scenario-specific failures
+          case "$SCENARIO" in
+            "security-dependency-fail")
+              DEPENDENCY_SCAN_STATUS="failure"
+              echo "::error::Simulating dependency scan failure (CRITICAL)"
+              ;;
+            "security-sast-fail")
+              SAST_STATUS="failure"
+              echo "::error::Simulating SAST failure (CRITICAL)"
+              ;;
+            "multiple-critical-failures")
+              DEPENDENCY_SCAN_STATUS="failure"
+              SAST_STATUS="failure"
+              echo "::error::Simulating security failures"
+              ;;
+          esac
+
+          # Set outputs
+          echo "dependency-scan-status=${DEPENDENCY_SCAN_STATUS}" >> $GITHUB_OUTPUT
+          echo "sast-status=${SAST_STATUS}" >> $GITHUB_OUTPUT
+
+          # Log to summary
+          echo "## Security Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency Scan: ${DEPENDENCY_SCAN_STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- SAST: ${SAST_STATUS}" >> $GITHUB_STEP_SUMMARY
+
+          # Fail the job if any check failed
+          if [ "$DEPENDENCY_SCAN_STATUS" = "failure" ] || [ "$SAST_STATUS" = "failure" ]; then
+            exit 1
+          fi
+
+  # Test Orchestration Logic
+  test-aggregate-results:
+    name: Test Aggregate Results
+    runs-on: ubuntu-latest
+    needs: [mock-frontend-validation, mock-backend-validation, mock-security-validation]
+    if: always()
+
+    outputs:
+      all-passed: ${{ steps.aggregate.outputs.all-passed }}
+      has-critical-failures: ${{ steps.aggregate.outputs.has-critical-failures }}
+      test-result: ${{ steps.assertions.outputs.test-result }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Aggregate validation results
+        id: aggregate
+        run: |
+          # Initialize variables
+          ALL_PASSED=true
+          HAS_CRITICAL_FAILURES=false
+          ERRORS=()
+
+          # Frontend validation checks
+          FRONTEND_LINT="${{ needs.mock-frontend-validation.outputs.lint-status }}"
+          FRONTEND_TYPE="${{ needs.mock-frontend-validation.outputs.type-status }}"
+          FRONTEND_TEST="${{ needs.mock-frontend-validation.outputs.test-status }}"
+          FRONTEND_BUILD="${{ needs.mock-frontend-validation.outputs.build-status }}"
+
+          if [ "$FRONTEND_LINT" != "success" ]; then
+            ALL_PASSED=false
+            ERRORS+=("Frontend: Linting failed")
+          fi
+
+          if [ "$FRONTEND_TYPE" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Type checking failed (CRITICAL)")
+          fi
+
+          if [ "$FRONTEND_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Tests failed (CRITICAL)")
+          fi
+
+          if [ "$FRONTEND_BUILD" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Build failed (CRITICAL)")
+          fi
+
+          # Backend validation checks
+          BACKEND_BUILD="${{ needs.mock-backend-validation.outputs.build-status }}"
+          BACKEND_UNIT_TEST="${{ needs.mock-backend-validation.outputs.unit-test-status }}"
+          BACKEND_INTEGRATION_TEST="${{ needs.mock-backend-validation.outputs.integration-test-status }}"
+          BACKEND_COVERAGE="${{ needs.mock-backend-validation.outputs.coverage-status }}"
+
+          if [ "$BACKEND_BUILD" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Build failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_UNIT_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Unit tests failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_INTEGRATION_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Integration tests failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_COVERAGE" != "success" ]; then
+            ALL_PASSED=false
+            ERRORS+=("Backend: Coverage threshold not met")
+          fi
+
+          # Security validation checks
+          SECURITY_DEPENDENCY="${{ needs.mock-security-validation.outputs.dependency-scan-status }}"
+          SECURITY_SAST="${{ needs.mock-security-validation.outputs.sast-status }}"
+
+          if [ "$SECURITY_DEPENDENCY" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Security: Dependency scan failed (CRITICAL)")
+          fi
+
+          if [ "$SECURITY_SAST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Security: SAST scan failed (CRITICAL)")
+          fi
+
+          # Set outputs
+          echo "all-passed=${ALL_PASSED}" >> $GITHUB_OUTPUT
+          echo "has-critical-failures=${HAS_CRITICAL_FAILURES}" >> $GITHUB_OUTPUT
+
+          # Create summary
+          echo "## Aggregated Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status:** " >> $GITHUB_STEP_SUMMARY
+          if [ "$ALL_PASSED" = "true" ]; then
+            echo "✅ All validations passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "$HAS_CRITICAL_FAILURES" = "true" ]; then
+            echo "❌ Critical failures detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Non-critical failures detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Create error report JSON
+          ERROR_JSON="{"
+          ERROR_JSON+="\"timestamp\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\","
+          ERROR_JSON+="\"workflow_run\":\"${{ github.run_id }}\","
+          ERROR_JSON+="\"test_scenario\":\"${{ inputs.test_scenario }}\","
+          ERROR_JSON+="\"all_passed\":${ALL_PASSED},"
+          ERROR_JSON+="\"has_critical_failures\":${HAS_CRITICAL_FAILURES},"
+          ERROR_JSON+="\"errors\":["
+
+          FIRST=true
+          for error in "${ERRORS[@]}"; do
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              ERROR_JSON+=","
+            fi
+            if [[ "$error" == *"CRITICAL"* ]]; then
+              SEVERITY="critical"
+            else
+              SEVERITY="warning"
+            fi
+            ERROR_JSON+="{\"message\":\"${error}\",\"severity\":\"${SEVERITY}\"}"
+          done
+
+          ERROR_JSON+="]}"
+
+          # Save error report
+          mkdir -p test-results
+          echo "$ERROR_JSON" > test-results/error-report.json
+
+          # Display errors
+          if [ "${#ERRORS[@]}" -gt 0 ]; then
+            echo "### Detected Errors" >> $GITHUB_STEP_SUMMARY
+            for error in "${ERRORS[@]}"; do
+              echo "- ${error}" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+
+      - name: Run assertions
+        id: assertions
+        if: inputs.enable_assertions
+        run: |
+          SCENARIO="${{ inputs.test_scenario }}"
+          ALL_PASSED="${{ steps.aggregate.outputs.all-passed }}"
+          HAS_CRITICAL_FAILURES="${{ steps.aggregate.outputs.has-critical-failures }}"
+
+          echo "## Test Assertions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ASSERTION_FAILED=false
+
+          # Define expected outcomes for each scenario
+          case "$SCENARIO" in
+            "all-pass")
+              # Expect: all-passed=true, has-critical-failures=false
+              if [ "$ALL_PASSED" != "true" ]; then
+                echo "❌ ASSERTION FAILED: Expected all-passed=true, got ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: all-passed=true" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              if [ "$HAS_CRITICAL_FAILURES" != "false" ]; then
+                echo "❌ ASSERTION FAILED: Expected has-critical-failures=false, got ${HAS_CRITICAL_FAILURES}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: has-critical-failures=false" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+
+            "frontend-lint-fail")
+              # Expect: all-passed=false, has-critical-failures=false
+              if [ "$ALL_PASSED" != "false" ]; then
+                echo "❌ ASSERTION FAILED: Expected all-passed=false, got ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: all-passed=false" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              if [ "$HAS_CRITICAL_FAILURES" != "false" ]; then
+                echo "❌ ASSERTION FAILED: Expected has-critical-failures=false, got ${HAS_CRITICAL_FAILURES}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: has-critical-failures=false" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+
+            "frontend-type-fail"|"frontend-test-fail"|"frontend-build-fail"|"backend-build-fail"|"backend-unit-test-fail"|"backend-integration-test-fail"|"security-dependency-fail"|"security-sast-fail"|"multiple-critical-failures")
+              # Expect: all-passed=false, has-critical-failures=true
+              if [ "$ALL_PASSED" != "false" ]; then
+                echo "❌ ASSERTION FAILED: Expected all-passed=false, got ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: all-passed=false" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              if [ "$HAS_CRITICAL_FAILURES" != "true" ]; then
+                echo "❌ ASSERTION FAILED: Expected has-critical-failures=true, got ${HAS_CRITICAL_FAILURES}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: has-critical-failures=true" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+
+            "backend-coverage-fail"|"mixed-failures")
+              # Expect: all-passed=false, has-critical-failures depends on scenario
+              if [ "$ALL_PASSED" != "false" ]; then
+                echo "❌ ASSERTION FAILED: Expected all-passed=false, got ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+                ASSERTION_FAILED=true
+              else
+                echo "✅ PASS: all-passed=false" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+          esac
+
+          # Set test result
+          if [ "$ASSERTION_FAILED" = "true" ]; then
+            echo "test-result=FAILED" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Test Result: ❌ FAILED**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "test-result=PASSED" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Test Result: ✅ PASSED**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: test-results/
+          retention-days: 30
+
+  # Generate test report
+  generate-test-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: test-aggregate-results
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: test-results/
+
+      - name: Generate report
+        run: |
+          echo "# Pipeline Integration Test Report" > test-report.md
+          echo "" >> test-report.md
+          echo "**Test Run:** ${{ github.run_id }}" >> test-report.md
+          echo "**Scenario:** ${{ inputs.test_scenario }}" >> test-report.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> test-report.md
+          echo "" >> test-report.md
+
+          echo "## Results" >> test-report.md
+          echo "- **All Passed:** ${{ needs.test-aggregate-results.outputs.all-passed }}" >> test-report.md
+          echo "- **Has Critical Failures:** ${{ needs.test-aggregate-results.outputs.has-critical-failures }}" >> test-report.md
+          echo "- **Test Result:** ${{ needs.test-aggregate-results.outputs.test-result || 'N/A' }}" >> test-report.md
+          echo "" >> test-report.md
+
+          if [ -f "test-results/error-report.json" ]; then
+            echo "## Error Report" >> test-report.md
+            echo "\`\`\`json" >> test-report.md
+            cat test-results/error-report.json | jq '.' >> test-report.md
+            echo "\`\`\`" >> test-report.md
+          fi
+
+          cat test-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ github.run_id }}
+          path: test-report.md
+          retention-days: 30
