@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import security from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import importPlugin from 'eslint-plugin-import';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
@@ -22,6 +23,9 @@ export default defineConfig([
       security.configs.recommended,
       jsxA11y.flatConfigs.recommended,
     ],
+    plugins: {
+      import: importPlugin,
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -32,7 +36,59 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: true,
+      },
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+    },
     rules: {
+      // Import ordering and organization
+      'import/order': [
+        'warn',
+        {
+          groups: [
+            'builtin', // Node.js built-in modules
+            'external', // External packages
+            'internal', // Internal modules
+            ['parent', 'sibling'], // Relative imports
+            'type', // TypeScript type imports
+            'index', // Index imports
+          ],
+          pathGroups: [
+            {
+              pattern: 'react',
+              group: 'builtin',
+              position: 'before',
+            },
+            {
+              pattern: '@/**',
+              group: 'internal',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['react'],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+      'import/no-duplicates': 'error',
+      'import/no-unresolved': 'error',
+      'import/named': 'error',
+      'import/default': 'off', // Disabled for React 19 (no default export)
+      'import/namespace': 'error',
+      'import/no-absolute-path': 'error',
+      'import/no-cycle': 'warn',
+      'import/no-self-import': 'error',
+      'import/newline-after-import': 'warn',
       // TypeScript strict rules - warnings for gradual adoption
       '@typescript-eslint/explicit-function-return-type': [
         'warn',
