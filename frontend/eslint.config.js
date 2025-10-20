@@ -34,9 +34,15 @@ export default defineConfig([
           allowDefaultProject: ['*.ts', '*.tsx'],
         },
         tsconfigRootDir: import.meta.dirname,
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
     },
     settings: {
+      react: {
+        version: '19.0',
+      },
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
@@ -89,6 +95,16 @@ export default defineConfig([
       'import/no-cycle': 'warn',
       'import/no-self-import': 'error',
       'import/newline-after-import': 'warn',
+      // React 19-specific rules
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-refresh/only-export-components': [
+        'warn',
+        {
+          allowConstantExport: true,
+          allowExportNames: ['meta', 'links', 'headers', 'loader', 'action'],
+        },
+      ],
       // TypeScript strict rules - warnings for gradual adoption
       '@typescript-eslint/explicit-function-return-type': [
         'warn',
