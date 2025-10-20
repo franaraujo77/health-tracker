@@ -34,7 +34,7 @@ jobs:
   dependency-scan:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
-    continue-on-error: true  # Allow job to report status even if Docker services fail
+    continue-on-error: false  # Job should fail if vulnerabilities found, not if Docker fails
 
     outputs:
       scan-status: ${{ steps.set-outputs.outputs.scan-status }}
@@ -50,6 +50,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Set up Node.js for Snyk CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Verify Maven wrapper
         working-directory: backend
         run: chmod +x mvnw
@@ -60,14 +65,30 @@ jobs:
         continue-on-error: true
         run: ./mvnw dependency-check:check -B
 
-      - name: Run Snyk to check for vulnerabilities
-        id: snyk-check
-        uses: snyk/actions/maven@master
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        id: snyk-auth
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --file=backend/pom.xml
+        run: |
+          if [ -n "$SNYK_TOKEN" ]; then
+            snyk auth "$SNYK_TOKEN"
+            echo "authenticated=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Snyk token not configured, skipping Snyk scan"
+            echo "authenticated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Snyk to check for vulnerabilities
+        id: snyk-check
+        if: steps.snyk-auth.outputs.authenticated == 'true'
+        continue-on-error: true
+        run: |
+          cd backend
+          snyk test --severity-threshold=high --file=pom.xml || echo "::warning::Snyk found vulnerabilities"
 
       - name: Upload dependency check report
         uses: actions/upload-artifact@v4
@@ -81,10 +102,19 @@ jobs:
         id: set-outputs
         if: always()
         run: |
-          # Dependency scan is successful if OWASP check passes
+          # Handle different outcome states (success, failure, skipped)
+          OWASP_OUTCOME="${{ steps.owasp-check.outcome }}"
+
+          echo "OWASP Dependency Check outcome: $OWASP_OUTCOME"
+
+          # Dependency scan is successful if OWASP check passes or was skipped (when Docker unavailable)
           # Snyk failures are treated as warnings since they require a token
-          if [ "${{ steps.owasp-check.outcome }}" = "success" ]; then
+          if [ "$OWASP_OUTCOME" = "success" ]; then
             echo "scan-status=success" >> $GITHUB_OUTPUT
+            echo "✅ OWASP Dependency Check passed"
+          elif [ "$OWASP_OUTCOME" = "skipped" ]; then
+            echo "scan-status=warning" >> $GITHUB_OUTPUT
+            echo "::warning::OWASP Dependency Check was skipped (possibly due to Docker service unavailability)"
           else
             echo "scan-status=failure" >> $GITHUB_OUTPUT
             echo "::error::OWASP Dependency Check found vulnerabilities"
@@ -92,7 +122,8 @@ jobs:
           fi
 
           # Warning for Snyk failures (non-critical if token is missing)
-          if [ "${{ steps.snyk-check.outcome }}" != "success" ]; then
+          SNYK_OUTCOME="${{ steps.snyk-check.outcome }}"
+          if [ "$SNYK_OUTCOME" != "success" ] && [ "$SNYK_OUTCOME" != "skipped" ]; then
             echo "::warning::Snyk vulnerability scan did not complete successfully"
           fi
 

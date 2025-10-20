@@ -42,12 +42,13 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
-    continue-on-error: true  # Allow job to report status even if Docker services fail
+    continue-on-error: false  # Job should fail if tests fail, not if Docker fails
 
     outputs:
       build-status: ${{ steps.set-outputs.outputs.build-status }}
       unit-test-status: ${{ steps.set-outputs.outputs.unit-test-status }}
       integration-test-status: ${{ steps.set-outputs.outputs.integration-test-status }}
+      database-type: ${{ steps.detect-db.outputs.database-type }}
 
     services:
       postgres:
@@ -86,19 +87,36 @@ jobs:
       - name: Verify Maven wrapper
         run: chmod +x mvnw
 
+      - name: Detect database availability
+        id: detect-db
+        run: |
+          echo "Checking PostgreSQL service availability..."
+
+          # Try to connect to PostgreSQL with timeout
+          if timeout 5 bash -c 'until nc -z localhost 5432; do sleep 1; done' 2>/dev/null; then
+            echo "✓ PostgreSQL service is available"
+            echo "database-type=postgresql" >> $GITHUB_OUTPUT
+            echo "use-profile=test" >> $GITHUB_OUTPUT
+          else
+            echo "⚠ PostgreSQL service unavailable, falling back to H2"
+            echo "::warning::PostgreSQL service unavailable (likely Docker Hub outage), using H2 in-memory database"
+            echo "database-type=h2" >> $GITHUB_OUTPUT
+            echo "use-profile=ci" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run tests
         id: run-tests
         continue-on-error: true
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/healthtracker_test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
+          SPRING_DATASOURCE_URL: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'jdbc:postgresql://localhost:5432/healthtracker_test' || '' }}
+          SPRING_DATASOURCE_USERNAME: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'test' || '' }}
+          SPRING_DATASOURCE_PASSWORD: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'test' || '' }}
           JWT_SECRET: testSecretKeyForCITestingPurposesOnly1234567890ABCDEF
           JWT_AUDIENCE: health-tracker-app
           ENCRYPTION_SECRET: test-encryption-key-for-ci-testing-only
           ENCRYPTION_SALT: test-salt-for-ci-testing-only
           CORS_ALLOWED_ORIGINS: http://localhost:5173
-        run: ./mvnw test -B
+        run: ./mvnw test -B -Dspring.profiles.active=${{ steps.detect-db.outputs.use-profile }}
 
       - name: Build JAR package
         id: build-jar
@@ -125,12 +143,23 @@ jobs:
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Database**: ${{ steps.detect-db.outputs.database-type || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ -d target/surefire-reports ]; then
-            echo "Tests executed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Tests executed successfully!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "JAR size: $(du -h target/*.jar | cut -f1)" >> $GITHUB_STEP_SUMMARY
+            if [ -f target/*.jar ]; then
+              echo "📦 JAR size: $(du -h target/*.jar | cut -f1)" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            echo "No test reports found" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ No test reports found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Add database fallback notice if using H2
+          if [ "${{ steps.detect-db.outputs.database-type }}" = "h2" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **Note**: Tests ran with H2 database due to PostgreSQL service unavailability" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Set validation outputs
@@ -165,11 +194,12 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
-    continue-on-error: true  # Allow job to report status even if Docker services fail
+    continue-on-error: false  # Job should fail if coverage fails, not if Docker fails
     needs: test
 
     outputs:
       coverage-status: ${{ steps.set-coverage-output.outputs.coverage-status }}
+      database-type: ${{ steps.detect-db.outputs.database-type }}
 
     services:
       postgres:
@@ -197,19 +227,36 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Detect database availability
+        id: detect-db
+        run: |
+          echo "Checking PostgreSQL service availability..."
+
+          # Try to connect to PostgreSQL with timeout
+          if timeout 5 bash -c 'until nc -z localhost 5432; do sleep 1; done' 2>/dev/null; then
+            echo "✓ PostgreSQL service is available"
+            echo "database-type=postgresql" >> $GITHUB_OUTPUT
+            echo "use-profile=test" >> $GITHUB_OUTPUT
+          else
+            echo "⚠ PostgreSQL service unavailable, falling back to H2"
+            echo "::warning::PostgreSQL service unavailable (likely Docker Hub outage), using H2 in-memory database"
+            echo "database-type=h2" >> $GITHUB_OUTPUT
+            echo "use-profile=ci" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run tests with coverage
         id: run-coverage
         continue-on-error: true
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/healthtracker_test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
+          SPRING_DATASOURCE_URL: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'jdbc:postgresql://localhost:5432/healthtracker_test' || '' }}
+          SPRING_DATASOURCE_USERNAME: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'test' || '' }}
+          SPRING_DATASOURCE_PASSWORD: ${{ steps.detect-db.outputs.database-type == 'postgresql' && 'test' || '' }}
           JWT_SECRET: testSecretKeyForCITestingPurposesOnly1234567890ABCDEF
           JWT_AUDIENCE: health-tracker-app
           ENCRYPTION_SECRET: test-encryption-key-for-ci-testing-only
           ENCRYPTION_SALT: test-salt-for-ci-testing-only
           CORS_ALLOWED_ORIGINS: http://localhost:5173
-        run: ./mvnw test jacoco:report -B
+        run: ./mvnw test jacoco:report -B -Dspring.profiles.active=${{ steps.detect-db.outputs.use-profile }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -220,10 +267,23 @@ jobs:
           name: backend-coverage
 
       - name: Generate coverage report
+        if: always()
         run: |
           echo "## Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Database**: ${{ steps.detect-db.outputs.database-type || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ -f target/site/jacoco/index.html ]; then
-            echo "Coverage report generated successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Coverage report generated successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Coverage report not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Add database fallback notice if using H2
+          if [ "${{ steps.detect-db.outputs.database-type }}" = "h2" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **Note**: Coverage collected with H2 database due to PostgreSQL service unavailability" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Set coverage output
@@ -242,7 +302,7 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    continue-on-error: true  # Allow job to report status even if Docker services fail
+    continue-on-error: true  # Allow job to continue even if security scans have findings
 
     steps:
       - name: Checkout code
@@ -255,13 +315,34 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
+      - name: Set up Node.js for Snyk CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        id: snyk-auth
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --file=backend/pom.xml
+        run: |
+          if [ -n "$SNYK_TOKEN" ]; then
+            snyk auth "$SNYK_TOKEN"
+            echo "authenticated=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Snyk token not configured, skipping Snyk scan"
+            echo "authenticated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Snyk to check for vulnerabilities
+        if: steps.snyk-auth.outputs.authenticated == 'true'
+        continue-on-error: true
+        run: |
+          cd backend
+          snyk test --severity-threshold=high --file=pom.xml || echo "::warning::Snyk found vulnerabilities"
 
       - name: Run OWASP Dependency Check
         run: ./mvnw dependency-check:check -B

@@ -1,0 +1,78 @@
+name: 'Docker Pull with Retry'
+description: 'Pull Docker image with exponential backoff retry logic and timeout protection'
+author: 'Health Tracker Team'
+
+inputs:
+  image:
+    description: 'Docker image to pull (e.g., postgres:15-alpine)'
+    required: true
+  max-attempts:
+    description: 'Maximum number of pull attempts'
+    required: false
+    default: '3'
+  initial-delay:
+    description: 'Initial delay in seconds before first retry'
+    required: false
+    default: '2'
+  timeout:
+    description: 'Timeout in seconds for each pull attempt'
+    required: false
+    default: '60'
+
+outputs:
+  success:
+    description: 'Whether the pull was successful (true/false)'
+    value: ${{ steps.pull-image.outputs.success }}
+  attempts:
+    description: 'Number of attempts made'
+    value: ${{ steps.pull-image.outputs.attempts }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Pull Docker image with retry
+      id: pull-image
+      shell: bash
+      run: |
+        IMAGE="${{ inputs.image }}"
+        MAX_ATTEMPTS="${{ inputs.max-attempts }}"
+        INITIAL_DELAY="${{ inputs.initial-delay }}"
+        TIMEOUT="${{ inputs.timeout }}"
+
+        echo "🐋 Attempting to pull Docker image: $IMAGE"
+        echo "⚙️  Configuration: max-attempts=$MAX_ATTEMPTS, initial-delay=${INITIAL_DELAY}s, timeout=${TIMEOUT}s"
+
+        attempt=1
+        delay=$INITIAL_DELAY
+
+        while [ $attempt -le $MAX_ATTEMPTS ]; do
+          echo ""
+          echo "📥 Attempt $attempt/$MAX_ATTEMPTS: Pulling $IMAGE (timeout: ${TIMEOUT}s)"
+
+          # Use timeout command to prevent hanging
+          if timeout $TIMEOUT docker pull "$IMAGE" 2>&1; then
+            echo "✅ Successfully pulled $IMAGE on attempt $attempt"
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "attempts=$attempt" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            exit_code=$?
+            echo "❌ Pull attempt $attempt failed with exit code $exit_code"
+
+            if [ $attempt -lt $MAX_ATTEMPTS ]; then
+              # Calculate exponential backoff delay
+              wait_time=$((delay * attempt))
+              echo "⏳ Waiting ${wait_time}s before retry $((attempt + 1))..."
+              sleep $wait_time
+            fi
+          fi
+
+          attempt=$((attempt + 1))
+        done
+
+        echo ""
+        echo "::error::Failed to pull $IMAGE after $MAX_ATTEMPTS attempts"
+        echo "::warning::Docker Hub may be experiencing issues. Consider using a fallback mechanism."
+        echo "success=false" >> $GITHUB_OUTPUT
+        echo "attempts=$MAX_ATTEMPTS" >> $GITHUB_OUTPUT
+        exit 1

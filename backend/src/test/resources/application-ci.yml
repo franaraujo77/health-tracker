@@ -1,0 +1,69 @@
+# CI-specific configuration using H2 in-memory database
+# This profile is used when PostgreSQL service is unavailable (e.g., Docker Hub outages)
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 10000
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # H2 uses create-drop for in-memory testing
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        use_sql_comments: true
+
+  # Disable Flyway for H2 (in-memory DB creates schema from entities)
+  flyway:
+    enabled: false
+
+  h2:
+    console:
+      enabled: false  # Disable H2 console in CI
+
+# Logging configuration for CI
+logging:
+  level:
+    com.healthtracker: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# JWT configuration for CI
+jwt:
+  secret: ${JWT_SECRET:testSecretKeyForCITestingPurposesOnly1234567890ABCDEF}
+  access-token-expiration: 1800000
+  refresh-token-expiration: 2592000000
+  issuer: health-tracker-api
+  audience: ${JWT_AUDIENCE:health-tracker-app}
+
+# Encryption configuration for CI
+encryption:
+  secret: ${ENCRYPTION_SECRET:test-encryption-key-for-ci-testing-only}
+  salt: ${ENCRYPTION_SALT:test-salt-for-ci-testing-only}
+
+# CORS configuration for CI
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
