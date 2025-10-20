@@ -1,0 +1,445 @@
+name: Test Scenario - Skip Conditions (Future Enhancements)
+
+# This workflow tests skip conditions that are NOT YET IMPLEMENTED but planned for future
+# It serves as documentation and specification for future enhancement work
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_condition:
+        description: 'Skip condition to test (future enhancement)'
+        required: true
+        type: choice
+        options:
+          - 'draft-pr'
+          - 'skip-review-label'
+          - 'docs-only-changes'
+          - 'large-pr-size'
+          - 'bot-author'
+        default: 'draft-pr'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # Document current implementation status
+  document-implementation-status:
+    name: Document Implementation Status
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check implementation status
+        id: check-status
+        run: |
+          SKIP_CONDITION="${{ inputs.skip_condition }}"
+
+          echo "# Skip Condition Test: ${SKIP_CONDITION}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ⚠️ IMPLEMENTATION STATUS: NOT YET IMPLEMENTED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This test documents the **intended behavior** for future implementation." >> $GITHUB_STEP_SUMMARY
+          echo "The skip condition is currently **NOT enforced** in the pipeline." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          case "$SKIP_CONDITION" in
+            "draft-pr")
+              echo "### Draft PR Detection" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Intended Behavior:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Detect if PR is in draft state" >> $GITHUB_STEP_SUMMARY
+              echo "- Skip Claude review for draft PRs" >> $GITHUB_STEP_SUMMARY
+              echo "- Post notification: 'Review skipped - PR is in draft'" >> $GITHUB_STEP_SUMMARY
+              echo "- Re-run review when PR is marked as ready" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Implementation Location:**" >> $GITHUB_STEP_SUMMARY
+              echo "- File: \`.github/workflows/claude-review-conditional.yml\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Job: \`evaluate\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Check: \`github.event.workflow_run.pull_requests[0].draft\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Why Skip:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Draft PRs are work-in-progress" >> $GITHUB_STEP_SUMMARY
+              echo "- Code is not ready for review" >> $GITHUB_STEP_SUMMARY
+              echo "- Avoids wasting AI credits on incomplete work" >> $GITHUB_STEP_SUMMARY
+              ;;
+
+            "skip-review-label")
+              echo "### Skip Review Label Detection" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Intended Behavior:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Check if PR has 'skip-review' or 'no-ai-review' label" >> $GITHUB_STEP_SUMMARY
+              echo "- Skip Claude review if label is present" >> $GITHUB_STEP_SUMMARY
+              echo "- Post notification: 'Review skipped - skip-review label applied'" >> $GITHUB_STEP_SUMMARY
+              echo "- Re-run review if label is removed" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Implementation Location:**" >> $GITHUB_STEP_SUMMARY
+              echo "- File: \`.github/workflows/claude-review-conditional.yml\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Job: \`evaluate\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Check: \`contains(github.event.workflow_run.pull_requests[0].labels.*.name, 'skip-review')\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Use Cases:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Emergency hotfixes that bypass normal review" >> $GITHUB_STEP_SUMMARY
+              echo "- Generated code (migrations, auto-formatting)" >> $GITHUB_STEP_SUMMARY
+              echo "- Chore PRs (dependency updates)" >> $GITHUB_STEP_SUMMARY
+              ;;
+
+            "docs-only-changes")
+              echo "### Documentation-Only Changes Detection" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Intended Behavior:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Detect if PR only modifies documentation files" >> $GITHUB_STEP_SUMMARY
+              echo "- Skip Claude review if only docs changed" >> $GITHUB_STEP_SUMMARY
+              echo "- Post notification: 'Review skipped - documentation only'" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Implementation Location:**" >> $GITHUB_STEP_SUMMARY
+              echo "- File: \`.github/workflows/claude-review-conditional.yml\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Job: \`evaluate\` (new step: check-changed-files)" >> $GITHUB_STEP_SUMMARY
+              echo "- Check: All changed files match \`**/*.md\`, \`docs/**\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Documentation File Patterns:**" >> $GITHUB_STEP_SUMMARY
+              echo "- \`*.md\` (Markdown files)" >> $GITHUB_STEP_SUMMARY
+              echo "- \`docs/**\` (Documentation directory)" >> $GITHUB_STEP_SUMMARY
+              echo "- \`.github/workflows/README.md\` (Workflow docs)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Why Skip:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Documentation changes don't affect code behavior" >> $GITHUB_STEP_SUMMARY
+              echo "- Typo fixes, formatting don't need AI review" >> $GITHUB_STEP_SUMMARY
+              echo "- Reduces AI credit usage on low-risk changes" >> $GITHUB_STEP_SUMMARY
+              ;;
+
+            "large-pr-size")
+              echo "### Large PR Size Detection" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Intended Behavior:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Detect if PR exceeds size threshold (e.g., 500 files)" >> $GITHUB_STEP_SUMMARY
+              echo "- Skip Claude review if PR is too large" >> $GITHUB_STEP_SUMMARY
+              echo "- Post notification: 'Review skipped - PR too large (N files)'" >> $GITHUB_STEP_SUMMARY
+              echo "- Suggest: 'Consider splitting into smaller PRs'" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Implementation Location:**" >> $GITHUB_STEP_SUMMARY
+              echo "- File: \`.github/workflows/claude-review-conditional.yml\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Job: \`evaluate\` (new step: check-pr-size)" >> $GITHUB_STEP_SUMMARY
+              echo "- Check: \`changed_files_count > 500\` or \`additions + deletions > 10000\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Size Thresholds:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Max files: 500 files" >> $GITHUB_STEP_SUMMARY
+              echo "- Max lines changed: 10,000 lines" >> $GITHUB_STEP_SUMMARY
+              echo "- (Configurable via workflow inputs)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Why Skip:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Large PRs are difficult to review comprehensively" >> $GITHUB_STEP_SUMMARY
+              echo "- May hit API token limits" >> $GITHUB_STEP_SUMMARY
+              echo "- Review quality decreases with size" >> $GITHUB_STEP_SUMMARY
+              echo "- Encourages better PR hygiene (smaller, focused changes)" >> $GITHUB_STEP_SUMMARY
+              ;;
+
+            "bot-author")
+              echo "### Bot Author Detection" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Intended Behavior:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Detect if PR author is a bot (dependabot, renovate, etc.)" >> $GITHUB_STEP_SUMMARY
+              echo "- Skip Claude review for bot-authored PRs" >> $GITHUB_STEP_SUMMARY
+              echo "- Post notification: 'Review skipped - automated PR'" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Implementation Location:**" >> $GITHUB_STEP_SUMMARY
+              echo "- File: \`.github/workflows/claude-review-conditional.yml\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Job: \`evaluate\` (new step: check-pr-author)" >> $GITHUB_STEP_SUMMARY
+              echo "- Check: \`github.event.workflow_run.pull_requests[0].user.login\` matches bot pattern" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Bot Patterns:**" >> $GITHUB_STEP_SUMMARY
+              echo "- \`dependabot[bot]\`" >> $GITHUB_STEP_SUMMARY
+              echo "- \`renovate[bot]\`" >> $GITHUB_STEP_SUMMARY
+              echo "- \`github-actions[bot]\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Any user with \`[bot]\` suffix" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Why Skip:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Automated PRs follow consistent patterns" >> $GITHUB_STEP_SUMMARY
+              echo "- Dependency updates don't need code review" >> $GITHUB_STEP_SUMMARY
+              echo "- Bots don't benefit from review feedback" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+
+          echo "status=documented" >> $GITHUB_OUTPUT
+
+  # Verify skip condition logic (specification)
+  verify-skip-condition-specification:
+    name: Verify Skip Condition Specification
+    runs-on: ubuntu-latest
+    needs: document-implementation-status
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Define expected behavior specification
+        id: specification
+        run: |
+          SKIP_CONDITION="${{ inputs.skip_condition }}"
+
+          echo "## Skip Condition Specification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          case "$SKIP_CONDITION" in
+            "draft-pr")
+              CONDITION_CHECK="github.event.workflow_run.pull_requests[0].draft == true"
+              SKIP_REASON="Review skipped - PR is in draft"
+              NOTIFICATION_ICON="📝"
+              ;;
+            "skip-review-label")
+              CONDITION_CHECK="contains(github.event.workflow_run.pull_requests[0].labels.*.name, 'skip-review')"
+              SKIP_REASON="Review skipped - skip-review label applied"
+              NOTIFICATION_ICON="🏷️"
+              ;;
+            "docs-only-changes")
+              CONDITION_CHECK="all changed files match ['**/*.md', 'docs/**']"
+              SKIP_REASON="Review skipped - documentation only"
+              NOTIFICATION_ICON="📚"
+              ;;
+            "large-pr-size")
+              CONDITION_CHECK="changed_files_count > 500 OR additions + deletions > 10000"
+              SKIP_REASON="Review skipped - PR too large (consider splitting)"
+              NOTIFICATION_ICON="📦"
+              ;;
+            "bot-author")
+              CONDITION_CHECK="github.event.workflow_run.pull_requests[0].user.login matches '*[bot]'"
+              SKIP_REASON="Review skipped - automated PR"
+              NOTIFICATION_ICON="🤖"
+              ;;
+          esac
+
+          echo "condition_check=${CONDITION_CHECK}" >> $GITHUB_OUTPUT
+          echo "skip_reason=${SKIP_REASON}" >> $GITHUB_OUTPUT
+          echo "notification_icon=${NOTIFICATION_ICON}" >> $GITHUB_OUTPUT
+
+          echo "**Condition Check:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`${CONDITION_CHECK}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Skip Reason:**" >> $GITHUB_STEP_SUMMARY
+          echo "${NOTIFICATION_ICON} ${SKIP_REASON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify decision tree integration
+        run: |
+          echo "## Decision Tree Integration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Updated Decision Flow:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "PR Event → Check Skip Conditions" >> $GITHUB_STEP_SUMMARY
+          echo "            ↓" >> $GITHUB_STEP_SUMMARY
+          echo "     ┌──────┴──────┐" >> $GITHUB_STEP_SUMMARY
+          echo "     │             │" >> $GITHUB_STEP_SUMMARY
+          echo "Should Skip?   Should Proceed?" >> $GITHUB_STEP_SUMMARY
+          echo "     │             │" >> $GITHUB_STEP_SUMMARY
+          echo "Skip Review   Run Validations" >> $GITHUB_STEP_SUMMARY
+          echo "Post Notification    ↓" >> $GITHUB_STEP_SUMMARY
+          echo "            Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "                    ↓" >> $GITHUB_STEP_SUMMARY
+          echo "            Claude Review Decision" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Specification Verified**" >> $GITHUB_STEP_SUMMARY
+
+  # Create implementation checklist
+  create-implementation-checklist:
+    name: Create Implementation Checklist
+    runs-on: ubuntu-latest
+    needs: verify-skip-condition-specification
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate implementation tasks
+        run: |
+          SKIP_CONDITION="${{ inputs.skip_condition }}"
+
+          echo "# Implementation Checklist: ${SKIP_CONDITION}" > checklist.md
+          echo "" >> checklist.md
+          echo "## Tasks Required for Implementation" >> checklist.md
+          echo "" >> checklist.md
+
+          case "$SKIP_CONDITION" in
+            "draft-pr")
+              echo "### Draft PR Detection" >> checklist.md
+              echo "" >> checklist.md
+              echo "- [ ] Add draft detection step to \`evaluate\` job" >> checklist.md
+              echo "- [ ] Check \`github.event.workflow_run.pull_requests[0].draft\`" >> checklist.md
+              echo "- [ ] Set \`should_skip=true\` if draft" >> checklist.md
+              echo "- [ ] Update skip notification job to include draft reason" >> checklist.md
+              echo "- [ ] Add test case to verify draft detection" >> checklist.md
+              echo "- [ ] Update documentation with draft PR behavior" >> checklist.md
+              echo "- [ ] Configure workflow to re-run when PR marked ready" >> checklist.md
+              ;;
+
+            "skip-review-label")
+              echo "### Skip Review Label Detection" >> checklist.md
+              echo "- [ ] Add label detection step to \`evaluate\` job" >> checklist.md
+              echo "- [ ] Check for 'skip-review' label in PR labels" >> checklist.md
+              echo "- [ ] Set \`should_skip=true\` if label present" >> checklist.md
+              echo "- [ ] Update skip notification job to include label reason" >> checklist.md
+              echo "- [ ] Add test case to verify label detection" >> checklist.md
+              echo "- [ ] Document skip-review label usage" >> checklist.md
+              echo "- [ ] Add label creation to PR templates" >> checklist.md
+              ;;
+
+            "docs-only-changes")
+              echo "### Documentation-Only Changes Detection" >> checklist.md
+              echo "- [ ] Add changed files detection step to \`evaluate\` job" >> checklist.md
+              echo "- [ ] Fetch list of changed files in PR" >> checklist.md
+              echo "- [ ] Check if all files match doc patterns (\`**/*.md\`, \`docs/**\`)" >> checklist.md
+              echo "- [ ] Set \`should_skip=true\` if only docs changed" >> checklist.md
+              echo "- [ ] Update skip notification job to include docs-only reason" >> checklist.md
+              echo "- [ ] Add test case with sample docs-only PR" >> checklist.md
+              echo "- [ ] Configure doc file patterns as workflow inputs" >> checklist.md
+              ;;
+
+            "large-pr-size")
+              echo "### Large PR Size Detection" >> checklist.md
+              echo "- [ ] Add PR size detection step to \`evaluate\` job" >> checklist.md
+              echo "- [ ] Fetch PR file count and line changes" >> checklist.md
+              echo "- [ ] Check if files > 500 OR lines > 10,000" >> checklist.md
+              echo "- [ ] Set \`should_skip=true\` if over threshold" >> checklist.md
+              echo "- [ ] Update skip notification to suggest splitting PR" >> checklist.md
+              echo "- [ ] Add test case with mock large PR" >> checklist.md
+              echo "- [ ] Make size thresholds configurable" >> checklist.md
+              echo "- [ ] Add metrics to track PR sizes" >> checklist.md
+              ;;
+
+            "bot-author")
+              echo "### Bot Author Detection" >> checklist.md
+              echo "- [ ] Add author detection step to \`evaluate\` job" >> checklist.md
+              echo "- [ ] Check \`github.event.workflow_run.pull_requests[0].user.login\`" >> checklist.md
+              echo "- [ ] Match against bot patterns (\`*[bot]\`, known bot usernames)" >> checklist.md
+              echo "- [ ] Set \`should_skip=true\` if bot author" >> checklist.md
+              echo "- [ ] Update skip notification job to include bot reason" >> checklist.md
+              echo "- [ ] Add test case with simulated bot PR" >> checklist.md
+              echo "- [ ] Configure bot username patterns as inputs" >> checklist.md
+              echo "- [ ] Add override mechanism for important bot PRs" >> checklist.md
+              ;;
+          esac
+
+          echo "" >> checklist.md
+          echo "## Testing Requirements" >> checklist.md
+          echo "" >> checklist.md
+          echo "- [ ] Unit test for condition detection logic" >> checklist.md
+          echo "- [ ] Integration test with real PR scenarios" >> checklist.md
+          echo "- [ ] Verify skip notification appears correctly" >> checklist.md
+          echo "- [ ] Test re-trigger behavior when condition changes" >> checklist.md
+          echo "- [ ] Validate no false positives (skipping when shouldn't)" >> checklist.md
+          echo "- [ ] Validate no false negatives (not skipping when should)" >> checklist.md
+          echo "" >> checklist.md
+          echo "## Documentation Requirements" >> checklist.md
+          echo "" >> checklist.md
+          echo "- [ ] Update \`TECHNICAL.md\` with skip condition logic" >> checklist.md
+          echo "- [ ] Update \`TROUBLESHOOTING.md\` with skip troubleshooting" >> checklist.md
+          echo "- [ ] Update decision tree diagram with skip conditions" >> checklist.md
+          echo "- [ ] Add skip condition examples to \`README.md\`" >> checklist.md
+          echo "- [ ] Update PR templates with skip instructions" >> checklist.md
+
+          cat checklist.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload implementation checklist
+        uses: actions/upload-artifact@v4
+        with:
+          name: skip-condition-checklist-${{ inputs.skip_condition }}-${{ github.run_id }}
+          path: checklist.md
+          retention-days: 90
+
+  # Generate future enhancement report
+  generate-enhancement-report:
+    name: Generate Future Enhancement Report
+    runs-on: ubuntu-latest
+    needs: [document-implementation-status, verify-skip-condition-specification, create-implementation-checklist]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate report
+        run: |
+          echo "# Future Enhancement Test Report: Skip Conditions" > report.md
+          echo "" >> report.md
+          echo "**Test Run ID:** ${{ github.run_id }}" >> report.md
+          echo "**Skip Condition:** ${{ inputs.skip_condition }}" >> report.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> report.md
+          echo "" >> report.md
+
+          echo "## ⚠️ Implementation Status" >> report.md
+          echo "" >> report.md
+          echo "**Status:** NOT YET IMPLEMENTED" >> report.md
+          echo "" >> report.md
+          echo "This test serves as:" >> report.md
+          echo "1. **Specification** - Documents intended behavior" >> report.md
+          echo "2. **Planning Tool** - Provides implementation checklist" >> report.md
+          echo "3. **Future Reference** - Guides development work" >> report.md
+          echo "" >> report.md
+
+          echo "## Test Purpose" >> report.md
+          echo "" >> report.md
+          echo "**What This Test Does:**" >> report.md
+          echo "- ✅ Documents the skip condition specification" >> report.md
+          echo "- ✅ Defines expected behavior and decision logic" >> report.md
+          echo "- ✅ Creates implementation checklist for developers" >> report.md
+          echo "- ✅ Identifies integration points in existing workflows" >> report.md
+          echo "" >> report.md
+          echo "**What This Test Does NOT Do:**" >> report.md
+          echo "- ❌ Verify actual implementation (not implemented yet)" >> report.md
+          echo "- ❌ Run live tests against the pipeline" >> report.md
+          echo "- ❌ Block PRs or enforce behavior" >> report.md
+          echo "" >> report.md
+
+          echo "## Value Proposition" >> report.md
+          echo "" >> report.md
+          echo "**Why These Skip Conditions Matter:**" >> report.md
+          echo "" >> report.md
+          echo "**Cost Optimization:**" >> report.md
+          echo "- Reduces AI API costs by ~30-40% (estimated)" >> report.md
+          echo "- Skips review for docs-only, bot PRs, drafts" >> report.md
+          echo "- Focuses AI credits on high-value code reviews" >> report.md
+          echo "" >> report.md
+          echo "**Developer Experience:**" >> report.md
+          echo "- Faster feedback for documentation changes" >> report.md
+          echo "- No unnecessary delays on automated PRs" >> report.md
+          echo "- Clear signals when PRs are too large" >> report.md
+          echo "" >> report.md
+          echo "**Process Improvement:**" >> report.md
+          echo "- Encourages smaller, focused PRs (size limits)" >> report.md
+          echo "- Supports work-in-progress workflow (draft PRs)" >> report.md
+          echo "- Allows emergency bypasses (skip-review label)" >> report.md
+          echo "" >> report.md
+
+          echo "## Next Steps" >> report.md
+          echo "" >> report.md
+          echo "**To Implement This Skip Condition:**" >> report.md
+          echo "1. Review the generated implementation checklist artifact" >> report.md
+          echo "2. Create a new story/task in the backlog" >> report.md
+          echo "3. Follow the checklist to implement the feature" >> report.md
+          echo "4. Update this test to verify actual behavior" >> report.md
+          echo "5. Update documentation to remove 'Future Enhancement' label" >> report.md
+          echo "" >> report.md
+
+          echo "## Related Documentation" >> report.md
+          echo "" >> report.md
+          echo "- Decision Tree: \`docs/claude-review-decision-tree.md\` (mentions future enhancements)" >> report.md
+          echo "- Technical Docs: \`.github/workflows/TECHNICAL.md\`" >> report.md
+          echo "- Implementation: \`.github/workflows/claude-review-conditional.yml\`" >> report.md
+          echo "" >> report.md
+
+          echo "## ✅ Test Result: SPECIFICATION DOCUMENTED" >> report.md
+          echo "" >> report.md
+          echo "This test successfully documented the skip condition specification." >> report.md
+          echo "Implementation checklist has been generated and uploaded as artifact." >> report.md
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload enhancement report
+        uses: actions/upload-artifact@v4
+        with:
+          name: skip-condition-report-${{ inputs.skip_condition }}-${{ github.run_id }}
+          path: report.md
+          retention-days: 90

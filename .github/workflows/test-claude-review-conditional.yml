@@ -1,0 +1,281 @@
+name: Test Claude Review Conditional
+
+# This workflow tests the conditional Claude Code review logic
+# It should only be triggered manually for testing purposes
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Test scenario to run'
+        required: true
+        type: choice
+        options:
+          - 'all-pass-trigger-review'
+          - 'frontend-fail-skip-review'
+          - 'backend-fail-skip-review'
+          - 'security-fail-skip-review'
+          - 'multiple-fail-skip-review'
+          - 'non-critical-fail-skip-review'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: read
+  statuses: write
+
+jobs:
+  # Mock the validation orchestrator behavior
+  mock-orchestrator:
+    name: Mock Validation Orchestrator
+    runs-on: ubuntu-latest
+    outputs:
+      workflow_id: ${{ steps.create-artifact.outputs.workflow_id }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create mock validation report
+        id: create-report
+        run: |
+          mkdir -p validation-reports
+
+          # Generate appropriate mock data based on scenario
+          case "${{ github.event.inputs.scenario }}" in
+            "all-pass-trigger-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-123",
+            "pr_number": "1",
+            "all_passed": true,
+            "has_critical_failures": false,
+            "errors": []
+          }
+          JSON
+              ;;
+
+            "frontend-fail-skip-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-124",
+            "pr_number": "1",
+            "all_passed": false,
+            "has_critical_failures": true,
+            "errors": [
+              {"message": "Frontend: Type checking failed (CRITICAL)", "severity": "critical"},
+              {"message": "Frontend: Tests failed (CRITICAL)", "severity": "critical"}
+            ]
+          }
+          JSON
+              ;;
+
+            "backend-fail-skip-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-125",
+            "pr_number": "1",
+            "all_passed": false,
+            "has_critical_failures": true,
+            "errors": [
+              {"message": "Backend: Build failed (CRITICAL)", "severity": "critical"},
+              {"message": "Backend: Unit tests failed (CRITICAL)", "severity": "critical"}
+            ]
+          }
+          JSON
+              ;;
+
+            "security-fail-skip-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-126",
+            "pr_number": "1",
+            "all_passed": false,
+            "has_critical_failures": true,
+            "errors": [
+              {"message": "Security: Dependency scan failed (CRITICAL)", "severity": "critical"},
+              {"message": "Security: SAST scan failed (CRITICAL)", "severity": "critical"}
+            ]
+          }
+          JSON
+              ;;
+
+            "multiple-fail-skip-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-127",
+            "pr_number": "1",
+            "all_passed": false,
+            "has_critical_failures": true,
+            "errors": [
+              {"message": "Frontend: Linting failed", "severity": "warning"},
+              {"message": "Frontend: Build failed (CRITICAL)", "severity": "critical"},
+              {"message": "Backend: Unit tests failed (CRITICAL)", "severity": "critical"},
+              {"message": "Security: Dependency scan failed (CRITICAL)", "severity": "critical"}
+            ]
+          }
+          JSON
+              ;;
+
+            "non-critical-fail-skip-review")
+              cat > validation-reports/error-report.json <<'JSON'
+          {
+            "timestamp": "2025-10-19T20:00:00Z",
+            "workflow_run": "mock-run-128",
+            "pr_number": "1",
+            "all_passed": false,
+            "has_critical_failures": false,
+            "errors": [
+              {"message": "Frontend: Linting failed", "severity": "warning"},
+              {"message": "Backend: Coverage threshold not met", "severity": "warning"}
+            ]
+          }
+          JSON
+              ;;
+          esac
+
+          cat > validation-reports/summary.md <<'SUMMARY'
+          # Validation Summary
+          Test scenario validation report
+          SUMMARY
+
+          echo "Created mock validation report for scenario: ${{ github.event.inputs.scenario }}"
+          cat validation-reports/error-report.json
+
+      - name: Upload mock validation artifact
+        id: create-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report-${{ github.run_id }}
+          path: validation-reports/
+          retention-days: 1
+
+      - name: Set workflow ID output
+        run: |
+          echo "workflow_id=${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+  # Test the evaluation logic
+  test-evaluate:
+    name: Test Evaluation Logic
+    runs-on: ubuntu-latest
+    needs: mock-orchestrator
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download mock validation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-report-${{ needs.mock-orchestrator.outputs.workflow_id }}
+
+      - name: Test parsing and decision logic
+        run: |
+          echo "## Test Results for Scenario: ${{ github.event.inputs.scenario }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Parse the JSON report (same logic as in claude-review-conditional.yml)
+          ALL_PASSED=$(jq -r '.all_passed' error-report.json)
+          HAS_CRITICAL_FAILURES=$(jq -r '.has_critical_failures' error-report.json)
+          ERROR_COUNT=$(jq '.errors | length' error-report.json)
+
+          echo "### Parsed Values" >> $GITHUB_STEP_SUMMARY
+          echo "- All Passed: ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+          echo "- Has Critical Failures: ${HAS_CRITICAL_FAILURES}" >> $GITHUB_STEP_SUMMARY
+          echo "- Error Count: ${ERROR_COUNT}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Decision logic
+          if [ "${ALL_PASSED}" = "true" ]; then
+            SHOULD_REVIEW="true"
+            DECISION="✅ TRIGGER Claude Code Review"
+            REASON="All validations passed successfully"
+          else
+            SHOULD_REVIEW="false"
+            if [ "${HAS_CRITICAL_FAILURES}" = "true" ]; then
+              DECISION="❌ SKIP Claude Code Review"
+              REASON="Critical validation failures detected"
+            else
+              DECISION="⚠️ SKIP Claude Code Review"
+              REASON="Non-critical validation issues detected"
+            fi
+          fi
+
+          echo "### Decision" >> $GITHUB_STEP_SUMMARY
+          echo "- Should Review: ${SHOULD_REVIEW}" >> $GITHUB_STEP_SUMMARY
+          echo "- Decision: ${DECISION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Reason: ${REASON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Verify expected behavior for each scenario
+          echo "### Expected vs Actual" >> $GITHUB_STEP_SUMMARY
+          case "${{ github.event.inputs.scenario }}" in
+            "all-pass-trigger-review")
+              if [ "${SHOULD_REVIEW}" = "true" ] && [ "${ALL_PASSED}" = "true" ] && [ "${HAS_CRITICAL_FAILURES}" = "false" ]; then
+                echo "✅ PASS: Claude review triggered as expected when all validations pass" >> $GITHUB_STEP_SUMMARY
+                exit 0
+              else
+                echo "❌ FAIL: Expected review to trigger but got SHOULD_REVIEW=${SHOULD_REVIEW}" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+              ;;
+
+            "frontend-fail-skip-review"|"backend-fail-skip-review"|"security-fail-skip-review"|"multiple-fail-skip-review")
+              if [ "${SHOULD_REVIEW}" = "false" ] && [ "${HAS_CRITICAL_FAILURES}" = "true" ]; then
+                echo "✅ PASS: Claude review skipped as expected for critical failures" >> $GITHUB_STEP_SUMMARY
+                exit 0
+              else
+                echo "❌ FAIL: Expected review to be skipped but got SHOULD_REVIEW=${SHOULD_REVIEW}" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+              ;;
+
+            "non-critical-fail-skip-review")
+              if [ "${SHOULD_REVIEW}" = "false" ] && [ "${HAS_CRITICAL_FAILURES}" = "false" ] && [ "${ALL_PASSED}" = "false" ]; then
+                echo "✅ PASS: Claude review skipped as expected for non-critical failures" >> $GITHUB_STEP_SUMMARY
+                exit 0
+              else
+                echo "❌ FAIL: Expected review to be skipped but got SHOULD_REVIEW=${SHOULD_REVIEW}" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+              ;;
+          esac
+
+      - name: Display error details
+        if: always()
+        run: |
+          echo "## Error Details" >> $GITHUB_STEP_SUMMARY
+          if [ "$(jq '.errors | length' error-report.json)" -gt 0 ]; then
+            jq -r '.errors[] | "- [\(.severity | ascii_upcase)] \(.message)"' error-report.json >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No errors detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Verify the logic works correctly
+  verify-logic:
+    name: Verify Test Results
+    runs-on: ubuntu-latest
+    needs: test-evaluate
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "## Final Verification" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.test-evaluate.result }}" = "success" ]; then
+            echo "✅ All tests passed for scenario: ${{ github.event.inputs.scenario }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The conditional Claude Code review logic is working correctly!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests failed for scenario: ${{ github.event.inputs.scenario }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the test-evaluate job for details." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

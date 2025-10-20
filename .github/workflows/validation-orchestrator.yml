@@ -1,0 +1,342 @@
+name: Validation Orchestrator
+
+# This workflow orchestrates all validation jobs and determines whether
+# to trigger the Claude Code review based on aggregated validation results
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+  # Allow this workflow to be called by other workflows
+  workflow_call:
+    outputs:
+      all-passed:
+        description: 'Boolean indicating if all validations passed'
+        value: ${{ jobs.aggregate-results.outputs.all-passed }}
+      validation-summary:
+        description: 'Summary of all validation results'
+        value: ${{ jobs.aggregate-results.outputs.summary }}
+      has-critical-failures:
+        description: 'Boolean indicating if there are critical failures'
+        value: ${{ jobs.aggregate-results.outputs.has-critical-failures }}
+
+# Permissions needed for the workflow
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: read
+
+# Cancel in-progress runs on new pushes to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Call the refactored frontend validation workflow
+  validate-frontend:
+    name: Frontend Validation
+    uses: ./.github/workflows/frontend-ci.yml
+    # Timeout after 15 minutes to prevent hanging jobs
+    timeout-minutes: 15
+
+  # Call the refactored backend validation workflow
+  validate-backend:
+    name: Backend Validation
+    uses: ./.github/workflows/backend-ci.yml
+    # Timeout after 20 minutes to prevent hanging jobs
+    timeout-minutes: 20
+
+  # Call the security validation workflow
+  validate-security:
+    name: Security Validation
+    uses: ./.github/workflows/security-validation.yml
+    # Timeout after 15 minutes to prevent hanging jobs
+    timeout-minutes: 15
+    secrets: inherit  # Pass secrets for Snyk and SonarQube
+
+  # Aggregates results from all validation jobs
+  aggregate-results:
+    name: Aggregate Validation Results
+    runs-on: ubuntu-latest
+    needs: [validate-frontend, validate-backend, validate-security]
+    # Always run this job even if some validations fail
+    if: always()
+
+    outputs:
+      all-passed: ${{ steps.aggregate.outputs.all-passed }}
+      summary: ${{ steps.aggregate.outputs.summary }}
+      has-critical-failures: ${{ steps.aggregate.outputs.has-critical-failures }}
+      error-report: ${{ steps.aggregate.outputs.error-report }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Aggregate validation results
+        id: aggregate
+        run: |
+          # Initialize variables
+          ALL_PASSED=true
+          HAS_CRITICAL_FAILURES=false
+          ERRORS=()
+
+          # Frontend validation checks
+          FRONTEND_LINT="${{ needs.validate-frontend.outputs.lint-status || 'unknown' }}"
+          FRONTEND_TYPE="${{ needs.validate-frontend.outputs.type-status || 'unknown' }}"
+          FRONTEND_TEST="${{ needs.validate-frontend.outputs.test-status || 'unknown' }}"
+          FRONTEND_BUILD="${{ needs.validate-frontend.outputs.build-status || 'unknown' }}"
+
+          if [ "$FRONTEND_LINT" != "success" ]; then
+            ALL_PASSED=false
+            ERRORS+=("Frontend: Linting failed")
+          fi
+
+          if [ "$FRONTEND_TYPE" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Type checking failed (CRITICAL)")
+          fi
+
+          if [ "$FRONTEND_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Tests failed (CRITICAL)")
+          fi
+
+          if [ "$FRONTEND_BUILD" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Frontend: Build failed (CRITICAL)")
+          fi
+
+          # Backend validation checks
+          BACKEND_BUILD="${{ needs.validate-backend.outputs.build-status || 'unknown' }}"
+          BACKEND_UNIT_TEST="${{ needs.validate-backend.outputs.unit-test-status || 'unknown' }}"
+          BACKEND_INTEGRATION_TEST="${{ needs.validate-backend.outputs.integration-test-status || 'unknown' }}"
+          BACKEND_COVERAGE="${{ needs.validate-backend.outputs.coverage-status || 'unknown' }}"
+
+          if [ "$BACKEND_BUILD" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Build failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_UNIT_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Unit tests failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_INTEGRATION_TEST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Backend: Integration tests failed (CRITICAL)")
+          fi
+
+          if [ "$BACKEND_COVERAGE" != "success" ]; then
+            ALL_PASSED=false
+            ERRORS+=("Backend: Coverage threshold not met")
+          fi
+
+          # Security validation checks
+          SECURITY_DEPENDENCY="${{ needs.validate-security.outputs.dependency-scan-status || 'unknown' }}"
+          SECURITY_SAST="${{ needs.validate-security.outputs.sast-status || 'unknown' }}"
+
+          if [ "$SECURITY_DEPENDENCY" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Security: Dependency scan failed (CRITICAL)")
+          fi
+
+          if [ "$SECURITY_SAST" != "success" ]; then
+            ALL_PASSED=false
+            HAS_CRITICAL_FAILURES=true
+            ERRORS+=("Security: SAST scan failed (CRITICAL)")
+          fi
+
+          # Set outputs
+          echo "all-passed=${ALL_PASSED}" >> $GITHUB_OUTPUT
+          echo "has-critical-failures=${HAS_CRITICAL_FAILURES}" >> $GITHUB_OUTPUT
+
+          # Create summary
+          SUMMARY="## Validation Results\n\n"
+          SUMMARY+="**Overall Status:** "
+          if [ "$ALL_PASSED" = "true" ]; then
+            SUMMARY+="✅ All validations passed\n\n"
+          elif [ "$HAS_CRITICAL_FAILURES" = "true" ]; then
+            SUMMARY+="❌ Critical failures detected\n\n"
+          else
+            SUMMARY+="⚠️ Non-critical failures detected\n\n"
+          fi
+
+          SUMMARY+="### Frontend\n"
+          SUMMARY+="- Lint: ${{ needs.validate-frontend.outputs.lint-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Type Check: ${{ needs.validate-frontend.outputs.type-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Tests: ${{ needs.validate-frontend.outputs.test-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Build: ${{ needs.validate-frontend.outputs.build-status == 'success' && '✅' || '❌' }}\n\n"
+
+          SUMMARY+="### Backend\n"
+          SUMMARY+="- Build: ${{ needs.validate-backend.outputs.build-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Unit Tests: ${{ needs.validate-backend.outputs.unit-test-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Integration Tests: ${{ needs.validate-backend.outputs.integration-test-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- Coverage: ${{ needs.validate-backend.outputs.coverage-status == 'success' && '✅' || '❌' }}\n\n"
+
+          SUMMARY+="### Security\n"
+          SUMMARY+="- Dependency Scan: ${{ needs.validate-security.outputs.dependency-scan-status == 'success' && '✅' || '❌' }}\n"
+          SUMMARY+="- SAST: ${{ needs.validate-security.outputs.sast-status == 'success' && '✅' || '❌' }}\n\n"
+
+          if [ "${#ERRORS[@]}" -gt 0 ]; then
+            SUMMARY+="### Errors\n"
+            for error in "${ERRORS[@]}"; do
+              SUMMARY+="- ${error}\n"
+            done
+          fi
+
+          # Save summary to output (escape for JSON)
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Create error report JSON
+          ERROR_JSON="{"
+          ERROR_JSON+="\"timestamp\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\","
+          ERROR_JSON+="\"workflow_run\":\"${{ github.run_id }}\","
+          ERROR_JSON+="\"pr_number\":\"${{ github.event.pull_request.number }}\","
+          ERROR_JSON+="\"all_passed\":${ALL_PASSED},"
+          ERROR_JSON+="\"has_critical_failures\":${HAS_CRITICAL_FAILURES},"
+          ERROR_JSON+="\"errors\":["
+
+          FIRST=true
+          for error in "${ERRORS[@]}"; do
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              ERROR_JSON+=","
+            fi
+            # Determine severity
+            if [[ "$error" == *"CRITICAL"* ]]; then
+              SEVERITY="critical"
+            else
+              SEVERITY="warning"
+            fi
+            ERROR_JSON+="{\"message\":\"${error}\",\"severity\":\"${SEVERITY}\"}"
+          done
+
+          ERROR_JSON+="]}"
+
+          echo "error-report<<EOF" >> $GITHUB_OUTPUT
+          echo "$ERROR_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Add to GitHub Step Summary
+          echo -e "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+          # Exit with error if critical failures exist
+          if [ "$HAS_CRITICAL_FAILURES" = "true" ]; then
+            echo "::error::Critical validation failures detected"
+            exit 1
+          elif [ "$ALL_PASSED" = "false" ]; then
+            echo "::warning::Non-critical validation failures detected"
+            exit 0
+          fi
+
+      - name: Create error report artifact
+        if: always()
+        run: |
+          mkdir -p validation-reports
+          echo '${{ steps.aggregate.outputs.error-report }}' > validation-reports/error-report.json
+          echo -e '${{ steps.aggregate.outputs.summary }}' > validation-reports/summary.md
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report-${{ github.run_id }}
+          path: validation-reports/
+          retention-days: 30
+
+  # Post validation status comment to PR
+  post-status-comment:
+    name: Post Validation Status Comment
+    runs-on: ubuntu-latest
+    needs: aggregate-results
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download validation report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: validation-report-${{ github.run_id }}
+          path: validation-reports/
+
+      - name: Generate status comment
+        id: generate-comment
+        run: |
+          # Check if error report exists
+          if [ ! -f "validation-reports/error-report.json" ]; then
+            echo "::warning::Validation report not found"
+            exit 0
+          fi
+
+          # Prepare options JSON
+          cat > options.json <<EOF
+          {
+            "workflowRunId": "${{ github.run_id }}",
+            "workflowRunUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "validationData": {
+              "frontend": {
+                "lintStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "typeStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "testStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "buildStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              },
+              "backend": {
+                "buildStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "unitTestStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "integrationTestStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "coverageStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              },
+              "security": {
+                "dependencyScanStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}",
+                "sastStatus": "${{ needs.aggregate-results.outputs.all-passed == 'true' && 'success' || 'unknown' }}"
+              }
+            }
+          }
+          EOF
+
+          # Generate comment
+          node .github/scripts/generate-status-comment.js validation-reports/error-report.json "$(cat options.json)" > comment.md
+
+          # Output comment body for next step
+          {
+            echo 'comment-body<<EOF'
+            cat comment.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Find existing status comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- validation-status-reporter -->'
+
+      - name: Create or update status comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.generate-comment.outputs.comment-body }}
+          edit-mode: replace

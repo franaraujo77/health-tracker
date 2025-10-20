@@ -167,6 +167,12 @@
 			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- H2 Database for CI fallback when PostgreSQL service is unavailable -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -213,6 +219,37 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<!-- OWASP Dependency Check Plugin for vulnerability scanning -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>11.1.0</version>
+				<configuration>
+					<!-- Fail build if CVSS score is 7 or higher (High/Critical) -->
+					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<!-- Make NVD update errors non-fatal (handles CVSS v4.0 parsing issues) -->
+					<failOnError>false</failOnError>
+					<!-- Suppress false positives if needed -->
+					<suppressionFiles>
+						<suppressionFile>src/main/resources/owasp-suppressions.xml</suppressionFile>
+					</suppressionFiles>
+					<!-- Skip artifacts not bundled in distribution -->
+					<skipTestScope>false</skipTestScope>
+					<!-- Analyzer configurations for better performance -->
+					<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+					<!-- Use NVD API for faster updates (when working) -->
+					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+					<!-- Data directory for caching -->
+					<dataDirectory>${user.home}/.m2/repository/owasp-dependency-check-data</dataDirectory>
+					<!-- Format for reports -->
+					<formats>
+						<format>HTML</format>
+						<format>JSON</format>
+					</formats>
+					<!-- Central Analyzer disabled (can cause issues) -->
+					<centralAnalyzerEnabled>false</centralAnalyzerEnabled>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

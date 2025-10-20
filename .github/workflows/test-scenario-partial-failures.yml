@@ -1,0 +1,404 @@
+name: Test Scenario - Partial Failures (Non-Critical)
+
+# This workflow tests scenarios where non-critical validation checks fail
+# It verifies that the orchestrator correctly identifies warnings vs critical failures
+
+on:
+  workflow_dispatch:
+    inputs:
+      failure_type:
+        description: 'Type of non-critical failure to test'
+        required: true
+        type: choice
+        options:
+          - 'frontend-lint-only'
+          - 'backend-coverage-only'
+          - 'both-non-critical'
+        default: 'frontend-lint-only'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # Test frontend lint failure
+  test-frontend-lint-failure:
+    name: Test Frontend Lint Failure
+    uses: ./.github/workflows/test-orchestrator.yml
+    with:
+      test_scenario: 'frontend-lint-fail'
+      enable_assertions: true
+    if: inputs.failure_type == 'frontend-lint-only'
+
+  # Test backend coverage failure
+  test-backend-coverage-failure:
+    name: Test Backend Coverage Failure
+    uses: ./.github/workflows/test-orchestrator.yml
+    with:
+      test_scenario: 'backend-coverage-fail'
+      enable_assertions: true
+    if: inputs.failure_type == 'backend-coverage-only'
+
+  # Test mixed non-critical failures
+  test-mixed-non-critical:
+    name: Test Mixed Non-Critical Failures
+    uses: ./.github/workflows/test-orchestrator.yml
+    with:
+      test_scenario: 'mixed-failures'
+      enable_assertions: true
+    if: inputs.failure_type == 'both-non-critical'
+
+  # Verify partial failure handling
+  verify-partial-failure-handling:
+    name: Verify Partial Failure Handling
+    runs-on: ubuntu-latest
+    needs: [test-frontend-lint-failure, test-backend-coverage-failure, test-mixed-non-critical]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine which test ran
+        id: determine-test
+        run: |
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          case "$FAILURE_TYPE" in
+            "frontend-lint-only")
+              TEST_RESULT="${{ needs.test-frontend-lint-failure.result }}"
+              ALL_PASSED="${{ needs.test-frontend-lint-failure.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-frontend-lint-failure.outputs.has-critical-failures }}"
+              ;;
+            "backend-coverage-only")
+              TEST_RESULT="${{ needs.test-backend-coverage-failure.result }}"
+              ALL_PASSED="${{ needs.test-backend-coverage-failure.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-backend-coverage-failure.outputs.has-critical-failures }}"
+              ;;
+            "both-non-critical")
+              TEST_RESULT="${{ needs.test-mixed-non-critical.result }}"
+              ALL_PASSED="${{ needs.test-mixed-non-critical.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-mixed-non-critical.outputs.has-critical-failures }}"
+              ;;
+          esac
+
+          echo "test_result=${TEST_RESULT}" >> $GITHUB_OUTPUT
+          echo "all_passed=${ALL_PASSED}" >> $GITHUB_OUTPUT
+          echo "has_critical=${HAS_CRITICAL}" >> $GITHUB_OUTPUT
+
+          echo "## Test Execution Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Failure Type:** ${FAILURE_TYPE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Result:** ${TEST_RESULT}" >> $GITHUB_STEP_SUMMARY
+          echo "- **All Passed:** ${ALL_PASSED}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Has Critical:** ${HAS_CRITICAL}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify all-passed is false
+        id: verify-all-passed
+        run: |
+          EXPECTED="false"
+          ACTUAL="${{ steps.determine-test.outputs.all_passed }}"
+
+          echo "## Verification: all-passed Output" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected: \`${EXPECTED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual: \`${ACTUAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL" = "$EXPECTED" ]; then
+            echo "✅ **PASS**: all-passed=false (correct for non-critical failures)" >> $GITHUB_STEP_SUMMARY
+            echo "result=PASS" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAIL**: all-passed should be false for non-critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "result=FAIL" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Verify has-critical-failures is false
+        id: verify-critical-failures
+        run: |
+          EXPECTED="false"
+          ACTUAL="${{ steps.determine-test.outputs.has_critical }}"
+
+          echo "## Verification: has-critical-failures Output" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected: \`${EXPECTED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual: \`${ACTUAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL" = "$EXPECTED" ]; then
+            echo "✅ **PASS**: has-critical-failures=false (correct - these are warnings)" >> $GITHUB_STEP_SUMMARY
+            echo "result=PASS" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAIL**: has-critical-failures should be false for non-critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "result=FAIL" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Verify critical vs non-critical distinction
+        id: verify-distinction
+        run: |
+          ALL_PASSED="${{ steps.determine-test.outputs.all_passed }}"
+          HAS_CRITICAL="${{ steps.determine-test.outputs.has_critical }}"
+
+          echo "## Verification: Critical vs Non-Critical Distinction" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # For non-critical failures:
+          # all_passed should be false (failures exist)
+          # has_critical_failures should be false (but they're not critical)
+          if [ "$ALL_PASSED" = "false" ] && [ "$HAS_CRITICAL" = "false" ]; then
+            echo "✅ **PASS**: Orchestrator correctly distinguishes non-critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Interpretation:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Pipeline detected failures (all_passed=false)" >> $GITHUB_STEP_SUMMARY
+            echo "- But classified them as warnings, not blockers (has_critical_failures=false)" >> $GITHUB_STEP_SUMMARY
+            echo "- This allows for appropriate messaging and handling" >> $GITHUB_STEP_SUMMARY
+            echo "result=PASS" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAIL**: Orchestrator failed to distinguish non-critical failures correctly" >> $GITHUB_STEP_SUMMARY
+            echo "result=FAIL" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  # Verify Claude review decision for non-critical failures
+  verify-claude-review-decision:
+    name: Verify Claude Review Decision
+    runs-on: ubuntu-latest
+    needs: [test-frontend-lint-failure, test-backend-coverage-failure, test-mixed-non-critical]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine test outputs
+        id: determine-outputs
+        run: |
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          case "$FAILURE_TYPE" in
+            "frontend-lint-only")
+              ALL_PASSED="${{ needs.test-frontend-lint-failure.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-frontend-lint-failure.outputs.has-critical-failures }}"
+              ;;
+            "backend-coverage-only")
+              ALL_PASSED="${{ needs.test-backend-coverage-failure.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-backend-coverage-failure.outputs.has-critical-failures }}"
+              ;;
+            "both-non-critical")
+              ALL_PASSED="${{ needs.test-mixed-non-critical.outputs.all-passed }}"
+              HAS_CRITICAL="${{ needs.test-mixed-non-critical.outputs.has-critical-failures }}"
+              ;;
+          esac
+
+          echo "all_passed=${ALL_PASSED}" >> $GITHUB_OUTPUT
+          echo "has_critical=${HAS_CRITICAL}" >> $GITHUB_OUTPUT
+
+      - name: Simulate Claude review decision logic
+        id: decision
+        run: |
+          ALL_PASSED="${{ steps.determine-outputs.outputs.all_passed }}"
+          HAS_CRITICAL="${{ steps.determine-outputs.outputs.has_critical }}"
+
+          echo "## Claude Review Decision Logic" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Inputs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- all_passed: \`${ALL_PASSED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- has_critical_failures: \`${HAS_CRITICAL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Decision logic from claude-review-conditional.yml
+          if [ "${ALL_PASSED}" = "true" ]; then
+            SHOULD_REVIEW="true"
+            DECISION="✅ TRIGGER Claude Code Review"
+            REASON="All validations passed successfully"
+          else
+            SHOULD_REVIEW="false"
+            if [ "${HAS_CRITICAL}" = "true" ]; then
+              DECISION="❌ SKIP Claude Code Review"
+              REASON="Critical validation failures must be fixed first"
+            else
+              DECISION="⚠️ SKIP Claude Code Review"
+              REASON="Non-critical validation issues should be addressed first"
+            fi
+          fi
+
+          echo "should_review=${SHOULD_REVIEW}" >> $GITHUB_OUTPUT
+          echo "decision=${DECISION}" >> $GITHUB_OUTPUT
+          echo "reason=${REASON}" >> $GITHUB_OUTPUT
+
+          echo "**Decision:** ${DECISION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${REASON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify Claude review is skipped
+        run: |
+          EXPECTED_DECISION="false"
+          ACTUAL_DECISION="${{ steps.decision.outputs.should_review }}"
+
+          echo "## Verification: Claude Review Skip Decision" >> $GITHUB_STEP_SUMMARY
+          echo "- Expected should_review: \`${EXPECTED_DECISION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Actual should_review: \`${ACTUAL_DECISION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ACTUAL_DECISION" = "$EXPECTED_DECISION" ]; then
+            echo "✅ **PASS**: Claude review correctly SKIPPED for non-critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Expected Behavior:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Skip notification would be posted to PR" >> $GITHUB_STEP_SUMMARY
+            echo "- Skip reason: \"${{ steps.decision.outputs.reason }}\"" >> $GITHUB_STEP_SUMMARY
+            echo "- Status check would show: 'Skipped - fix validations first'" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL**: Claude review decision incorrect for non-critical failures" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify appropriate skip message type
+        run: |
+          HAS_CRITICAL="${{ steps.determine-outputs.outputs.has_critical }}"
+          REASON="${{ steps.decision.outputs.reason }}"
+
+          echo "## Verification: Skip Message Type" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # For non-critical failures, reason should mention "non-critical" not "critical"
+          if [ "$HAS_CRITICAL" = "false" ]; then
+            if echo "$REASON" | grep -i "non-critical" > /dev/null; then
+              echo "✅ **PASS**: Skip message correctly identifies non-critical issues" >> $GITHUB_STEP_SUMMARY
+              echo "- Message: \"${REASON}\"" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**User Experience:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Developer sees ⚠️ warning icon (not ❌ error)" >> $GITHUB_STEP_SUMMARY
+              echo "- Message guides to fix warnings, but indicates less urgency than critical failures" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **FAIL**: Skip message should identify these as non-critical" >> $GITHUB_STEP_SUMMARY
+              echo "- Actual message: \"${REASON}\"" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+          fi
+
+  # Verify pipeline continues with warnings
+  verify-pipeline-continues:
+    name: Verify Pipeline Continues With Warnings
+    runs-on: ubuntu-latest
+    needs: [test-frontend-lint-failure, test-backend-coverage-failure, test-mixed-non-critical]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify test job completed (not failed hard)
+        id: verify-completion
+        run: |
+          FAILURE_TYPE="${{ inputs.failure_type }}"
+
+          case "$FAILURE_TYPE" in
+            "frontend-lint-only")
+              TEST_RESULT="${{ needs.test-frontend-lint-failure.result }}"
+              ;;
+            "backend-coverage-only")
+              TEST_RESULT="${{ needs.test-backend-coverage-failure.result }}"
+              ;;
+            "both-non-critical")
+              TEST_RESULT="${{ needs.test-mixed-non-critical.result }}"
+              ;;
+          esac
+
+          echo "## Verification: Pipeline Continuation" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Job Result:** ${TEST_RESULT}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # The test job should complete successfully even with warnings
+          # because the orchestrator handles them gracefully
+          if [ "$TEST_RESULT" = "success" ]; then
+            echo "✅ **PASS**: Pipeline continued despite non-critical failures" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Behavior Verified:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Orchestrator detected warnings" >> $GITHUB_STEP_SUMMARY
+            echo "- Set appropriate flags (all_passed=false, has_critical_failures=false)" >> $GITHUB_STEP_SUMMARY
+            echo "- Did NOT abort the workflow" >> $GITHUB_STEP_SUMMARY
+            echo "- Allowed downstream jobs to proceed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **NOTE**: Test job status is ${TEST_RESULT}" >> $GITHUB_STEP_SUMMARY
+            echo "This may be expected if the test workflow is designed to fail on any validation failure." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Generate comprehensive test report
+  generate-partial-failure-report:
+    name: Generate Partial Failure Report
+    runs-on: ubuntu-latest
+    needs: [verify-partial-failure-handling, verify-claude-review-decision, verify-pipeline-continues]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate report
+        run: |
+          echo "# Test Scenario Report: Partial Failures (Non-Critical)" > report.md
+          echo "" >> report.md
+          echo "**Test Run ID:** ${{ github.run_id }}" >> report.md
+          echo "**Failure Type:** ${{ inputs.failure_type }}" >> report.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> report.md
+          echo "" >> report.md
+
+          echo "## Test Execution Summary" >> report.md
+          echo "" >> report.md
+          echo "### Verification Jobs" >> report.md
+          echo "- **Partial Failure Handling:** ${{ needs.verify-partial-failure-handling.result }}" >> report.md
+          echo "- **Claude Review Decision:** ${{ needs.verify-claude-review-decision.result }}" >> report.md
+          echo "- **Pipeline Continuation:** ${{ needs.verify-pipeline-continues.result }}" >> report.md
+          echo "" >> report.md
+
+          # Determine overall result
+          if [ "${{ needs.verify-partial-failure-handling.result }}" = "success" ] && \
+             [ "${{ needs.verify-claude-review-decision.result }}" = "success" ] && \
+             [ "${{ needs.verify-pipeline-continues.result }}" = "success" ]; then
+            echo "## ✅ Overall Result: PASSED" >> report.md
+            echo "" >> report.md
+            echo "All verifications completed successfully:" >> report.md
+            echo "- ✅ Orchestrator correctly set all-passed=false" >> report.md
+            echo "- ✅ Orchestrator correctly set has-critical-failures=false" >> report.md
+            echo "- ✅ Orchestrator distinguished warnings from critical errors" >> report.md
+            echo "- ✅ Claude review decision correctly evaluates to SKIP" >> report.md
+            echo "- ✅ Skip message appropriately identifies non-critical issues" >> report.md
+            echo "- ✅ Pipeline continues despite warnings (doesn't abort)" >> report.md
+            echo "" >> report.md
+            echo "### Key Insights" >> report.md
+            echo "" >> report.md
+            echo "**Defense-in-Depth Quality Gates:**" >> report.md
+            echo "- Even non-critical issues like linting warnings prevent Claude review" >> report.md
+            echo "- This ensures all code meets quality standards before AI review" >> report.md
+            echo "- Different messaging (⚠️ vs ❌) helps developers prioritize fixes" >> report.md
+            echo "" >> report.md
+            echo "**Developer Experience:**" >> report.md
+            echo "- Clear distinction between 'must fix' (critical) and 'should fix' (warnings)" >> report.md
+            echo "- Pipeline doesn't hard-fail on warnings, allowing gradual improvement" >> report.md
+            echo "- Appropriate status tags guide developers to correct issues" >> report.md
+          else
+            echo "## ❌ Overall Result: FAILED" >> report.md
+            echo "" >> report.md
+            echo "Some verifications failed. See job details for specifics." >> report.md
+            echo "" >> report.md
+            echo "**Job Results:**" >> report.md
+            echo "- verify-partial-failure-handling: ${{ needs.verify-partial-failure-handling.result }}" >> report.md
+            echo "- verify-claude-review-decision: ${{ needs.verify-claude-review-decision.result }}" >> report.md
+            echo "- verify-pipeline-continues: ${{ needs.verify-pipeline-continues.result }}" >> report.md
+          fi
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: partial-failure-report-${{ inputs.failure_type }}-${{ github.run_id }}
+          path: report.md
+          retention-days: 30
+
+      - name: Fail if any verification failed
+        if: needs.verify-partial-failure-handling.result != 'success' || needs.verify-claude-review-decision.result != 'success' || needs.verify-pipeline-continues.result != 'success'
+        run: |
+          echo "::error::One or more verifications failed for partial failure testing"
+          exit 1

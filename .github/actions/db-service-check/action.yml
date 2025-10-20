@@ -1,0 +1,89 @@
+name: 'Database Service Health Check'
+description: 'Check database service availability and set appropriate test configuration'
+author: 'Health Tracker Team'
+
+inputs:
+  db-host:
+    description: 'Database host to check'
+    required: false
+    default: 'localhost'
+  db-port:
+    description: 'Database port to check'
+    required: false
+    default: '5432'
+  timeout:
+    description: 'Timeout in seconds for connection check'
+    required: false
+    default: '10'
+  fallback-profile:
+    description: 'Spring profile to use when database is unavailable'
+    required: false
+    default: 'ci'
+  primary-profile:
+    description: 'Spring profile to use when database is available'
+    required: false
+    default: 'test'
+
+outputs:
+  available:
+    description: 'Whether the database service is available (true/false)'
+    value: ${{ steps.check-db.outputs.available }}
+  database-type:
+    description: 'Database type being used (postgresql or h2)'
+    value: ${{ steps.check-db.outputs.database-type }}
+  spring-profile:
+    description: 'Spring profile to use for tests'
+    value: ${{ steps.check-db.outputs.spring-profile }}
+  datasource-url:
+    description: 'JDBC URL for the database (empty for H2 fallback)'
+    value: ${{ steps.check-db.outputs.datasource-url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check database service availability
+      id: check-db
+      shell: bash
+      run: |
+        DB_HOST="${{ inputs.db-host }}"
+        DB_PORT="${{ inputs.db-port }}"
+        TIMEOUT="${{ inputs.timeout }}"
+        FALLBACK_PROFILE="${{ inputs.fallback-profile }}"
+        PRIMARY_PROFILE="${{ inputs.primary-profile }}"
+
+        echo "🔍 Checking database service availability..."
+        echo "   Host: $DB_HOST"
+        echo "   Port: $DB_PORT"
+        echo "   Timeout: ${TIMEOUT}s"
+
+        # Try to connect to database with timeout
+        if timeout $TIMEOUT bash -c "until nc -z $DB_HOST $DB_PORT; do sleep 1; done" 2>/dev/null; then
+          echo "✅ PostgreSQL service is available at $DB_HOST:$DB_PORT"
+          echo "available=true" >> $GITHUB_OUTPUT
+          echo "database-type=postgresql" >> $GITHUB_OUTPUT
+          echo "spring-profile=$PRIMARY_PROFILE" >> $GITHUB_OUTPUT
+          echo "datasource-url=jdbc:postgresql://$DB_HOST:$DB_PORT/healthtracker_test" >> $GITHUB_OUTPUT
+
+          # Verify database is actually ready by attempting a connection
+          echo "🔍 Verifying database is ready for connections..."
+          if command -v pg_isready &> /dev/null; then
+            if pg_isready -h $DB_HOST -p $DB_PORT -t 5; then
+              echo "✅ PostgreSQL is ready for connections"
+            else
+              echo "⚠️  PostgreSQL port is open but database may not be ready yet"
+            fi
+          fi
+        else
+          echo "⚠️  PostgreSQL service unavailable, falling back to H2 in-memory database"
+          echo "::warning::PostgreSQL service unavailable (likely Docker Hub outage or service startup failure)"
+          echo "::warning::Tests will run with H2 in-memory database as fallback"
+          echo "available=false" >> $GITHUB_OUTPUT
+          echo "database-type=h2" >> $GITHUB_OUTPUT
+          echo "spring-profile=$FALLBACK_PROFILE" >> $GITHUB_OUTPUT
+          echo "datasource-url=" >> $GITHUB_OUTPUT
+        fi
+
+        echo ""
+        echo "📊 Database Configuration:"
+        echo "   Type: $(cat $GITHUB_OUTPUT | grep database-type | cut -d'=' -f2)"
+        echo "   Profile: $(cat $GITHUB_OUTPUT | grep spring-profile | cut -d'=' -f2)"
