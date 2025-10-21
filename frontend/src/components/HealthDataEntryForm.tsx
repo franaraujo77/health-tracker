@@ -1,6 +1,7 @@
 import { useMachine } from '@xstate/react';
-import { healthDataEntryMachine } from '../machines/healthDataEntryMachine';
+
 import { inspector } from '../lib/xstate';
+import { healthDataEntryMachine } from '../machines/healthDataEntryMachine';
 import './HealthDataEntryForm.css';
 
 /**
