@@ -192,7 +192,7 @@ npx prettier --check src/components/Button.tsx
 
 ### Local Development
 
-```
+```text
 Developer writes code
          ↓
 VS Code real-time linting (immediate feedback)
@@ -210,7 +210,7 @@ Commit succeeds ✅ or fails ❌ with clear error messages
 
 ### CI/CD Pipeline
 
-```
+```text
 PR created
          ↓
 GitHub Actions frontend-ci.yml triggered

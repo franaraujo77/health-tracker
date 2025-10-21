@@ -47,7 +47,7 @@ Our CI/CD pipeline implements a **validation orchestrator pattern** that ensures
 
 ### Pipeline Architecture
 
-```
+```text
 PR Created → Validation Orchestrator
               ↓
     ┌─────────┼─────────┐
@@ -190,7 +190,7 @@ See the [Linting Guide](docs/LINTING.md) for detailed setup instructions.
 
 ## Monorepo Structure
 
-```
+```text
 health-tracker/
 ├── frontend/              # React 19 + XState application
 ├── backend/               # Spring Boot Java 21 application

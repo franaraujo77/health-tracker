@@ -32,16 +32,22 @@ Pre-commit hooks are automated scripts that run before each `git commit` to ensu
 
 When you run `git commit`, the following happens automatically:
 
-```mermaid
-graph LR
-    A[git commit] --> B[Husky triggers]
-    B --> C[lint-staged runs]
-    C --> D{Has staged files?}
-    D -->|Yes| E[Run linters on staged files only]
-    D -->|No| F[Skip]
-    E --> G{All checks pass?}
-    G -->|Yes| H[Commit succeeds ✅]
-    G -->|No| I[Commit blocked ❌]
+```text
+git commit
+    ↓
+Husky triggers
+    ↓
+lint-staged runs
+    ↓
+Has staged files?
+    ↓
+    ├─ Yes → Run linters on staged files only
+    │           ↓
+    │       All checks pass?
+    │           ↓
+    │       ├─ Yes → Commit succeeds ✅
+    │       └─ No  → Commit blocked ❌
+    └─ No  → Skip
 ```
 
 ### File-Specific Processing
@@ -402,9 +408,9 @@ The trade-off is worth it!
 
 - [Husky Documentation](https://typicode.github.io/husky/)
 - [lint-staged Documentation](https://github.com/okonet/lint-staged)
-- [ESLint Setup Guide](./eslint-setup.md)
+- [Linting Infrastructure Guide](../LINTING.md)
 - [Stylelint Setup Guide](./stylelint-setup.md)
-- [Prettier Configuration](./../frontend/.prettierrc.json)
+- [Prettier Configuration](../../frontend/.prettierrc.json)
 
 ## Need Help?
 

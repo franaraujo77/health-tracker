@@ -393,7 +393,7 @@ Useful shortcuts for linting and formatting:
 
 ## Additional Resources
 
-- [ESLint Setup Guide](./eslint-setup.md) (if available)
+- [Linting Infrastructure Guide](../LINTING.md)
 - [Stylelint Setup Guide](./stylelint-setup.md)
 - [Pre-commit Hooks Guide](./pre-commit-hooks.md)
 - [VS Code ESLint Extension Docs](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)

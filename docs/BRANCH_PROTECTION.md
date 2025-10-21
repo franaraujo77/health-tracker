@@ -301,7 +301,7 @@ When removing checks:
 ## Related Documentation
 
 - [Linting Infrastructure Guide](./LINTING.md)
-- [CI/CD Pipeline Documentation](./.github/workflows/README.md)
+- [CI/CD Pipeline Documentation](../.github/workflows/README.md)
 - [Pre-commit Hooks Guide](./linting/pre-commit-hooks.md)
 
 ## Support
