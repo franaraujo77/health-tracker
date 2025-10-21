@@ -1,0 +1,266 @@
+---
+# Kubernetes Job for OpenTelemetry Collector Load Testing
+# Runs telemetrygen to generate synthetic load and validate collector capacity
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: otel-collector-load-test
+  namespace: observability
+  labels:
+    app: otel-collector-load-test
+    component: testing
+spec:
+  # Run once, don't retry on failure (test failures should be investigated)
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+
+  template:
+    metadata:
+      labels:
+        app: otel-collector-load-test
+        component: testing
+    spec:
+      restartPolicy: Never
+
+      # Use the same service account for consistency
+      serviceAccountName: otel-collector
+
+      containers:
+        # Spans generator
+        - name: telemetrygen-traces
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+          args:
+            - traces
+            - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+            - --otlp-insecure
+            - --duration=60s
+            - --rate=10000
+            - --workers=10
+            - --traces=1
+            - --spans=5
+            - --span-duration=100ms
+            - --otlp-attributes=service.name=load-test,test.type=capacity
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+
+        # Metrics generator
+        - name: telemetrygen-metrics
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+          args:
+            - metrics
+            - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+            - --otlp-insecure
+            - --duration=60s
+            - --rate=5000
+            - --workers=5
+            - --otlp-attributes=service.name=load-test,test.type=capacity
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+        # Logs generator
+        - name: telemetrygen-logs
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+          args:
+            - logs
+            - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+            - --otlp-insecure
+            - --duration=60s
+            - --rate=1000
+            - --workers=3
+            - --otlp-attributes=service.name=load-test,test.type=capacity
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+# ConfigMap with load test scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: load-test-scripts
+  namespace: observability
+  labels:
+    app: otel-collector-load-test
+    component: testing
+data:
+  run-load-test.sh: |
+    #!/bin/bash
+    # Wrapper script for running load tests with metrics collection
+    set -e
+
+    echo "Starting OpenTelemetry Collector Load Test"
+    echo "==========================================="
+    echo
+
+    # Configuration
+    COLLECTOR_ENDPOINT="otel-collector.observability.svc.cluster.local:4317"
+    DURATION=60
+    SPANS_RATE=10000
+    METRICS_RATE=5000
+    LOGS_RATE=1000
+
+    echo "Configuration:"
+    echo "  Endpoint: $COLLECTOR_ENDPOINT"
+    echo "  Duration: ${DURATION}s"
+    echo "  Spans: ${SPANS_RATE}/s"
+    echo "  Metrics: ${METRICS_RATE}/s"
+    echo "  Logs: ${LOGS_RATE}/s"
+    echo
+
+    # Start load generators in background
+    telemetrygen traces \
+      --otlp-endpoint=$COLLECTOR_ENDPOINT \
+      --otlp-insecure \
+      --duration=${DURATION}s \
+      --rate=$SPANS_RATE \
+      --workers=10 &
+    TRACES_PID=$!
+
+    telemetrygen metrics \
+      --otlp-endpoint=$COLLECTOR_ENDPOINT \
+      --otlp-insecure \
+      --duration=${DURATION}s \
+      --rate=$METRICS_RATE \
+      --workers=5 &
+    METRICS_PID=$!
+
+    telemetrygen logs \
+      --otlp-endpoint=$COLLECTOR_ENDPOINT \
+      --otlp-insecure \
+      --duration=${DURATION}s \
+      --rate=$LOGS_RATE \
+      --workers=3 &
+    LOGS_PID=$!
+
+    echo "Load generators started"
+    echo "  Traces PID: $TRACES_PID"
+    echo "  Metrics PID: $METRICS_PID"
+    echo "  Logs PID: $LOGS_PID"
+    echo
+
+    # Wait for completion
+    wait $TRACES_PID
+    TRACES_EXIT=$?
+
+    wait $METRICS_PID
+    METRICS_EXIT=$?
+
+    wait $LOGS_PID
+    LOGS_EXIT=$?
+
+    echo
+    echo "Load test complete"
+    echo "  Traces exit code: $TRACES_EXIT"
+    echo "  Metrics exit code: $METRICS_EXIT"
+    echo "  Logs exit code: $LOGS_EXIT"
+
+    # Check for failures
+    if [ $TRACES_EXIT -ne 0 ] || [ $METRICS_EXIT -ne 0 ] || [ $LOGS_EXIT -ne 0 ]; then
+      echo "ERROR: One or more load generators failed"
+      exit 1
+    fi
+
+    echo "SUCCESS: All load generators completed successfully"
+    exit 0
+---
+# CronJob for scheduled load testing
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: otel-collector-load-test-scheduled
+  namespace: observability
+  labels:
+    app: otel-collector-load-test
+    component: testing
+spec:
+  # Run daily at 3 AM (adjust for your timezone)
+  schedule: "0 3 * * *"
+
+  # Keep last 3 successful and 1 failed job
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # Don't allow concurrent runs
+  concurrencyPolicy: Forbid
+
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: otel-collector-load-test
+            component: testing
+        spec:
+          restartPolicy: Never
+          serviceAccountName: otel-collector
+
+          containers:
+            # Reduced load for daily tests
+            - name: telemetrygen-traces
+              image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+              args:
+                - traces
+                - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+                - --otlp-insecure
+                - --duration=300s  # 5 minutes
+                - --rate=5000      # Half of peak load
+                - --workers=5
+                - --otlp-attributes=service.name=load-test,test.type=daily-validation
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+
+            - name: telemetrygen-metrics
+              image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+              args:
+                - metrics
+                - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+                - --otlp-insecure
+                - --duration=300s
+                - --rate=2500
+                - --workers=3
+                - --otlp-attributes=service.name=load-test,test.type=daily-validation
+              resources:
+                requests:
+                  cpu: 125m
+                  memory: 64Mi
+                limits:
+                  cpu: 250m
+                  memory: 128Mi
+
+            - name: telemetrygen-logs
+              image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+              args:
+                - logs
+                - --otlp-endpoint=otel-collector.observability.svc.cluster.local:4317
+                - --otlp-insecure
+                - --duration=300s
+                - --rate=500
+                - --workers=2
+                - --otlp-attributes=service.name=load-test,test.type=daily-validation
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
