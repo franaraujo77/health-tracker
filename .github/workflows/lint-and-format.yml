@@ -25,9 +25,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
-        working-directory: ./frontend
+      - name: Run ESLint with annotations
+        run: |
+          cd frontend
+          npm run lint -- --format=json --output-file=eslint-report.json || true
+          npm run lint
+        continue-on-error: false
+
+      - name: Annotate ESLint results
+        if: failure()
+        run: |
+          cd frontend
+          if [ -f eslint-report.json ]; then
+            node -e "
+              const fs = require('fs');
+              const results = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
+              results.forEach(result => {
+                if (result.messages.length > 0) {
+                  result.messages.forEach(msg => {
+                    const level = msg.severity === 2 ? 'error' : 'warning';
+                    const file = result.filePath.replace(process.cwd() + '/', '');
+                    console.log(\`::\${level} file=\${file},line=\${msg.line},col=\${msg.column}::\${msg.message} (\${msg.ruleId})\`);
+                  });
+                }
+              });
+            "
+          fi
 
   prettier-check:
     name: Prettier Format Check
