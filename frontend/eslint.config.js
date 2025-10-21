@@ -5,6 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import security from 'eslint-plugin-security';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
+import testingLibrary from 'eslint-plugin-testing-library';
+import jestDom from 'eslint-plugin-jest-dom';
 import prettierConfig from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
@@ -154,9 +156,47 @@ export default defineConfig([
       ],
     },
   },
-  // Test files and e2e: basic rules without type checking for performance
+  // Test files: basic rules without type checking + testing-library rules
   {
-    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}', '*.config.ts'],
+    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs['recommended-latest'],
+      security.configs.recommended,
+      jsxA11y.flatConfigs.recommended,
+      testingLibrary.configs['flat/react'],
+      jestDom.configs['flat/recommended'],
+      prettierConfig, // Must be last to disable conflicting rules
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.browser,
+        ...globals.jest,
+      },
+    },
+    rules: {
+      // Relax rules for test files
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      // Testing Library best practices
+      'testing-library/prefer-screen-queries': 'error',
+      'testing-library/no-await-sync-events': 'error',
+      'testing-library/no-wait-for-multiple-assertions': 'error',
+      'testing-library/prefer-user-event': 'warn',
+      // Jest-DOM best practices
+      'jest-dom/prefer-checked': 'warn',
+      'jest-dom/prefer-enabled-disabled': 'warn',
+      'jest-dom/prefer-required': 'warn',
+      'jest-dom/prefer-to-have-attribute': 'warn',
+    },
+  },
+  // E2e and config files: basic rules without type checking
+  {
+    files: ['e2e/**/*.{ts,tsx}', '*.config.ts'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
