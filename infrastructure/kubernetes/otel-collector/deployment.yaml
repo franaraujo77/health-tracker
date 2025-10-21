@@ -109,6 +109,12 @@ spec:
             - name: config
               mountPath: /etc/otelcol
               readOnly: true
+            - name: tls-certs
+              mountPath: /etc/otel/tls
+              readOnly: true
+            - name: auth-token
+              mountPath: /etc/otel/auth
+              readOnly: true
 
           # Liveness probe
           livenessProbe:
@@ -140,6 +146,14 @@ spec:
             items:
               - key: config.yaml
                 path: config.yaml
+        - name: tls-certs
+          secret:
+            secretName: otel-collector-tls
+            optional: true  # Allow deployment without TLS for initial setup
+        - name: auth-token
+          secret:
+            secretName: otel-collector-auth
+            optional: true  # Allow deployment without auth for initial setup
 
       # Termination grace period
       terminationGracePeriodSeconds: 30

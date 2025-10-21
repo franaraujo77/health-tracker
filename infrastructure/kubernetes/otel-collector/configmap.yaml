@@ -17,6 +17,17 @@ data:
           grpc:
             endpoint: 0.0.0.0:4317
             max_recv_msg_size_mib: 4
+            # TLS configuration
+            tls:
+              cert_file: /etc/otel/tls/tls.crt
+              key_file: /etc/otel/tls/tls.key
+              client_ca_file: /etc/otel/tls/ca.crt
+              # Require client certificates (mTLS)
+              # Set to NoClientCert for bearer token only
+              client_ca_file_reload: true
+            # Authentication
+            auth:
+              authenticator: bearertokenauth
             keepalive:
               server_parameters:
                 max_connection_idle: 11s
@@ -26,6 +37,15 @@ data:
                 timeout: 5s
           http:
             endpoint: 0.0.0.0:4318
+            # TLS configuration
+            tls:
+              cert_file: /etc/otel/tls/tls.crt
+              key_file: /etc/otel/tls/tls.key
+              client_ca_file: /etc/otel/tls/ca.crt
+              client_ca_file_reload: true
+            # Authentication
+            auth:
+              authenticator: bearertokenauth
             cors:
               allowed_origins:
                 - "http://localhost:*"
@@ -119,6 +139,11 @@ data:
           max_elapsed_time: 300s
 
     extensions:
+      # Bearer token authentication
+      bearertokenauth:
+        scheme: "Bearer"
+        bearer_token_file: /etc/otel/auth/bearer-token
+
       health_check:
         endpoint: 0.0.0.0:13133
         path: /health/status
@@ -134,7 +159,7 @@ data:
         endpoint: 0.0.0.0:1777
 
     service:
-      extensions: [health_check, zpages, pprof]
+      extensions: [bearertokenauth, health_check, zpages, pprof]
 
       telemetry:
         logs:
