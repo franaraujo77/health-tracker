@@ -121,6 +121,7 @@ Comprehensive pipeline documentation available in `.github/workflows/`:
 - **[Troubleshooting Guide](.github/workflows/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[DevOps Runbook](.github/workflows/RUNBOOK.md)** - Operational procedures and maintenance
 
+<<<<<<< HEAD
 ## Code Quality & Linting
 
 [![Lint and Format](https://github.com/[org]/health-tracker/actions/workflows/lint-and-format.yml/badge.svg)](https://github.com/[org]/health-tracker/actions/workflows/lint-and-format.yml)
