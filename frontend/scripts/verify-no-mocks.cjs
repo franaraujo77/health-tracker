@@ -25,7 +25,8 @@ const DIST_PATH = path.join(__dirname, '..', 'dist', 'assets');
 
 // Get all .js files in dist/assets using Node.js built-in methods
 const jsFiles = fs.existsSync(DIST_PATH)
-  ? fs.readdirSync(DIST_PATH)
+  ? fs
+      .readdirSync(DIST_PATH)
       .filter((file) => file.endsWith('.js'))
       .map((file) => path.join(DIST_PATH, file))
   : [];

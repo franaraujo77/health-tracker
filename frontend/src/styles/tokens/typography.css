@@ -21,21 +21,18 @@
    * Using Google Fonts (Roboto, Roboto Flex, Roboto Mono) loaded in index.html
    * Fallback to system fonts for better compatibility and performance
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-font-family-brand: 'Roboto', 'Roboto Flex', system-ui,
-    -apple-system, 'Segoe UI', sans-serif;
-  --md-sys-typescale-font-family-plain: 'Roboto', system-ui, -apple-system,
-    'Segoe UI', Helvetica, Arial, sans-serif;
-  --md-sys-typescale-font-family-code: 'Roboto Mono', 'Courier New', Consolas,
-    Monaco, monospace;
+  --md-sys-typescale-font-family-brand:
+    'Roboto', 'Roboto Flex', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --md-sys-typescale-font-family-plain:
+    'Roboto', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --md-sys-typescale-font-family-code: 'Roboto Mono', 'Courier New', Consolas, Monaco, monospace;
 
   /* ═══════════════════════════════════════════════════════════
    * DISPLAY LARGE
    * Usage: Hero sections, major headlines (e.g., dashboard welcome)
    * Responsive: scales from 36px (mobile) to 57px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-display-large-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-display-large-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-display-large-size: clamp(36px, 4vw + 1rem, 57px);
   --md-sys-typescale-display-large-line-height: clamp(44px, 4vw + 1.5rem, 64px);
   --md-sys-typescale-display-large-weight: 400;
@@ -46,9 +43,7 @@
    * Usage: Section headers, feature callouts
    * Responsive: scales from 32px (mobile) to 45px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-display-medium-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-display-medium-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-display-medium-size: clamp(32px, 3vw + 1rem, 45px);
   --md-sys-typescale-display-medium-line-height: clamp(40px, 3vw + 1.5rem, 52px);
   --md-sys-typescale-display-medium-weight: 400;
@@ -59,9 +54,7 @@
    * Usage: Card headers, dialog titles
    * Responsive: scales from 28px (mobile) to 36px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-display-small-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-display-small-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-display-small-size: clamp(28px, 2vw + 1rem, 36px);
   --md-sys-typescale-display-small-line-height: clamp(36px, 2vw + 1.5rem, 44px);
   --md-sys-typescale-display-small-weight: 400;
@@ -72,9 +65,7 @@
    * Usage: Page titles, main navigation headers
    * Responsive: scales from 26px (mobile) to 32px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-headline-large-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-headline-large-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-headline-large-size: clamp(26px, 1.5vw + 1rem, 32px);
   --md-sys-typescale-headline-large-line-height: clamp(34px, 1.5vw + 1.5rem, 40px);
   --md-sys-typescale-headline-large-weight: 400;
@@ -85,9 +76,7 @@
    * Usage: Section titles, modal headers
    * Responsive: scales from 24px (mobile) to 28px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-headline-medium-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-headline-medium-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-headline-medium-size: clamp(24px, 1vw + 1rem, 28px);
   --md-sys-typescale-headline-medium-line-height: clamp(32px, 1vw + 1.5rem, 36px);
   --md-sys-typescale-headline-medium-weight: 400;
@@ -98,9 +87,7 @@
    * Usage: Subsection titles, widget headers
    * Responsive: scales from 22px (mobile) to 24px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-headline-small-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-headline-small-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-headline-small-size: clamp(22px, 0.5vw + 1rem, 24px);
   --md-sys-typescale-headline-small-line-height: clamp(30px, 0.5vw + 1.5rem, 32px);
   --md-sys-typescale-headline-small-weight: 400;
@@ -110,9 +97,7 @@
    * TITLE LARGE
    * Usage: Prominent list items, card headers, emphasized content
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-title-large-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-title-large-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-title-large-size: 22px;
   --md-sys-typescale-title-large-line-height: 28px;
   --md-sys-typescale-title-large-weight: 400;
@@ -122,9 +107,7 @@
    * TITLE MEDIUM
    * Usage: Dialog headers, emphasized text, list categories
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-title-medium-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-title-medium-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-title-medium-size: 16px;
   --md-sys-typescale-title-medium-line-height: 24px;
   --md-sys-typescale-title-medium-weight: 500;
@@ -134,9 +117,7 @@
    * TITLE SMALL
    * Usage: List item headers, dense UI, compact cards
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-title-small-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-title-small-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-title-small-size: 14px;
   --md-sys-typescale-title-small-line-height: 20px;
   --md-sys-typescale-title-small-weight: 500;
@@ -147,9 +128,7 @@
    * Usage: Article content, long-form reading, detailed descriptions
    * Responsive: scales from 15px (mobile) to 16px (desktop)
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-body-large-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-body-large-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-body-large-size: clamp(15px, 0.25vw + 0.875rem, 16px);
   --md-sys-typescale-body-large-line-height: clamp(22px, 0.5vw + 1.25rem, 24px);
   --md-sys-typescale-body-large-weight: 400;
@@ -159,9 +138,7 @@
    * BODY MEDIUM (DEFAULT)
    * Usage: Default paragraph text, descriptions, most UI content
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-body-medium-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-body-medium-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-body-medium-size: 14px;
   --md-sys-typescale-body-medium-line-height: 20px;
   --md-sys-typescale-body-medium-weight: 400;
@@ -171,9 +148,7 @@
    * BODY SMALL
    * Usage: Captions, helper text, secondary information
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-body-small-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-body-small-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-body-small-size: 12px;
   --md-sys-typescale-body-small-line-height: 16px;
   --md-sys-typescale-body-small-weight: 400;
@@ -183,9 +158,7 @@
    * LABEL LARGE
    * Usage: Prominent buttons, primary tabs, call-to-action text
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-label-large-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-label-large-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-label-large-size: 14px;
   --md-sys-typescale-label-large-line-height: 20px;
   --md-sys-typescale-label-large-weight: 500;
@@ -195,9 +168,7 @@
    * LABEL MEDIUM
    * Usage: Standard buttons, chips, form labels, menu items
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-label-medium-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-label-medium-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-label-medium-size: 12px;
   --md-sys-typescale-label-medium-line-height: 16px;
   --md-sys-typescale-label-medium-weight: 500;
@@ -207,9 +178,7 @@
    * LABEL SMALL
    * Usage: Timestamps, badges, overlines, dense labels
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-typescale-label-small-font: var(
-    --md-sys-typescale-font-family-brand
-  );
+  --md-sys-typescale-label-small-font: var(--md-sys-typescale-font-family-brand);
   --md-sys-typescale-label-small-size: 11px;
   --md-sys-typescale-label-small-line-height: 16px;
   --md-sys-typescale-label-small-weight: 500;

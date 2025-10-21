@@ -26,8 +26,7 @@
    * ELEVATION LEVEL 1 (1dp) - Minimal Elevation
    * Usage: Search bars, input fields at rest
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3),
-    0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
   --md-sys-elevation-1-tint-opacity: 0.05;
   --md-sys-elevation-1-z-index: 1;
 
@@ -35,8 +34,7 @@
    * ELEVATION LEVEL 2 (3dp) - Low Elevation
    * Usage: Cards, raised buttons, switches, dropdown menus
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3),
-    0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
   --md-sys-elevation-2-tint-opacity: 0.08;
   --md-sys-elevation-2-z-index: 2;
 
@@ -44,8 +42,7 @@
    * ELEVATION LEVEL 3 (6dp) - Medium Elevation
    * Usage: FAB (resting state), snackbars, tooltips
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3),
-    0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
   --md-sys-elevation-3-tint-opacity: 0.11;
   --md-sys-elevation-3-z-index: 3;
 
@@ -53,8 +50,7 @@
    * ELEVATION LEVEL 4 (8dp) - High Elevation
    * Usage: Navigation drawer, app bar, bottom navigation
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3),
-    0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
   --md-sys-elevation-4-tint-opacity: 0.14;
   --md-sys-elevation-4-z-index: 4;
 
@@ -62,8 +58,7 @@
    * ELEVATION LEVEL 5 (12dp) - Maximum Elevation
    * Usage: Modal dialogs, date pickers, bottom sheets
    * ═══════════════════════════════════════════════════════════ */
-  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3),
-    0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
   --md-sys-elevation-5-tint-opacity: 0.17;
   --md-sys-elevation-5-z-index: 5;
 
@@ -91,9 +86,7 @@
   --md-sys-elevation-app-bar: var(--md-sys-elevation-0-shadow);
   --md-sys-elevation-app-bar-scrolled: var(--md-sys-elevation-4-shadow);
   --md-sys-elevation-app-bar-tint: var(--md-sys-elevation-0-tint-opacity);
-  --md-sys-elevation-app-bar-scrolled-tint: var(
-    --md-sys-elevation-4-tint-opacity
-  );
+  --md-sys-elevation-app-bar-scrolled-tint: var(--md-sys-elevation-4-tint-opacity);
 
   /* Navigation Drawer */
   --md-sys-elevation-nav-drawer: var(--md-sys-elevation-4-shadow);
@@ -125,28 +118,23 @@
   /* Level 0 - unchanged */
 
   /* Level 1 */
-  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5),
-    0px 1px 3px 1px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-1-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5), 0px 1px 3px 1px rgba(0, 0, 0, 0.3);
   --md-sys-elevation-1-tint-opacity: 0.08;
 
   /* Level 2 */
-  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5),
-    0px 2px 6px 2px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-2-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5), 0px 2px 6px 2px rgba(0, 0, 0, 0.3);
   --md-sys-elevation-2-tint-opacity: 0.11;
 
   /* Level 3 */
-  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5),
-    0px 4px 8px 3px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-3-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5), 0px 4px 8px 3px rgba(0, 0, 0, 0.3);
   --md-sys-elevation-3-tint-opacity: 0.14;
 
   /* Level 4 */
-  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.5),
-    0px 6px 10px 4px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-4-shadow: 0px 2px 3px rgba(0, 0, 0, 0.5), 0px 6px 10px 4px rgba(0, 0, 0, 0.3);
   --md-sys-elevation-4-tint-opacity: 0.17;
 
   /* Level 5 */
-  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.5),
-    0px 8px 12px 6px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-5-shadow: 0px 4px 4px rgba(0, 0, 0, 0.5), 0px 8px 12px 6px rgba(0, 0, 0, 0.3);
   --md-sys-elevation-5-tint-opacity: 0.2;
 }
 

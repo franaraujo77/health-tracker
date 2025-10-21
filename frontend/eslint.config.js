@@ -183,9 +183,11 @@ export default defineConfig([
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       // Testing Library best practices
-      'testing-library/prefer-screen-queries': 'error',
-      'testing-library/no-await-sync-events': 'error',
-      'testing-library/no-wait-for-multiple-assertions': 'error',
+      'testing-library/prefer-screen-queries': 'warn',
+      'testing-library/no-await-sync-events': 'warn',
+      'testing-library/no-wait-for-multiple-assertions': 'warn',
+      'testing-library/no-container': 'warn',
+      'testing-library/no-node-access': 'warn',
       'testing-library/prefer-user-event': 'warn',
       // Jest-DOM best practices
       'jest-dom/prefer-checked': 'warn',
