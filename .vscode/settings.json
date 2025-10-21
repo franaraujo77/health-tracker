@@ -1,0 +1,21 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "stylelint.validate": ["css", "postcss"],
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "files.eol": "\n",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true
+}

@@ -4,6 +4,7 @@
  * SECURITY: Only imported in development builds
  */
 import { setupWorker } from 'msw/browser';
+
 import { handlers } from './handlers';
 
 /**

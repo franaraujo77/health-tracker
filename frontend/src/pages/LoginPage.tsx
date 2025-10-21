@@ -3,6 +3,7 @@
  * Provides authentication form with validation
  */
 import { useState, type FormEvent } from 'react';
+
 import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {

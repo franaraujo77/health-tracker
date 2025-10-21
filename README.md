@@ -47,7 +47,7 @@ Our CI/CD pipeline implements a **validation orchestrator pattern** that ensures
 
 ### Pipeline Architecture
 
-```
+```text
 PR Created → Validation Orchestrator
               ↓
     ┌─────────┼─────────┐
@@ -121,9 +121,77 @@ Comprehensive pipeline documentation available in `.github/workflows/`:
 - **[Troubleshooting Guide](.github/workflows/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[DevOps Runbook](.github/workflows/RUNBOOK.md)** - Operational procedures and maintenance
 
+<<<<<<< HEAD
+## Code Quality & Linting
+
+[![Lint and Format](https://github.com/[org]/health-tracker/actions/workflows/lint-and-format.yml/badge.svg)](https://github.com/[org]/health-tracker/actions/workflows/lint-and-format.yml)
+
+Our project maintains high code quality through automated linting and formatting tools that run locally and in CI/CD.
+
+### Linting Stack
+
+- **ESLint** - JavaScript/TypeScript code quality and best practices
+- **Prettier** - Automated code formatting for consistency
+- **Stylelint** - CSS/SCSS linting with Material Design 3 token enforcement
+- **Testing Library Rules** - React Testing Library and jest-dom best practices
+- **Husky** - Git hooks for pre-commit linting
+- **lint-staged** - Fast linting on staged files only
+
+### Quick Reference
+
+```bash
+# Frontend linting commands
+cd frontend
+
+npm run lint              # Check TypeScript/JavaScript
+npm run lint -- --fix     # Auto-fix TypeScript/JavaScript
+npm run lint:css          # Check CSS
+npm run lint:css -- --fix # Auto-fix CSS
+npm run format            # Format all files with Prettier
+npm run format:check      # Check formatting without changes
+```
+
+### Pre-commit Hooks
+
+All commits automatically run linting on staged files via Husky + lint-staged:
+
+- ESLint fixes TypeScript/JavaScript issues
+- Stylelint fixes CSS property ordering and validates M3 tokens
+- Prettier formats all files
+
+Commits are blocked if violations cannot be auto-fixed.
+
+### CI/CD Integration
+
+The `lint-and-format.yml` workflow runs on every PR with three parallel checks:
+
+1. **ESLint Check** - Validates TypeScript/JavaScript code quality
+2. **Prettier Check** - Ensures consistent formatting
+3. **Stylelint Check** - Validates CSS and M3 token usage
+
+All checks must pass before PRs can be merged to protected branches.
+
+### Documentation
+
+For comprehensive linting setup, configuration, and troubleshooting:
+
+- **[Linting Guide](docs/LINTING.md)** - Complete setup and usage documentation
+- **[VS Code Setup](docs/linting/vscode-setup.md)** - IDE configuration for auto-fix on save
+- **[Stylelint Guide](docs/linting/stylelint-setup.md)** - CSS linting and M3 tokens
+- **[Pre-commit Hooks](docs/linting/pre-commit-hooks.md)** - Git hooks configuration
+- **[Branch Protection](docs/BRANCH_PROTECTION.md)** - Required status checks setup
+
+### New Developer Setup
+
+1. Install dependencies: `npm install` (Husky hooks auto-install)
+2. Install VS Code extensions (prompted automatically)
+3. Start coding - linting runs automatically on save and commit!
+
+See the [Linting Guide](docs/LINTING.md) for detailed setup instructions.
+
 ## Monorepo Structure
 
-```
+```text
 health-tracker/
 ├── frontend/              # React 19 + XState application
 ├── backend/               # Spring Boot Java 21 application

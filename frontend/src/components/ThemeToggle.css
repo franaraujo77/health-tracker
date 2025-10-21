@@ -5,52 +5,52 @@
 
 /* Segmented button container */
 .theme-toggle {
+  display: inline-flex;
   align-items: center;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
   background-color: var(--md-sys-color-surface-container-low);
   border: 1px solid var(--md-sys-color-outline);
   border-radius: var(--md-sys-shape-full);
 
   /* CSS Containment for performance isolation */
   contain: layout style;
-  display: inline-flex;
-  gap: 0;
-  overflow: hidden;
-  padding: 0;
 }
 
 /* Individual toggle option */
 .theme-toggle-option {
-  align-items: center;
-  background: transparent;
-  border: none;
-  color: var(--md-sys-color-on-surface);
-  cursor: pointer;
+  position: relative;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--md-sys-spacing-2);
+  min-width: 48px;
+  min-height: 40px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
   font-family: var(--md-sys-typescale-label-large-font);
   font-size: var(--md-sys-typescale-label-large-size);
   font-weight: var(--md-sys-typescale-label-large-weight);
-  gap: var(--md-sys-spacing-2);
-  justify-content: center;
-  letter-spacing: var(--md-sys-typescale-label-large-tracking);
   line-height: var(--md-sys-typescale-label-large-line-height);
-  min-height: 40px;
-  min-width: 48px;
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  background: transparent;
+  border: none;
+  color: var(--md-sys-color-on-surface);
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
 /* State layer for interactions */
 .theme-toggle-option::before {
+  position: absolute;
   background-color: var(--md-sys-color-on-surface);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
   content: '';
   inset: 0;
-  opacity: 0;
   pointer-events: none;
-  position: absolute;
-  transition: opacity 0.2s ease-in-out;
 }
 
 /* Hover state */
@@ -97,32 +97,32 @@
 
 /* Icon button variant */
 .theme-toggle-icon {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
+  width: var(--md-sys-spacing-12);
+  height: var(--md-sys-spacing-12);
+  padding: 0;
   background: transparent;
   border: none;
   border-radius: var(--md-sys-shape-full);
   color: var(--md-sys-color-on-surface-variant);
-  cursor: pointer;
-  display: inline-flex;
-  height: var(--md-sys-spacing-12);
-  justify-content: center;
-  padding: 0;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease-in-out;
-  width: var(--md-sys-spacing-12);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* State layer for icon button */
 .theme-toggle-icon::before {
+  position: absolute;
   background-color: var(--md-sys-color-on-surface-variant);
   border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
   content: '';
   inset: 0;
-  opacity: 0;
   pointer-events: none;
-  position: absolute;
-  transition: opacity 0.2s ease-in-out;
 }
 
 .theme-toggle-icon:hover::before {

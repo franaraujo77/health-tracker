@@ -4,6 +4,7 @@
  * Used by Vitest to mock API calls during tests
  */
 import { setupServer } from 'msw/node';
+
 import { handlers } from './handlers';
 
 /**

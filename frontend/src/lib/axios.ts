@@ -81,10 +81,10 @@ export const setNavigationCallback = (callback: NavigationCallback) => {
  * Flag to prevent multiple simultaneous refresh requests
  */
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (value: string) => void;
   reject: (error: unknown) => void;
-}> = [];
+}[] = [];
 
 /**
  * Process queued requests after token refresh
@@ -107,7 +107,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
  * Frontend must read this and send it back in X-XSRF-TOKEN header
  */
 const getCsrfToken = (): string | null => {
-  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  const match = /XSRF-TOKEN=([^;]+)/.exec(document.cookie);
   return match ? decodeURIComponent(match[1]) : null;
 };
 

@@ -1,6 +1,6 @@
 #root {
-  margin: 0 auto;
   max-width: 1280px;
+  margin: 0 auto;
   padding: var(--md-sys-spacing-8);
   text-align: center;
 }
@@ -13,11 +13,15 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 var(--md-sys-spacing-8) color-mix(in srgb, var(--md-sys-color-primary) 67%, transparent));
+  filter: drop-shadow(
+    0 0 var(--md-sys-spacing-8) color-mix(in srgb, var(--md-sys-color-primary) 67%, transparent)
+  );
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 var(--md-sys-spacing-8) color-mix(in srgb, var(--md-sys-color-tertiary) 67%, transparent));
+  filter: drop-shadow(
+    0 0 var(--md-sys-spacing-8) color-mix(in srgb, var(--md-sys-color-tertiary) 67%, transparent)
+  );
 }
 
 @keyframes logo-spin {

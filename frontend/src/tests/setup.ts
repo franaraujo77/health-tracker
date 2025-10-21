@@ -4,8 +4,9 @@
  */
 
 import '@testing-library/jest-dom';
-import { expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { toHaveNoViolations } from 'jest-axe';
+import { expect, beforeAll, afterEach, afterAll } from 'vitest';
+
 import { server } from '../mocks/server';
 
 // Extend Vitest's expect with jest-axe matchers

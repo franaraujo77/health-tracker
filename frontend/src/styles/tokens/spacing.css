@@ -19,19 +19,19 @@
    * BASE SPACING SCALE (8px baseline grid)
    * ═══════════════════════════════════════════════════════════ */
 
-  --md-sys-spacing-0: 0px;       /* 0 units - No spacing */
-  --md-sys-spacing-1: 4px;       /* 0.5 units - Extra small */
-  --md-sys-spacing-2: 8px;       /* 1 unit - Small */
-  --md-sys-spacing-3: 12px;      /* 1.5 units - Small-medium */
-  --md-sys-spacing-4: 16px;      /* 2 units - Medium (most common) */
-  --md-sys-spacing-5: 20px;      /* 2.5 units - Medium-large */
-  --md-sys-spacing-6: 24px;      /* 3 units - Large */
-  --md-sys-spacing-8: 32px;      /* 4 units - Extra large */
-  --md-sys-spacing-10: 40px;     /* 5 units - 2X large */
-  --md-sys-spacing-12: 48px;     /* 6 units - 3X large */
-  --md-sys-spacing-16: 64px;     /* 8 units - 4X large */
-  --md-sys-spacing-20: 80px;     /* 10 units - 5X large */
-  --md-sys-spacing-24: 96px;     /* 12 units - 6X large */
+  --md-sys-spacing-0: 0px; /* 0 units - No spacing */
+  --md-sys-spacing-1: 4px; /* 0.5 units - Extra small */
+  --md-sys-spacing-2: 8px; /* 1 unit - Small */
+  --md-sys-spacing-3: 12px; /* 1.5 units - Small-medium */
+  --md-sys-spacing-4: 16px; /* 2 units - Medium (most common) */
+  --md-sys-spacing-5: 20px; /* 2.5 units - Medium-large */
+  --md-sys-spacing-6: 24px; /* 3 units - Large */
+  --md-sys-spacing-8: 32px; /* 4 units - Extra large */
+  --md-sys-spacing-10: 40px; /* 5 units - 2X large */
+  --md-sys-spacing-12: 48px; /* 6 units - 3X large */
+  --md-sys-spacing-16: 64px; /* 8 units - 4X large */
+  --md-sys-spacing-20: 80px; /* 10 units - 5X large */
+  --md-sys-spacing-24: 96px; /* 12 units - 6X large */
 
   /* ═══════════════════════════════════════════════════════════
    * BUTTON SPACING
@@ -89,7 +89,7 @@
    * ═══════════════════════════════════════════════════════════ */
 
   --md-sys-spacing-chip-padding-x: 12px;
-  --md-sys-spacing-chip-padding-y: 6px;  /* Exception: not on 8px grid */
+  --md-sys-spacing-chip-padding-y: 6px; /* Exception: not on 8px grid */
   --md-sys-spacing-chip-gap: 8px;
   --md-sys-spacing-chip-icon-gap: 4px;
 
@@ -146,51 +146,131 @@
  * ═══════════════════════════════════════════════════════════ */
 
 /* Margin utilities */
-.m-0 { margin: var(--md-sys-spacing-0); }
-.m-1 { margin: var(--md-sys-spacing-1); }
-.m-2 { margin: var(--md-sys-spacing-2); }
-.m-3 { margin: var(--md-sys-spacing-3); }
-.m-4 { margin: var(--md-sys-spacing-4); }
-.m-5 { margin: var(--md-sys-spacing-5); }
-.m-6 { margin: var(--md-sys-spacing-6); }
-.m-8 { margin: var(--md-sys-spacing-8); }
+.m-0 {
+  margin: var(--md-sys-spacing-0);
+}
+.m-1 {
+  margin: var(--md-sys-spacing-1);
+}
+.m-2 {
+  margin: var(--md-sys-spacing-2);
+}
+.m-3 {
+  margin: var(--md-sys-spacing-3);
+}
+.m-4 {
+  margin: var(--md-sys-spacing-4);
+}
+.m-5 {
+  margin: var(--md-sys-spacing-5);
+}
+.m-6 {
+  margin: var(--md-sys-spacing-6);
+}
+.m-8 {
+  margin: var(--md-sys-spacing-8);
+}
 
 /* Margin-top utilities */
-.mt-0 { margin-top: var(--md-sys-spacing-0); }
-.mt-1 { margin-top: var(--md-sys-spacing-1); }
-.mt-2 { margin-top: var(--md-sys-spacing-2); }
-.mt-3 { margin-top: var(--md-sys-spacing-3); }
-.mt-4 { margin-top: var(--md-sys-spacing-4); }
-.mt-5 { margin-top: var(--md-sys-spacing-5); }
-.mt-6 { margin-top: var(--md-sys-spacing-6); }
-.mt-8 { margin-top: var(--md-sys-spacing-8); }
+.mt-0 {
+  margin-top: var(--md-sys-spacing-0);
+}
+.mt-1 {
+  margin-top: var(--md-sys-spacing-1);
+}
+.mt-2 {
+  margin-top: var(--md-sys-spacing-2);
+}
+.mt-3 {
+  margin-top: var(--md-sys-spacing-3);
+}
+.mt-4 {
+  margin-top: var(--md-sys-spacing-4);
+}
+.mt-5 {
+  margin-top: var(--md-sys-spacing-5);
+}
+.mt-6 {
+  margin-top: var(--md-sys-spacing-6);
+}
+.mt-8 {
+  margin-top: var(--md-sys-spacing-8);
+}
 
 /* Margin-bottom utilities */
-.mb-0 { margin-bottom: var(--md-sys-spacing-0); }
-.mb-1 { margin-bottom: var(--md-sys-spacing-1); }
-.mb-2 { margin-bottom: var(--md-sys-spacing-2); }
-.mb-3 { margin-bottom: var(--md-sys-spacing-3); }
-.mb-4 { margin-bottom: var(--md-sys-spacing-4); }
-.mb-5 { margin-bottom: var(--md-sys-spacing-5); }
-.mb-6 { margin-bottom: var(--md-sys-spacing-6); }
-.mb-8 { margin-bottom: var(--md-sys-spacing-8); }
+.mb-0 {
+  margin-bottom: var(--md-sys-spacing-0);
+}
+.mb-1 {
+  margin-bottom: var(--md-sys-spacing-1);
+}
+.mb-2 {
+  margin-bottom: var(--md-sys-spacing-2);
+}
+.mb-3 {
+  margin-bottom: var(--md-sys-spacing-3);
+}
+.mb-4 {
+  margin-bottom: var(--md-sys-spacing-4);
+}
+.mb-5 {
+  margin-bottom: var(--md-sys-spacing-5);
+}
+.mb-6 {
+  margin-bottom: var(--md-sys-spacing-6);
+}
+.mb-8 {
+  margin-bottom: var(--md-sys-spacing-8);
+}
 
 /* Padding utilities */
-.p-0 { padding: var(--md-sys-spacing-0); }
-.p-1 { padding: var(--md-sys-spacing-1); }
-.p-2 { padding: var(--md-sys-spacing-2); }
-.p-3 { padding: var(--md-sys-spacing-3); }
-.p-4 { padding: var(--md-sys-spacing-4); }
-.p-5 { padding: var(--md-sys-spacing-5); }
-.p-6 { padding: var(--md-sys-spacing-6); }
-.p-8 { padding: var(--md-sys-spacing-8); }
+.p-0 {
+  padding: var(--md-sys-spacing-0);
+}
+.p-1 {
+  padding: var(--md-sys-spacing-1);
+}
+.p-2 {
+  padding: var(--md-sys-spacing-2);
+}
+.p-3 {
+  padding: var(--md-sys-spacing-3);
+}
+.p-4 {
+  padding: var(--md-sys-spacing-4);
+}
+.p-5 {
+  padding: var(--md-sys-spacing-5);
+}
+.p-6 {
+  padding: var(--md-sys-spacing-6);
+}
+.p-8 {
+  padding: var(--md-sys-spacing-8);
+}
 
 /* Gap utilities (for flexbox/grid) */
-.gap-0 { gap: var(--md-sys-spacing-0); }
-.gap-1 { gap: var(--md-sys-spacing-1); }
-.gap-2 { gap: var(--md-sys-spacing-2); }
-.gap-3 { gap: var(--md-sys-spacing-3); }
-.gap-4 { gap: var(--md-sys-spacing-4); }
-.gap-5 { gap: var(--md-sys-spacing-5); }
-.gap-6 { gap: var(--md-sys-spacing-6); }
-.gap-8 { gap: var(--md-sys-spacing-8); }
+.gap-0 {
+  gap: var(--md-sys-spacing-0);
+}
+.gap-1 {
+  gap: var(--md-sys-spacing-1);
+}
+.gap-2 {
+  gap: var(--md-sys-spacing-2);
+}
+.gap-3 {
+  gap: var(--md-sys-spacing-3);
+}
+.gap-4 {
+  gap: var(--md-sys-spacing-4);
+}
+.gap-5 {
+  gap: var(--md-sys-spacing-5);
+}
+.gap-6 {
+  gap: var(--md-sys-spacing-6);
+}
+.gap-8 {
+  gap: var(--md-sys-spacing-8);
+}

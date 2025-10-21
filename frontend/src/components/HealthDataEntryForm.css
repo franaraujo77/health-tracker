@@ -4,49 +4,50 @@
  */
 
 .health-data-entry-form {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: var(--md-sys-spacing-5);
+
   /* CSS Containment for performance isolation */
   contain: layout style paint;
-  margin: 0 auto;
-  max-width: 500px;
-  padding: var(--md-sys-spacing-5);
 }
 
 .health-data-entry-title {
-  color: var(--md-sys-color-on-surface);
+  margin: 0 0 var(--md-sys-spacing-5) 0;
   font-family: var(--md-sys-typescale-headline-medium-font);
   font-size: var(--md-sys-typescale-headline-medium-size);
   font-weight: var(--md-sys-typescale-headline-medium-weight);
   line-height: var(--md-sys-typescale-headline-medium-line-height);
-  margin: 0 0 var(--md-sys-spacing-5) 0;
+  color: var(--md-sys-color-on-surface);
 }
 
 /* Debug state display */
 .health-data-entry-debug {
+  margin-bottom: var(--md-sys-spacing-5);
+  padding: var(--md-sys-spacing-3);
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: var(--md-sys-shape-small);
   color: var(--md-sys-color-on-surface-variant);
-  font-family: var(--md-sys-typescale-body-medium-font);
-  font-size: var(--md-sys-typescale-body-medium-size);
-  margin-bottom: var(--md-sys-spacing-5);
-  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-debug strong {
-  color: var(--md-sys-color-on-surface);
   font-weight: var(--md-sys-typescale-label-large-weight);
+  color: var(--md-sys-color-on-surface);
 }
 
 /* Error display */
 .health-data-entry-error {
+  margin-bottom: var(--md-sys-spacing-5);
+  padding: var(--md-sys-spacing-3);
+  font-family: var(--md-sys-typescale-body-medium-font);
   background-color: var(--md-sys-color-error-container);
   border-radius: var(--md-sys-shape-small);
   color: var(--md-sys-color-on-error-container);
-  font-family: var(--md-sys-typescale-body-medium-font);
-  margin-bottom: var(--md-sys-spacing-5);
 
   /* Ensure error messages wrap properly */
   overflow-wrap: break-word;
-  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-error strong {
@@ -55,15 +56,15 @@
 
 /* Success display */
 .health-data-entry-success {
+  margin-bottom: var(--md-sys-spacing-5);
+  padding: var(--md-sys-spacing-3);
+  font-family: var(--md-sys-typescale-body-medium-font);
   background-color: var(--md-sys-color-primary-container);
   border-radius: var(--md-sys-shape-small);
   color: var(--md-sys-color-on-primary-container);
-  font-family: var(--md-sys-typescale-body-medium-font);
-  margin-bottom: var(--md-sys-spacing-5);
 
   /* Ensure success messages wrap properly */
   overflow-wrap: break-word;
-  padding: var(--md-sys-spacing-3);
 }
 
 .health-data-entry-success strong {
@@ -84,11 +85,11 @@
 }
 
 .health-data-entry-label {
-  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--md-sys-spacing-1);
   font-family: var(--md-sys-typescale-body-large-font);
   font-size: var(--md-sys-typescale-body-large-size);
   font-weight: var(--md-sys-typescale-body-large-weight);
-  margin-bottom: var(--md-sys-spacing-1);
+  color: var(--md-sys-color-on-surface);
 
   /* Ensure labels wrap properly on narrow screens */
   overflow-wrap: break-word;
@@ -97,17 +98,17 @@
 /* M3 Text Field (Filled variant) */
 .health-data-entry-select,
 .health-data-entry-input {
+  width: 100%;
+  min-height: 48px;
+  margin-top: var(--md-sys-spacing-1);
+  padding: var(--md-sys-spacing-2);
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
   background-color: var(--md-sys-color-surface-container-highest);
   border: 1px solid var(--md-sys-color-outline);
   border-radius: var(--md-sys-shape-text-field-outlined);
   color: var(--md-sys-color-on-surface);
-  font-family: var(--md-sys-typescale-body-large-font);
-  font-size: var(--md-sys-typescale-body-large-size);
-  margin-top: var(--md-sys-spacing-1);
-  min-height: 48px;
-  padding: var(--md-sys-spacing-2);
   transition: all 0.2s ease-in-out;
-  width: 100%;
 }
 
 .health-data-entry-select:focus,
@@ -128,35 +129,35 @@
 /* Action buttons container */
 .health-data-entry-actions {
   display: flex;
-  gap: var(--md-sys-spacing-3);
   justify-content: flex-end;
+  gap: var(--md-sys-spacing-3);
   margin-top: var(--md-sys-spacing-5);
 }
 
 /* M3 Buttons */
 .health-data-entry-button {
-  border: none;
-  border-radius: var(--md-sys-shape-full);
-  cursor: pointer;
+  position: relative;
+  min-height: 40px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
+  overflow: hidden;
   font-family: var(--md-sys-typescale-label-large-font);
   font-size: var(--md-sys-typescale-label-large-size);
   font-weight: var(--md-sys-typescale-label-large-weight);
-  min-height: 40px;
-  overflow: hidden;
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-6);
-  position: relative;
+  border: none;
+  border-radius: var(--md-sys-shape-full);
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 /* State layer for buttons */
 .health-data-entry-button::before {
+  position: absolute;
   border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
   content: '';
   inset: 0;
-  opacity: 0;
   pointer-events: none;
-  position: absolute;
-  transition: opacity 0.2s ease-in-out;
 }
 
 .health-data-entry-button:hover::before {

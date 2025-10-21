@@ -66,7 +66,8 @@
   --md-sys-shape-fab-extended: var(--md-sys-shape-large);
 
   /* Text Field */
-  --md-sys-shape-text-field-filled: var(--md-sys-shape-extra-small) var(--md-sys-shape-extra-small) 0 0;
+  --md-sys-shape-text-field-filled: var(--md-sys-shape-extra-small) var(--md-sys-shape-extra-small)
+    0 0;
   --md-sys-shape-text-field-outlined: var(--md-sys-shape-extra-small);
 
   /* Navigation Drawer */

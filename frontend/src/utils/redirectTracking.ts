@@ -84,6 +84,6 @@ export function resetRedirectCount(): void {
  * @param maxRedirects Maximum allowed redirects (default: 3)
  * @returns true if max redirects exceeded, false otherwise
  */
-export function hasExceededMaxRedirects(maxRedirects: number = 3): boolean {
+export function hasExceededMaxRedirects(maxRedirects = 3): boolean {
   return getRedirectCount() >= maxRedirects;
 }

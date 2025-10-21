@@ -160,9 +160,9 @@
 
 /* Optional: Add visual indicator that text is truncated */
 .md-text-truncated-indicator::after {
-  content: '\2026'; /* Ellipsis character */
-  left: -0.5em;
   position: relative;
+  left: -0.5em;
+  content: '\2026'; /* Ellipsis character */
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -180,24 +180,20 @@
 
 /* Long content with fade effect */
 .md-text-fade {
+  position: relative;
   max-height: var(--md-sys-spacing-24); /* Approximately 4-5 lines */
   overflow: hidden;
-  position: relative;
 }
 
 .md-text-fade::after {
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    var(--md-sys-color-surface-container)
-  );
-  bottom: 0;
-  content: '';
-  height: var(--md-sys-spacing-8);
-  left: 0;
-  pointer-events: none;
   position: absolute;
   right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--md-sys-spacing-8);
+  background: linear-gradient(to bottom, transparent, var(--md-sys-color-surface-container));
+  content: '';
+  pointer-events: none;
 }
 
 /* ═══════════════════════════════════════════════════════════

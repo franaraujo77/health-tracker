@@ -7,8 +7,8 @@
  * @packageDocumentation
  */
 
-import { useTheme, type ThemeMode } from '../contexts/ThemeContext';
 import { Icon } from './Icon';
+import { useTheme, type ThemeMode } from '../contexts/ThemeContext';
 import './ThemeToggle.css';
 
 /**

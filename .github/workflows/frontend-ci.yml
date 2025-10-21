@@ -62,6 +62,12 @@ jobs:
         run: npm run tokens:check
         working-directory: ./frontend
 
+      - name: Check Code Formatting
+        id: format-check
+        continue-on-error: true
+        run: npm run format:check
+        working-directory: ./frontend
+
       - name: Lint TypeScript
         id: lint-ts
         continue-on-error: true
@@ -164,8 +170,9 @@ jobs:
             exit 1
           fi
 
-          # Warning for lint failures (non-critical)
-          if [ "${{ steps.lint-ts.outcome }}" != "success" ] || \
+          # Warning for lint/format failures (non-critical - handled by lint-and-format.yml)
+          if [ "${{ steps.format-check.outcome }}" != "success" ] || \
+             [ "${{ steps.lint-ts.outcome }}" != "success" ] || \
              [ "${{ steps.lint-css.outcome }}" != "success" ]; then
-            echo "::warning::Linting checks failed but continuing"
+            echo "::warning::Linting/formatting checks failed but continuing (enforced by lint-and-format.yml)"
           fi
