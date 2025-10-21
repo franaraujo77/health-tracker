@@ -144,6 +144,58 @@ data:
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
 
+      # DNS-based service discovery for external targets
+      - job_name: 'dns-external-services'
+        dns_sd_configs:
+          # Example: SRV records for external services
+          - names:
+              - '_prometheus._tcp.monitoring.example.com'
+            type: 'SRV'
+            refresh_interval: 30s
+        relabel_configs:
+          # Add service label from DNS name
+          - source_labels: [__meta_dns_name]
+            target_label: service
+          # Keep only targets that respond
+          - source_labels: [__address__]
+            action: replace
+            target_label: __param_target
+          # Add external label for routing
+          - target_label: __param_module
+            replacement: http_2xx
+          - target_label: environment
+            replacement: external
+
+      # File-based service discovery for static external targets
+      - job_name: 'file-static-targets'
+        file_sd_configs:
+          - files:
+              - '/etc/prometheus/targets/*.json'
+              - '/etc/prometheus/targets/*.yml'
+            refresh_interval: 30s
+        relabel_configs:
+          # Preserve all labels from file
+          - action: labelmap
+            regex: __meta_filepath_(.+)
+          # Add static label
+          - target_label: discovery_type
+            replacement: file_sd
+
+      # Consul service discovery (if Consul is available)
+      # Uncomment and configure when Consul is deployed
+      # - job_name: 'consul-services'
+      #   consul_sd_configs:
+      #     - server: 'consul.service.consul:8500'
+      #       datacenter: 'dc1'
+      #       services: []  # Empty means discover all services
+      #   relabel_configs:
+      #     - source_labels: [__meta_consul_service]
+      #       target_label: job
+      #     - source_labels: [__meta_consul_tags]
+      #       target_label: tags
+      #     - source_labels: [__meta_consul_dc]
+      #       target_label: datacenter
+
 ---
 apiVersion: v1
 kind: ConfigMap

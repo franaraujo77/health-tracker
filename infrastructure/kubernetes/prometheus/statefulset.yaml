@@ -148,6 +148,9 @@ spec:
             - name: prometheus-rules
               mountPath: /etc/prometheus/rules
               readOnly: true
+            - name: prometheus-targets
+              mountPath: /etc/prometheus/targets
+              readOnly: true
 
           # Security context
           securityContext:
@@ -261,6 +264,10 @@ spec:
         - name: prometheus-rules
           configMap:
             name: prometheus-rules
+        - name: prometheus-targets
+          configMap:
+            name: prometheus-targets
+            optional: true
         - name: thanos-objstore-config
           secret:
             secretName: thanos-objstore-config
