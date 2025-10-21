@@ -157,10 +157,13 @@ CMD [ \
     "--config.file=/etc/prometheus/prometheus.yml", \
     "--storage.tsdb.path=/prometheus", \
     "--storage.tsdb.retention.time=90d", \
+    "--storage.tsdb.retention.size=450GB", \
+    "--storage.tsdb.min-block-duration=2h", \
+    "--storage.tsdb.max-block-duration=2h", \
+    "--storage.tsdb.wal-compression", \
+    "--storage.tsdb.wal-segment-size=128MB", \
     "--web.console.libraries=/usr/share/prometheus/console_libraries", \
     "--web.console.templates=/usr/share/prometheus/consoles", \
     "--web.enable-lifecycle", \
-    "--web.enable-admin-api", \
-    "--storage.tsdb.min-block-duration=2h", \
-    "--storage.tsdb.max-block-duration=2h" \
+    "--web.enable-admin-api" \
 ]

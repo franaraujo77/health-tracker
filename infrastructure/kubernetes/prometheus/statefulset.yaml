@@ -82,13 +82,20 @@ spec:
           args:
             - --config.file=/etc/prometheus/prometheus.yml
             - --storage.tsdb.path=/prometheus
+            # Retention settings (time and size)
             - --storage.tsdb.retention.time=90d
+            - --storage.tsdb.retention.size=450GB
+            # Block duration for compaction (2h optimizes for query performance and storage efficiency)
+            - --storage.tsdb.min-block-duration=2h
+            - --storage.tsdb.max-block-duration=2h
+            # WAL settings
+            - --storage.tsdb.wal-compression
+            - --storage.tsdb.wal-segment-size=128MB
+            # Web interface and API
             - --web.console.libraries=/usr/share/prometheus/console_libraries
             - --web.console.templates=/usr/share/prometheus/consoles
             - --web.enable-lifecycle
             - --web.enable-admin-api
-            - --storage.tsdb.min-block-duration=2h
-            - --storage.tsdb.max-block-duration=2h
             - --web.listen-address=:9090
             - --web.route-prefix=/
             - --web.external-url=http://prometheus.observability.svc.cluster.local:9090
