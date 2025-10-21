@@ -1,0 +1,181 @@
+# Prometheus Recording Rules for Health Tracker
+# Pre-aggregate commonly queried metrics for better performance
+
+groups:
+  # OTel Collector performance metrics
+  - name: otel_collector_performance
+    interval: 30s
+    rules:
+      # Data ingestion rates
+      - record: otel:collector:ingestion_rate:5m
+        expr: rate(otelcol_receiver_accepted_spans[5m])
+
+      - record: otel:collector:metrics_rate:5m
+        expr: rate(otelcol_receiver_accepted_metric_points[5m])
+
+      - record: otel:collector:logs_rate:5m
+        expr: rate(otelcol_receiver_accepted_log_records[5m])
+
+      # Drop rates
+      - record: otel:collector:drop_rate:5m
+        expr: rate(otelcol_processor_dropped_spans[5m])
+
+      # Export success rate (percentage)
+      - record: otel:collector:export_success_rate:5m
+        expr: |
+          100 * (
+            sum(rate(otelcol_exporter_sent_spans[5m])) by (exporter)
+            /
+            (sum(rate(otelcol_exporter_sent_spans[5m])) by (exporter) + sum(rate(otelcol_exporter_send_failed_spans[5m])) by (exporter))
+          )
+
+  # Kubernetes resource utilization
+  - name: kubernetes_resources
+    interval: 1m
+    rules:
+      # Pod CPU utilization (percentage of limits)
+      - record: k8s:pod:cpu_utilization:percent
+        expr: |
+          100 * (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+            /
+            on(namespace, pod, container) group_left
+            kube_pod_container_resource_limits{resource="cpu"}
+          )
+
+      # Pod memory utilization (percentage of limits)
+      - record: k8s:pod:memory_utilization:percent
+        expr: |
+          100 * (
+            container_memory_working_set_bytes{container!=""}
+            /
+            on(namespace, pod, container) group_left
+            kube_pod_container_resource_limits{resource="memory"}
+          )
+
+      # Namespace CPU usage
+      - record: k8s:namespace:cpu_usage:sum
+        expr: |
+          sum by (namespace) (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+          )
+
+      # Namespace memory usage
+      - record: k8s:namespace:memory_usage:sum
+        expr: |
+          sum by (namespace) (
+            container_memory_working_set_bytes{container!=""}
+          )
+
+  # Node resource metrics
+  - name: node_resources
+    interval: 1m
+    rules:
+      # Node CPU utilization
+      - record: node:cpu_utilization:percent
+        expr: |
+          100 * (
+            1 - avg by (instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            )
+          )
+
+      # Node memory utilization
+      - record: node:memory_utilization:percent
+        expr: |
+          100 * (
+            1 - (
+              node_memory_MemAvailable_bytes
+              /
+              node_memory_MemTotal_bytes
+            )
+          )
+
+      # Node disk utilization
+      - record: node:disk_utilization:percent
+        expr: |
+          100 * (
+            1 - (
+              node_filesystem_avail_bytes{fstype!="tmpfs"}
+              /
+              node_filesystem_size_bytes{fstype!="tmpfs"}
+            )
+          )
+
+  # Application performance
+  - name: application_performance
+    interval: 30s
+    rules:
+      # Request rate by service
+      - record: app:request_rate:5m
+        expr: |
+          sum by (service, namespace) (
+            rate(http_requests_total[5m])
+          )
+
+      # Error rate by service
+      - record: app:error_rate:5m
+        expr: |
+          sum by (service, namespace) (
+            rate(http_requests_total{status=~"5.."}[5m])
+          )
+
+      # Request success rate (percentage)
+      - record: app:success_rate:5m:percent
+        expr: |
+          100 * (
+            1 - (
+              sum by (service, namespace) (rate(http_requests_total{status=~"5.."}[5m]))
+              /
+              sum by (service, namespace) (rate(http_requests_total[5m]))
+            )
+          )
+
+      # P95 latency
+      - record: app:latency:p95:5m
+        expr: |
+          histogram_quantile(0.95,
+            sum by (service, namespace, le) (
+              rate(http_request_duration_seconds_bucket[5m])
+            )
+          )
+
+      # P99 latency
+      - record: app:latency:p99:5m
+        expr: |
+          histogram_quantile(0.99,
+            sum by (service, namespace, le) (
+              rate(http_request_duration_seconds_bucket[5m])
+            )
+          )
+
+  # CI/CD pipeline metrics
+  - name: cicd_pipeline
+    interval: 1m
+    rules:
+      # Build duration
+      - record: cicd:build_duration:p95:1h
+        expr: |
+          histogram_quantile(0.95,
+            sum by (workflow, le) (
+              rate(github_workflow_run_duration_seconds_bucket[1h])
+            )
+          )
+
+      # Build success rate
+      - record: cicd:build_success_rate:1h:percent
+        expr: |
+          100 * (
+            sum by (workflow) (rate(github_workflow_run_conclusion_total{conclusion="success"}[1h]))
+            /
+            sum by (workflow) (rate(github_workflow_run_conclusion_total[1h]))
+          )
+
+      # Test execution time
+      - record: cicd:test_duration:p95:1h
+        expr: |
+          histogram_quantile(0.95,
+            sum by (workflow, job, le) (
+              rate(github_workflow_job_duration_seconds_bucket[1h])
+            )
+          )
