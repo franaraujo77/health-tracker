@@ -1,0 +1,236 @@
+{
+  "stories": [
+    {
+      "story_number": 1,
+      "title": "Deploy OpenTelemetry Collector",
+      "story_points": 3,
+      "tasks": [
+        {
+          "title": "[docker] Create OTel Collector Dockerfile",
+          "description": "Create multi-stage Dockerfile using official otel/opentelemetry-collector-contrib image\n- Use otel/opentelemetry-collector-contrib:0.96.0\n- Add health check endpoints\n- Include custom config validator script\n- Validate: docker build succeeds and container starts"
+        },
+        {
+          "title": "[config] Create base collector configuration",
+          "description": "Create otel-collector-config.yaml with receivers, processors, and exporters\n- Configure OTLP receivers on 4317 (gRPC) and 4318 (HTTP)\n- Add batch processor with 10s timeout, 1024 batch size\n- Configure memory_limiter processor (1GB limit, 750MB spike)\n- Validate: yaml syntax and schema validation passes"
+        },
+        {
+          "title": "[kubernetes] Create Kubernetes deployment manifests",
+          "description": "Create k8s deployment, service, and configmap for OTel Collector\n- Deployment with 3 replicas, anti-affinity rules\n- Resource requests: 500m CPU, 512Mi memory\n- Resource limits: 2 CPU, 2Gi memory\n- Validate: kubectl dry-run successful"
+        },
+        {
+          "title": "[security] Configure TLS and authentication",
+          "description": "Implement TLS termination and token-based authentication\n- Generate self-signed certs for development\n- Configure cert-manager for production\n- Add bearer token authentication extension\n- Create secret rotation mechanism\n- Validate: TLS handshake and auth token verification"
+        },
+        {
+          "title": "[config] Configure exporters for Prometheus, Loki, Tempo",
+          "description": "Add exporter configurations to collector config\n- Prometheus remote write endpoint with basic auth\n- Loki HTTP endpoint with tenant headers\n- Tempo OTLP endpoint with compression\n- Add retry and timeout configurations\n- Validate: Test data flows to each backend"
+        },
+        {
+          "title": "[monitoring] Create health check and readiness probes",
+          "description": "Implement comprehensive health monitoring for collector\n- Configure /health/status endpoint\n- Add zpages extension for debugging\n- Create readiness probe checking all pipelines\n- Add liveness probe with appropriate thresholds\n- Validate: Probes respond correctly under load"
+        },
+        {
+          "title": "[kubernetes] Configure horizontal pod autoscaling",
+          "description": "Setup HPA based on CPU and memory metrics\n- Min replicas: 2, Max replicas: 10\n- Target CPU: 70%, Target Memory: 80%\n- Add custom metrics for queue size\n- Configure PodDisruptionBudget\n- Validate: Scaling behavior under load test"
+        },
+        {
+          "title": "[config] Implement resource detection processors",
+          "description": "Configure automatic resource attribute detection\n- Add k8s_attributes processor for pod metadata\n- Configure host detection for node info\n- Add cloud provider detection (AWS/GCP/Azure)\n- Include container runtime detection\n- Validate: Resource attributes properly enriched"
+        },
+        {
+          "title": "[monitoring] Create Grafana dashboard for collector metrics",
+          "description": "Build comprehensive dashboard for collector observability\n- Data ingestion rates by receiver\n- Export success/failure rates\n- Queue sizes and dropped data\n- Resource utilization graphs\n- P95/P99 processing latencies\n- Validate: All panels show data correctly"
+        },
+        {
+          "title": "[testing] Create load testing suite",
+          "description": "Implement load tests for collector capacity validation\n- Use telemetrygen for synthetic load\n- Test 10K spans/sec, 5K metrics/sec, 1K logs/sec\n- Measure latency and resource usage\n- Document performance baselines\n- Validate: No data loss at target load"
+        },
+        {
+          "title": "[docs] Create runbook and troubleshooting guide",
+          "description": "Document operational procedures and common issues\n- Deployment and upgrade procedures\n- Configuration best practices\n- Common error patterns and solutions\n- Performance tuning guidelines\n- Disaster recovery procedures\n- Validate: Peer review completed"
+        }
+      ],
+      "refinements": "Added HPA configuration, resource detection processors, and load testing suite to ensure production readiness. Consider adding feature flags for gradual rollout of new exporters."
+    },
+    {
+      "story_number": 2,
+      "title": "Setup Prometheus with 90-day Retention",
+      "story_points": 3,
+      "tasks": [
+        {
+          "title": "[docker] Create custom Prometheus Docker image",
+          "description": "Build Prometheus image with required configurations\n- Base on prom/prometheus:v2.48.0\n- Add prometheus.yml template\n- Include recording rules\n- Add backup scripts\n- Validate: Image builds and starts successfully"
+        },
+        {
+          "title": "[kubernetes] Deploy Prometheus with StatefulSet",
+          "description": "Create StatefulSet for persistent Prometheus deployment\n- 2 replicas with anti-affinity\n- Persistent volume claim template (500GB)\n- Resource requests: 2 CPU, 4Gi memory\n- Resource limits: 4 CPU, 8Gi memory\n- Validate: Pods start with PV attached"
+        },
+        {
+          "title": "[config] Configure 90-day retention and storage settings",
+          "description": "Optimize Prometheus storage for 90-day retention\n- Set --storage.tsdb.retention.time=90d\n- Configure --storage.tsdb.retention.size=450GB\n- Set WAL compression and segment size\n- Configure compaction settings\n- Validate: Retention policy applied correctly"
+        },
+        {
+          "title": "[config] Setup remote write to S3 for long-term storage",
+          "description": "Configure Thanos sidecar for S3 backup\n- Deploy Thanos sidecar container\n- Configure S3 bucket and credentials\n- Set upload compaction and retention\n- Enable downsampling (5m, 1h resolutions)\n- Validate: Data appears in S3 bucket"
+        },
+        {
+          "title": "[config] Configure service discovery for targets",
+          "description": "Setup dynamic service discovery mechanisms\n- Kubernetes SD for pod/service discovery\n- Add relabeling rules for metadata\n- Configure DNS SD for external targets\n- Add file SD for static targets\n- Validate: Targets discovered automatically"
+        },
+        {
+          "title": "[config] Create recording rules for performance",
+          "description": "Implement recording rules for common queries\n- Create rate/increase aggregations\n- Add service-level aggregations\n- Configure histogram quantiles\n- Set evaluation interval to 30s\n- Validate: Rules evaluate without errors"
+        },
+        {
+          "title": "[monitoring] Setup alerting rules and Alertmanager",
+          "description": "Configure comprehensive alerting framework\n- Deploy Alertmanager with HA setup\n- Create SLO-based alert rules\n- Configure notification channels\n- Set alert routing and grouping\n- Validate: Test alerts fire correctly"
+        },
+        {
+          "title": "[security] Implement RBAC and authentication",
+          "description": "Secure Prometheus access and API\n- Configure basic auth for UI\n- Setup TLS for API endpoints\n- Create service accounts with scoped permissions\n- Implement audit logging\n- Validate: Auth mechanisms work correctly"
+        },
+        {
+          "title": "[testing] Performance testing for query optimization",
+          "description": "Validate query performance meets SLA\n- Test dashboard queries (<2s for 24h range)\n- Benchmark heavy aggregations\n- Test concurrent query load\n- Measure memory usage during queries\n- Validate: P95 latency <2s"
+        },
+        {
+          "title": "[config] Setup backup and restore procedures",
+          "description": "Implement automated backup strategy\n- Create snapshot CronJob (daily)\n- Configure WAL backup to S3\n- Document restore procedures\n- Test restore from snapshot\n- Validate: Successful backup/restore cycle"
+        },
+        {
+          "title": "[monitoring] Create Prometheus self-monitoring dashboard",
+          "description": "Build dashboard for Prometheus health\n- TSDB statistics and compaction\n- Ingestion rate and samples\n- Query performance metrics\n- Storage usage and projections\n- Rule evaluation performance\n- Validate: All metrics visible"
+        },
+        {
+          "title": "[docs] Create capacity planning documentation",
+          "description": "Document storage and resource planning\n- Calculate storage needs per metric\n- Document scaling strategies\n- Create retention policy guidelines\n- Include cost optimization tips\n- Validate: Reviewed by team"
+        }
+      ],
+      "refinements": "Added Thanos sidecar for S3 integration, Alertmanager deployment, and capacity planning documentation. Consider implementing federation for multi-cluster scenarios."
+    },
+    {
+      "story_number": 5,
+      "title": "Deploy Loki for Log Aggregation",
+      "story_points": 2,
+      "tasks": [
+        {
+          "title": "[docker] Create Loki Docker image with plugins",
+          "description": "Build custom Loki image with required components\n- Base on grafana/loki:2.9.4\n- Add S3 plugin configurations\n- Include promtail sidecar configs\n- Add custom parsers\n- Validate: Image runs with S3 access"
+        },
+        {
+          "title": "[kubernetes] Deploy Loki using StatefulSet",
+          "description": "Create Loki StatefulSet for production deployment\n- Single binary mode initially\n- Resource requests: 1 CPU, 2Gi memory\n- Resource limits: 2 CPU, 4Gi memory\n- Persistent volume for WAL (50GB)\n- Validate: Loki starts and accepts logs"
+        },
+        {
+          "title": "[config] Configure S3 backend storage",
+          "description": "Setup S3 as object storage backend\n- Configure schema with period configs\n- Set chunk and index storage to S3\n- Configure compactor for S3\n- Enable cache for performance\n- Validate: Chunks written to S3"
+        },
+        {
+          "title": "[config] Implement 30-day retention policy",
+          "description": "Configure retention and deletion settings\n- Set global retention to 30d\n- Configure per-tenant overrides\n- Setup compactor retention\n- Enable deletion API\n- Validate: Old logs deleted after 30d"
+        },
+        {
+          "title": "[config] Setup structured logging pipeline",
+          "description": "Configure log parsing and structuring\n- Create pipeline stages for JSON parsing\n- Add regex extractors for common formats\n- Configure label extraction rules\n- Set cardinality limits\n- Validate: Logs parsed correctly"
+        },
+        {
+          "title": "[config] Configure OTel Collector integration",
+          "description": "Setup OTLP log receiver in Loki\n- Configure OTLP HTTP endpoint\n- Map OTLP attributes to Loki labels\n- Set up resource attribute mapping\n- Configure batching and retry\n- Validate: Logs flow from OTel"
+        },
+        {
+          "title": "[monitoring] Implement log-to-trace correlation",
+          "description": "Enable correlation between logs and traces\n- Extract trace IDs from logs\n- Configure Tempo datasource links\n- Add trace ID to log labels\n- Create derived fields in Grafana\n- Validate: Click-through from logs to traces"
+        },
+        {
+          "title": "[testing] Optimize LogQL query performance",
+          "description": "Test and optimize common queries\n- Benchmark label selector performance\n- Test aggregation queries\n- Optimize high-cardinality queries\n- Document query best practices\n- Validate: Queries complete <5s"
+        },
+        {
+          "title": "[monitoring] Create Loki performance dashboard",
+          "description": "Build operational dashboard for Loki\n- Ingestion rate and latency\n- Query performance metrics\n- Storage usage by tenant\n- Chunk compression ratios\n- Error rates and rejected logs\n- Validate: Metrics displayed correctly"
+        },
+        {
+          "title": "[security] Configure multi-tenancy and access control",
+          "description": "Implement tenant isolation and security\n- Configure X-Scope-OrgID header\n- Set per-tenant limits\n- Implement basic auth\n- Configure TLS endpoints\n- Validate: Tenant isolation working"
+        },
+        {
+          "title": "[docs] Create log ingestion guidelines",
+          "description": "Document logging best practices\n- Structured logging standards\n- Label naming conventions\n- Cardinality guidelines\n- Query optimization tips\n- Troubleshooting guide\n- Validate: Team review complete"
+        }
+      ],
+      "refinements": "Added multi-tenancy configuration and cardinality management. Consider implementing LogQL recording rules for frequently used queries to improve performance."
+    },
+    {
+      "story_number": 6,
+      "title": "Deploy Tempo for Distributed Tracing",
+      "story_points": 3,
+      "tasks": [
+        {
+          "title": "[docker] Create Tempo Docker image with backends",
+          "description": "Build Tempo image with S3 support\n- Base on grafana/tempo:2.3.1\n- Add S3 backend configurations\n- Include tempo-query sidecar\n- Add custom sampling configs\n- Validate: Image connects to S3"
+        },
+        {
+          "title": "[kubernetes] Deploy Tempo with scalable architecture",
+          "description": "Create Tempo deployment for production\n- Deploy distributor, ingester, querier\n- Configure ingester StatefulSet (3 replicas)\n- Setup compactor as CronJob\n- Resource limits per component\n- Validate: All components healthy"
+        },
+        {
+          "title": "[config] Configure S3 backend with retention",
+          "description": "Setup S3 storage for traces\n- Configure S3 bucket and permissions\n- Set block retention to 7 days\n- Configure compaction settings\n- Enable bloom filters\n- Validate: Blocks written to S3"
+        },
+        {
+          "title": "[config] Implement tail sampling strategy",
+          "description": "Configure intelligent 10% sampling\n- Setup tail-based sampling policies\n- Always sample errors and slow requests\n- Configure probabilistic sampling at 10%\n- Add custom sampling rules\n- Validate: Sampling rates correct"
+        },
+        {
+          "title": "[config] Setup OTLP receiver endpoints",
+          "description": "Configure trace ingestion via OTLP\n- Enable OTLP gRPC on port 4317\n- Enable OTLP HTTP on port 4318\n- Configure max message size\n- Setup compression (gzip)\n- Validate: Traces received via OTLP"
+        },
+        {
+          "title": "[monitoring] Configure Grafana integration",
+          "description": "Setup Tempo datasource in Grafana\n- Add Tempo datasource\n- Configure service graph plugin\n- Setup trace to logs correlation\n- Enable search capabilities\n- Validate: Traces visible in Grafana"
+        },
+        {
+          "title": "[monitoring] Enable service graph generation",
+          "description": "Configure automatic service topology\n- Enable metrics generator\n- Configure service graph processor\n- Setup Prometheus remote write\n- Define edge dimensions\n- Validate: Service graph visible"
+        },
+        {
+          "title": "[config] Implement trace search optimization",
+          "description": "Configure search capabilities\n- Enable search on tags\n- Configure search cache\n- Setup attribute indexes\n- Optimize search performance\n- Validate: Search returns <2s"
+        },
+        {
+          "title": "[testing] Load test trace ingestion",
+          "description": "Validate trace handling capacity\n- Generate 1000 traces/sec load\n- Test with varying span counts\n- Measure ingestion latency\n- Verify no data loss\n- Validate: System handles load"
+        },
+        {
+          "title": "[monitoring] Create trace analytics dashboard",
+          "description": "Build operational insights dashboard\n- Request rate by service\n- Latency percentiles (P50/P95/P99)\n- Error rate by operation\n- Span processing metrics\n- Top slow endpoints\n- Validate: Metrics accurate"
+        },
+        {
+          "title": "[security] Configure trace data privacy",
+          "description": "Implement data protection measures\n- Configure span attribute filtering\n- Redact sensitive data\n- Setup access controls\n- Enable audit logging\n- Validate: PII properly redacted"
+        },
+        {
+          "title": "[docs] Create tracing implementation guide",
+          "description": "Document tracing best practices\n- Instrumentation guidelines\n- Span naming conventions\n- Context propagation patterns\n- Sampling configuration\n- Troubleshooting guide\n- Validate: Developer review done"
+        }
+      ],
+      "refinements": "Added service graph generation, tail-based sampling, and data privacy controls. Consider implementing trace aggregation metrics for RED (Rate, Errors, Duration) signals."
+    }
+  ],
+  "epic_summary": {
+    "total_tasks": 46,
+    "estimated_hours": "138-184 hours",
+    "key_dependencies": [
+      "OTel Collector must be deployed before other components",
+      "S3 buckets and IAM permissions needed for all storage backends",
+      "Grafana required for all visualization tasks",
+      "Kubernetes cluster with sufficient resources (minimum 16 CPU, 32GB RAM)"
+    ],
+    "risk_mitigation": [
+      "Start with single-replica deployments and scale after validation",
+      "Implement gradual rollout with feature flags",
+      "Maintain fallback to existing monitoring during migration",
+      "Regular backup testing to prevent data loss"
+    ]
+  }
+}
