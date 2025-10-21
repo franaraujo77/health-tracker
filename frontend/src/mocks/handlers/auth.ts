@@ -150,7 +150,7 @@ const meHandler = http.get(`${API_BASE_URL}/v1/auth/me`, async ({ request }) => 
   // Check for Authorization header
   const authHeader = request.headers.get('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

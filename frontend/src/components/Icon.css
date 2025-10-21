@@ -5,12 +5,16 @@
 
 /* Base icon class */
 .md-icon {
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
+
+  /* Prevent text selection and wrapping */
+  white-space: nowrap;
 
   /* Inherit color from parent */
   color: currentcolor;
   direction: ltr;
-  display: inline-flex;
   flex-shrink: 0;
 
   /* Feature settings for variable font */
@@ -19,14 +23,10 @@
   /* Smooth font rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  justify-content: center;
   overflow-wrap: normal;
   text-rendering: optimizelegibility;
   user-select: none;
   vertical-align: middle;
-
-  /* Prevent text selection and wrapping */
-  white-space: nowrap;
 }
 
 /* Accessibility: Reduced motion */
@@ -45,25 +45,25 @@
 
 /* Common icon size utilities */
 .md-icon-small {
-  font-size: var(--md-sys-spacing-4-5);
-  height: var(--md-sys-spacing-4-5);
   width: var(--md-sys-spacing-4-5);
+  height: var(--md-sys-spacing-4-5);
+  font-size: var(--md-sys-spacing-4-5);
 }
 
 .md-icon-medium {
-  font-size: var(--md-sys-spacing-6);
-  height: var(--md-sys-spacing-6);
   width: var(--md-sys-spacing-6);
+  height: var(--md-sys-spacing-6);
+  font-size: var(--md-sys-spacing-6);
 }
 
 .md-icon-large {
-  font-size: var(--md-sys-spacing-8);
-  height: var(--md-sys-spacing-8);
   width: var(--md-sys-spacing-8);
+  height: var(--md-sys-spacing-8);
+  font-size: var(--md-sys-spacing-8);
 }
 
 .md-icon-xlarge {
-  font-size: var(--md-sys-spacing-12);
-  height: var(--md-sys-spacing-12);
   width: var(--md-sys-spacing-12);
+  height: var(--md-sys-spacing-12);
+  font-size: var(--md-sys-spacing-12);
 }

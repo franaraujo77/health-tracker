@@ -3,6 +3,7 @@
  * Wraps components that require authentication
  */
 import { type ReactNode } from 'react';
+
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {

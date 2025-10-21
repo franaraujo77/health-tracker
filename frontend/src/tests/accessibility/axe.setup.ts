@@ -10,6 +10,7 @@
  */
 
 import { configureAxe } from 'jest-axe';
+
 import type { AxeResults, Result } from 'axe-core';
 
 /**

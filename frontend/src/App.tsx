@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect } from 'react';
+
 import { useLocation } from 'react-router-dom';
+
 import './App.css';
-import { useAuth } from './contexts/AuthContext';
-import { ThemeToggle } from './components/ThemeToggle';
 import { RouteErrorBoundary } from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { ThemeToggle } from './components/ThemeToggle';
+import { useAuth } from './contexts/AuthContext';
 import { prefetchNextRoutes } from './utils/prefetch';
 
 // Lazy load page and heavy components for code splitting

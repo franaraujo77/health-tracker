@@ -2,10 +2,10 @@
  * Vitest setup file
  * Runs before all tests
  */
-import { expect, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import { cleanup } from '@testing-library/react';
 import { toHaveNoViolations } from 'jest-axe';
+import { expect, afterEach } from 'vitest';
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);

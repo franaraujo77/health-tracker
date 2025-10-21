@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+
 import type { Metric } from '../utils/webVitals';
 import './PerformanceDashboard.css';
 

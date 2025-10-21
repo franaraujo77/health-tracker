@@ -5,6 +5,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 import { HealthDataEntryForm } from '../components/HealthDataEntryForm';
 import { HealthMetricsList } from '../components/HealthMetricsList';
 import { ThemeToggle } from '../components/ThemeToggle';

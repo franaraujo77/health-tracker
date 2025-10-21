@@ -10,6 +10,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+
 import {
   generateThemeFromColor,
   applyColorScheme,

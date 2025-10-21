@@ -1,17 +1,19 @@
 /* eslint-disable react-refresh/only-export-components */
 import { StrictMode, Suspense, lazy, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+
 import './index.css';
-import { startInspector } from './lib/xstate';
-import { queryClient } from './lib/react-query';
-import { AuthProvider } from './contexts/AuthContext';
-import { initializeTheme } from './styles/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { NavigationProvider } from './contexts/NavigationProvider';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { AuthProvider } from './contexts/AuthContext';
+import { NavigationProvider } from './contexts/NavigationProvider';
+import { queryClient } from './lib/react-query';
+import { startInspector } from './lib/xstate';
+import { initializeTheme } from './styles/theme';
 import { prefetchNextRoutes } from './utils/prefetch';
 import { initWebVitals } from './utils/webVitals';
 
