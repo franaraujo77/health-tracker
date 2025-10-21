@@ -1,0 +1,52 @@
+# Alertmanager Services
+# Provides stable network access for HA cluster and UI
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: observability
+  labels:
+    app: alertmanager
+    component: alerting
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9093"
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for StatefulSet
+  ports:
+    - name: http
+      port: 9093
+      targetPort: 9093
+      protocol: TCP
+    - name: cluster
+      port: 9094
+      targetPort: 9094
+      protocol: TCP
+  selector:
+    app: alertmanager
+
+---
+# External Service for UI and API access
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-external
+  namespace: observability
+  labels:
+    app: alertmanager
+    component: alerting
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9093
+      targetPort: 9093
+      protocol: TCP
+  selector:
+    app: alertmanager
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 hours

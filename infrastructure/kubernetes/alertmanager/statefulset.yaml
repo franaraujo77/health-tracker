@@ -1,0 +1,189 @@
+# Alertmanager StatefulSet with High Availability
+# Deploys 3 replicas with gossip protocol for alert deduplication
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alertmanager
+  namespace: observability
+  labels:
+    app: alertmanager
+    component: alerting
+spec:
+  serviceName: alertmanager
+  replicas: 3
+  selector:
+    matchLabels:
+      app: alertmanager
+
+  # Update strategy
+  updateStrategy:
+    type: RollingUpdate
+
+  # Pod management
+  podManagementPolicy: Parallel
+
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+        component: alerting
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9093"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: alertmanager
+
+      # Security context
+      securityContext:
+        fsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+
+      # Pod anti-affinity for HA
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - alertmanager
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          imagePullPolicy: IfNotPresent
+
+          args:
+            - --config.file=/etc/alertmanager/alertmanager.yml
+            - --storage.path=/alertmanager
+            - --data.retention=120h
+            - --web.listen-address=:9093
+            - --web.route-prefix=/
+            # Cluster configuration for HA
+            - --cluster.listen-address=0.0.0.0:9094
+            - --cluster.advertise-address=$(POD_IP):9094
+            # Peer discovery via headless service
+            - --cluster.peer=alertmanager-0.alertmanager.observability.svc.cluster.local:9094
+            - --cluster.peer=alertmanager-1.alertmanager.observability.svc.cluster.local:9094
+            - --cluster.peer=alertmanager-2.alertmanager.observability.svc.cluster.local:9094
+            - --cluster.reconnect-timeout=5m
+
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          ports:
+            - name: http
+              containerPort: 9093
+              protocol: TCP
+            - name: cluster
+              containerPort: 9094
+              protocol: TCP
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9093
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness probe
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9093
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Volume mounts
+          volumeMounts:
+            - name: alertmanager-config
+              mountPath: /etc/alertmanager
+              readOnly: true
+            - name: alertmanager-storage
+              mountPath: /alertmanager
+
+          # Security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+
+        # Config reloader sidecar
+        - name: config-reloader
+          image: jimmidyson/configmap-reload:v0.12.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --volume-dir=/etc/alertmanager
+            - --webhook-url=http://localhost:9093/-/reload
+          volumeMounts:
+            - name: alertmanager-config
+              mountPath: /etc/alertmanager
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+
+      # Volumes
+      volumes:
+        - name: alertmanager-config
+          secret:
+            secretName: alertmanager-config
+
+      # Termination grace period
+      terminationGracePeriodSeconds: 120
+
+  # Volume claim templates
+  volumeClaimTemplates:
+    - metadata:
+        name: alertmanager-storage
+        labels:
+          app: alertmanager
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
