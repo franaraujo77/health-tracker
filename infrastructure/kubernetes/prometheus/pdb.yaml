@@ -1,0 +1,16 @@
+# PodDisruptionBudget for Prometheus
+# Ensures at least one replica is available during voluntary disruptions
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: prometheus
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: prometheus

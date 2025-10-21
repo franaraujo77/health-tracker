@@ -1,0 +1,338 @@
+# Prometheus Configuration ConfigMaps
+# Contains prometheus.yml and recording rules
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  prometheus.yml: |
+    # Prometheus Configuration for Health Tracker
+    # Scrapes metrics from OpenTelemetry Collector and other services
+
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'health-tracker'
+        environment: 'production'
+
+    # Load recording and alerting rules
+    rule_files:
+      - '/etc/prometheus/rules/*.yml'
+
+    # Scrape configurations
+    scrape_configs:
+      # OpenTelemetry Collector metrics
+      - job_name: 'otel-collector'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - observability
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: otel-collector
+          - source_labels: [__meta_kubernetes_pod_container_port_name]
+            action: keep
+            regex: metrics
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+      # Prometheus self-monitoring
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+            labels:
+              component: 'prometheus'
+
+      # Kubernetes API server
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      # Kubernetes nodes
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # Kubernetes pods
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+      # kube-state-metrics
+      - job_name: 'kube-state-metrics'
+        kubernetes_sd_configs:
+          - role: service
+            namespaces:
+              names:
+                - kube-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+            action: keep
+            regex: kube-state-metrics
+
+      # node-exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - kube-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            action: keep
+            regex: node-exporter
+
+      # cAdvisor (container metrics)
+      - job_name: 'cadvisor'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  recording-rules.yml: |
+    # Prometheus Recording Rules for Health Tracker
+    # Pre-aggregate commonly queried metrics for better performance
+
+    groups:
+      # OTel Collector performance metrics
+      - name: otel_collector_performance
+        interval: 30s
+        rules:
+          # Data ingestion rates
+          - record: otel:collector:ingestion_rate:5m
+            expr: rate(otelcol_receiver_accepted_spans[5m])
+
+          - record: otel:collector:metrics_rate:5m
+            expr: rate(otelcol_receiver_accepted_metric_points[5m])
+
+          - record: otel:collector:logs_rate:5m
+            expr: rate(otelcol_receiver_accepted_log_records[5m])
+
+          # Drop rates
+          - record: otel:collector:drop_rate:5m
+            expr: rate(otelcol_processor_dropped_spans[5m])
+
+          # Export success rate (percentage)
+          - record: otel:collector:export_success_rate:5m
+            expr: |
+              100 * (
+                sum(rate(otelcol_exporter_sent_spans[5m])) by (exporter)
+                /
+                (sum(rate(otelcol_exporter_sent_spans[5m])) by (exporter) + sum(rate(otelcol_exporter_send_failed_spans[5m])) by (exporter))
+              )
+
+      # Kubernetes resource utilization
+      - name: kubernetes_resources
+        interval: 1m
+        rules:
+          # Pod CPU utilization (percentage of limits)
+          - record: k8s:pod:cpu_utilization:percent
+            expr: |
+              100 * (
+                rate(container_cpu_usage_seconds_total{container!=""}[5m])
+                /
+                on(namespace, pod, container) group_left
+                kube_pod_container_resource_limits{resource="cpu"}
+              )
+
+          # Pod memory utilization (percentage of limits)
+          - record: k8s:pod:memory_utilization:percent
+            expr: |
+              100 * (
+                container_memory_working_set_bytes{container!=""}
+                /
+                on(namespace, pod, container) group_left
+                kube_pod_container_resource_limits{resource="memory"}
+              )
+
+          # Namespace CPU usage
+          - record: k8s:namespace:cpu_usage:sum
+            expr: |
+              sum by (namespace) (
+                rate(container_cpu_usage_seconds_total{container!=""}[5m])
+              )
+
+          # Namespace memory usage
+          - record: k8s:namespace:memory_usage:sum
+            expr: |
+              sum by (namespace) (
+                container_memory_working_set_bytes{container!=""}
+              )
+
+      # Node resource metrics
+      - name: node_resources
+        interval: 1m
+        rules:
+          # Node CPU utilization
+          - record: node:cpu_utilization:percent
+            expr: |
+              100 * (
+                1 - avg by (instance) (
+                  rate(node_cpu_seconds_total{mode="idle"}[5m])
+                )
+              )
+
+          # Node memory utilization
+          - record: node:memory_utilization:percent
+            expr: |
+              100 * (
+                1 - (
+                  node_memory_MemAvailable_bytes
+                  /
+                  node_memory_MemTotal_bytes
+                )
+              )
+
+          # Node disk utilization
+          - record: node:disk_utilization:percent
+            expr: |
+              100 * (
+                1 - (
+                  node_filesystem_avail_bytes{fstype!="tmpfs"}
+                  /
+                  node_filesystem_size_bytes{fstype!="tmpfs"}
+                )
+              )
+
+      # Application performance
+      - name: application_performance
+        interval: 30s
+        rules:
+          # Request rate by service
+          - record: app:request_rate:5m
+            expr: |
+              sum by (service, namespace) (
+                rate(http_requests_total[5m])
+              )
+
+          # Error rate by service
+          - record: app:error_rate:5m
+            expr: |
+              sum by (service, namespace) (
+                rate(http_requests_total{status=~"5.."}[5m])
+              )
+
+          # Request success rate (percentage)
+          - record: app:success_rate:5m:percent
+            expr: |
+              100 * (
+                1 - (
+                  sum by (service, namespace) (rate(http_requests_total{status=~"5.."}[5m]))
+                  /
+                  sum by (service, namespace) (rate(http_requests_total[5m]))
+                )
+              )
+
+          # P95 latency
+          - record: app:latency:p95:5m
+            expr: |
+              histogram_quantile(0.95,
+                sum by (service, namespace, le) (
+                  rate(http_request_duration_seconds_bucket[5m])
+                )
+              )
+
+          # P99 latency
+          - record: app:latency:p99:5m
+            expr: |
+              histogram_quantile(0.99,
+                sum by (service, namespace, le) (
+                  rate(http_request_duration_seconds_bucket[5m])
+                )
+              )
+
+      # CI/CD pipeline metrics
+      - name: cicd_pipeline
+        interval: 1m
+        rules:
+          # Build duration
+          - record: cicd:build_duration:p95:1h
+            expr: |
+              histogram_quantile(0.95,
+                sum by (workflow, le) (
+                  rate(github_workflow_run_duration_seconds_bucket[1h])
+                )
+              )
+
+          # Build success rate
+          - record: cicd:build_success_rate:1h:percent
+            expr: |
+              100 * (
+                sum by (workflow) (rate(github_workflow_run_conclusion_total{conclusion="success"}[1h]))
+                /
+                sum by (workflow) (rate(github_workflow_run_conclusion_total[1h]))
+              )
+
+          # Test execution time
+          - record: cicd:test_duration:p95:1h
+            expr: |
+              histogram_quantile(0.95,
+                sum by (workflow, job, le) (
+                  rate(github_workflow_job_duration_seconds_bucket[1h])
+                )
+              )
