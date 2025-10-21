@@ -3,6 +3,9 @@
   "plugins": ["stylelint-order"],
   "rules": {
     "order/properties-alphabetical-order": true,
+    "declaration-block-no-redundant-longhand-properties": true,
+    "shorthand-property-no-redundant-values": true,
+    "function-url-quotes": "always",
     "color-no-hex": [
       true,
       {
