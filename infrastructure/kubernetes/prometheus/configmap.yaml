@@ -21,14 +21,13 @@ data:
         cluster: 'health-tracker'
         environment: 'production'
 
-    # Alertmanager configuration
+    # Alertmanager configuration (HA with 2 replicas)
     alerting:
       alertmanagers:
         - static_configs:
             - targets:
-                - alertmanager-0.alertmanager.observability.svc.cluster.local:9093
-                - alertmanager-1.alertmanager.observability.svc.cluster.local:9093
-                - alertmanager-2.alertmanager.observability.svc.cluster.local:9093
+                - alertmanager-0.alertmanager-headless.observability.svc.cluster.local:9093
+                - alertmanager-1.alertmanager-headless.observability.svc.cluster.local:9093
           timeout: 10s
           api_version: v2
 
