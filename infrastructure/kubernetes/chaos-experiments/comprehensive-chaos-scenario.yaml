@@ -1,0 +1,228 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: observability-stack-chaos-test
+  namespace: observability
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Serial
+      deadline: 30m
+      children:
+        - baseline-metrics
+        - prometheus-pod-failure
+        - verify-prometheus-recovery
+        - loki-network-partition
+        - verify-loki-recovery
+        - tempo-resource-stress
+        - verify-tempo-recovery
+        - otel-collector-chaos
+        - verify-otel-recovery
+        - final-validation
+
+    # Baseline - capture normal state
+    - name: baseline-metrics
+      templateType: Task
+      deadline: 2m
+      task:
+        container:
+          name: baseline
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Capturing baseline metrics..."
+              curl -s prometheus:9090/api/v1/query?query=up > /tmp/baseline-up.json
+              curl -s prometheus:9090/api/v1/query?query=prometheus_tsdb_head_samples > /tmp/baseline-samples.json
+              echo "Baseline captured"
+
+    # Test 1: Prometheus pod failure
+    - name: prometheus-pod-failure
+      templateType: PodChaos
+      deadline: 3m
+      podChaos:
+        action: pod-kill
+        mode: one
+        selector:
+          namespaces:
+            - observability
+          labelSelectors:
+            app: prometheus
+        duration: "2m"
+
+    # Verify Prometheus recovers
+    - name: verify-prometheus-recovery
+      templateType: Task
+      deadline: 5m
+      task:
+        container:
+          name: verify
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Prometheus to recover..."
+              for i in $(seq 1 30); do
+                if curl -sf prometheus:9090/-/healthy > /dev/null 2>&1; then
+                  echo "✓ Prometheus recovered after ${i}0 seconds"
+                  exit 0
+                fi
+                echo "Attempt $i failed, waiting..."
+                sleep 10
+              done
+              echo "✗ Prometheus did not recover within 5 minutes"
+              exit 1
+
+    # Test 2: Loki network partition
+    - name: loki-network-partition
+      templateType: NetworkChaos
+      deadline: 4m
+      networkChaos:
+        action: partition
+        mode: one
+        selector:
+          namespaces:
+            - observability
+          labelSelectors:
+            app: loki
+        direction: both
+        duration: "3m"
+
+    # Verify Loki recovers
+    - name: verify-loki-recovery
+      templateType: Task
+      deadline: 3m
+      task:
+        container:
+          name: verify
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Loki to recover..."
+              for i in $(seq 1 18); do
+                if curl -sf loki:3100/ready > /dev/null 2>&1; then
+                  echo "✓ Loki recovered after ${i}0 seconds"
+                  exit 0
+                fi
+                sleep 10
+              done
+              echo "✗ Loki did not recover"
+              exit 1
+
+    # Test 3: Tempo resource stress
+    - name: tempo-resource-stress
+      templateType: StressChaos
+      deadline: 6m
+      stressChaos:
+        mode: one
+        selector:
+          namespaces:
+            - observability
+          labelSelectors:
+            app: tempo
+        stressors:
+          cpu:
+            workers: 4
+            load: 90
+          memory:
+            workers: 2
+            size: "512MB"
+        duration: "5m"
+
+    # Verify Tempo recovers
+    - name: verify-tempo-recovery
+      templateType: Task
+      deadline: 3m
+      task:
+        container:
+          name: verify
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Tempo to stabilize..."
+              sleep 30
+              if curl -sf tempo:3200/ready > /dev/null 2>&1; then
+                echo "✓ Tempo recovered"
+                exit 0
+              fi
+              echo "✗ Tempo did not recover"
+              exit 1
+
+    # Test 4: OTel Collector chaos
+    - name: otel-collector-chaos
+      templateType: PodChaos
+      deadline: 2m
+      podChaos:
+        action: pod-kill
+        mode: fixed
+        value: "1"
+        selector:
+          namespaces:
+            - observability
+          labelSelectors:
+            app: otel-collector
+        duration: "1m"
+
+    # Verify OTel Collector recovers
+    - name: verify-otel-recovery
+      templateType: Task
+      deadline: 3m
+      task:
+        container:
+          name: verify
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for OTel Collector to recover..."
+              for i in $(seq 1 18); do
+                if curl -sf otel-collector:13133 > /dev/null 2>&1; then
+                  echo "✓ OTel Collector recovered after ${i}0 seconds"
+                  exit 0
+                fi
+                sleep 10
+              done
+              echo "✗ OTel Collector did not recover"
+              exit 1
+
+    # Final validation
+    - name: final-validation
+      templateType: Task
+      deadline: 2m
+      task:
+        container:
+          name: validate
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Final validation..."
+
+              # Check all services are up
+              services="prometheus:9090 loki:3100 tempo:3200 grafana:3000 alertmanager:9093 otel-collector:13133"
+              all_up=true
+
+              for service in $services; do
+                if ! curl -sf http://$service/-/healthy > /dev/null 2>&1 && \
+                   ! curl -sf http://$service/ready > /dev/null 2>&1; then
+                  echo "✗ Service $service is not healthy"
+                  all_up=false
+                fi
+              done
+
+              if [ "$all_up" = true ]; then
+                echo "✓ All services recovered successfully"
+                exit 0
+              else
+                echo "✗ Some services did not recover"
+                exit 1
+              fi

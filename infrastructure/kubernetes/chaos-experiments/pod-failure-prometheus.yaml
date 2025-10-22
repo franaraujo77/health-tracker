@@ -1,0 +1,51 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: prometheus-pod-kill
+  namespace: observability
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: prometheus
+  scheduler:
+    cron: "@every 10m"
+  duration: "30s"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: prometheus-pod-failure
+  namespace: observability
+spec:
+  action: pod-failure
+  mode: fixed
+  value: "1"
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: prometheus
+  duration: "2m"
+  scheduler:
+    cron: "@every 30m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: prometheus-container-kill
+  namespace: observability
+spec:
+  action: container-kill
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: prometheus
+  containerNames:
+    - prometheus
+  duration: "1m"

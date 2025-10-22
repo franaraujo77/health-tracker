@@ -1,0 +1,74 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: loki-network-partition
+  namespace: observability
+spec:
+  action: partition
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: loki
+  direction: both
+  duration: "3m"
+  externalTargets:
+    - prometheus
+    - grafana
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: loki-network-delay
+  namespace: observability
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: loki
+  delay:
+    latency: "500ms"
+    correlation: "50"
+    jitter: "200ms"
+  duration: "5m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: loki-packet-loss
+  namespace: observability
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: loki
+  loss:
+    loss: "25"
+    correlation: "50"
+  duration: "3m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: loki-bandwidth-limit
+  namespace: observability
+spec:
+  action: bandwidth
+  mode: all
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: loki
+  bandwidth:
+    rate: "1mbps"
+    limit: 20000
+    buffer: 10000
+  duration: "5m"
