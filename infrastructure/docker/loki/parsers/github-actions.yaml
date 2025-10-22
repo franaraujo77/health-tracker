@@ -1,0 +1,45 @@
+# GitHub Actions Log Parser Pipeline
+# Extracts structured data from GitHub Actions workflow logs
+
+# Pipeline for JSON-formatted logs
+- json:
+    expressions:
+      level: level
+      message: msg
+      timestamp: time
+      workflow: workflow_name
+      job: job_name
+      step: step_name
+      runner: runner_name
+      trace_id: trace_id
+      span_id: span_id
+
+# Pipeline for standard GitHub Actions format
+# Format: 2024-01-20T10:30:45.123Z ##[group]Starting: Build
+- regex:
+    expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+##\[(?P<action>\w+)\](?P<message>.*)'
+
+# Extract error patterns
+- regex:
+    expression: '(?i)(error|failed|fatal|exception):\s*(?P<error_message>.*)'
+
+# Extract warning patterns
+- regex:
+    expression: '(?i)(warning|warn):\s*(?P<warning_message>.*)'
+
+# Label extraction
+- labels:
+    level:
+    workflow:
+    job:
+    step:
+    trace_id:
+
+# Drop sensitive data patterns
+- replace:
+    expression: '(password|token|secret|key)=\S+'
+    replace: '$1=***REDACTED***'
+
+# Output formatting
+- output:
+    source: message

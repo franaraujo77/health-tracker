@@ -1,0 +1,67 @@
+# Grafana Data Source Configuration for Loki and Tempo
+# Place this file in Grafana's provisioning/datasources/ directory
+
+apiVersion: 1
+
+datasources:
+  # Loki Data Source
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki.observability.svc.cluster.local:3100
+    isDefault: false
+    editable: true
+    jsonData:
+      maxLines: 1000
+      timeout: 60
+      # Derived fields for trace correlation
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: "(?:trace_id|traceID)[=:\"\\s]+(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+          urlDisplayLabel: "View Trace in Tempo"
+        - datasourceUid: tempo
+          matcherRegex: "(?:span_id|spanID)[=:\"\\s]+(\\w+)"
+          name: SpanID
+          url: "$${__value.raw}"
+          urlDisplayLabel: "View Span in Tempo"
+    uid: loki
+
+  # Tempo Data Source
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo.observability.svc.cluster.local:3200
+    isDefault: false
+    editable: true
+    jsonData:
+      # Trace to logs configuration
+      tracesToLogs:
+        datasourceUid: loki
+        tags: ['service.name', 'job', 'workflow']
+        mappedTags:
+          - key: service.name
+            value: service
+          - key: job
+            value: job
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        filterByTraceID: true
+        filterBySpanID: true
+        lokiSearch: true
+        customQuery: false
+        query: '{job="$${__tags}"} |="$${__trace.traceId}"'
+      # Service graph
+      serviceMap:
+        datasourceUid: prometheus
+      # Node graph
+      nodeGraph:
+        enabled: true
+      # Search configuration
+      search:
+        hide: false
+      # Loki search
+      lokiSearch:
+        datasourceUid: loki
+    uid: tempo

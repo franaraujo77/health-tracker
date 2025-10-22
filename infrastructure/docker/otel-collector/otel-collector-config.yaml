@@ -122,19 +122,39 @@ exporters:
       max_interval: 30s
       max_elapsed_time: 300s
 
-  otlp/logs:
-    endpoint: loki:3100
-    tls:
-      insecure: true
-    sending_queue:
-      enabled: true
-      num_consumers: 10
-      queue_size: 1000
+  # Loki exporter for log aggregation
+  loki:
+    endpoint: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+    # Tenant ID for multi-tenancy (X-Scope-OrgID header)
+    tenant_id: github-actions
+    # Labels to add to all logs
+    labels:
+      resource:
+        service.name: "service_name"
+        service.namespace: "service_namespace"
+      attributes:
+        level: "level"
+        job: "job"
+        workflow: "workflow"
+      record:
+        traceID: "trace_id"
+        spanID: "span_id"
+    # Format for log entries
+    format: json
+    # Timeout for sending logs
+    timeout: 10s
+    # Retry configuration
     retry_on_failure:
       enabled: true
       initial_interval: 5s
       max_interval: 30s
       max_elapsed_time: 300s
+    # Sending queue configuration
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 1000
+      storage: file_storage
 
 # Extensions: Provide additional capabilities
 extensions:
@@ -155,10 +175,15 @@ extensions:
   pprof:
     endpoint: 0.0.0.0:1777
 
+  # File storage for persistent queue
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    timeout: 10s
+
 # Service: Define telemetry pipelines
 service:
   # Enable extensions
-  extensions: [health_check, zpages, pprof]
+  extensions: [health_check, zpages, pprof, file_storage]
 
   # Telemetry for the collector itself
   telemetry:
@@ -186,4 +211,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, resourcedetection, attributes, batch]
-      exporters: [logging, otlp/logs]
+      exporters: [logging, loki]
