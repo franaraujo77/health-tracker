@@ -33,6 +33,9 @@ class RecoveryIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    // Use RestTemplate without authentication for public webhook endpoint
+    private TestRestTemplate unauthenticatedRestTemplate;
+
     @Autowired
     private RecoveryOrchestrationService orchestrationService;
 
@@ -41,6 +44,8 @@ class RecoveryIntegrationTest {
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
+        // Create unauthenticated RestTemplate for public webhook endpoint
+        unauthenticatedRestTemplate = restTemplate.withBasicAuth("", "");
     }
 
     @Test
@@ -49,8 +54,8 @@ class RecoveryIntegrationTest {
         // Given: An AlertManager webhook payload
         AlertManagerWebhook webhook = createTestWebhook("firing", "PipelineFailure");
 
-        // When: Posting webhook to endpoint
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        // When: Posting webhook to endpoint (unauthenticated - public endpoint)
+        ResponseEntity<Map> response = unauthenticatedRestTemplate.postForEntity(
                 "/api/v1/observability/alerts/webhook",
                 webhook,
                 Map.class
@@ -74,8 +79,8 @@ class RecoveryIntegrationTest {
                 createAlert("RateLimitExceeded", "claude-review")
         ));
 
-        // When: Posting webhook
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        // When: Posting webhook (unauthenticated - public endpoint)
+        ResponseEntity<Map> response = unauthenticatedRestTemplate.postForEntity(
                 "/api/v1/observability/alerts/webhook",
                 webhook,
                 Map.class
@@ -89,8 +94,8 @@ class RecoveryIntegrationTest {
     @Test
     @DisplayName("Health endpoint should return healthy status")
     void healthEndpointShouldReturnHealthy() {
-        // When: Calling health endpoint
-        ResponseEntity<Map> response = restTemplate.getForEntity(
+        // When: Calling health endpoint (unauthenticated - public endpoint)
+        ResponseEntity<Map> response = unauthenticatedRestTemplate.getForEntity(
                 "/api/v1/observability/alerts/health",
                 Map.class
         );
@@ -174,8 +179,8 @@ class RecoveryIntegrationTest {
         // Given: Resolved alert
         AlertManagerWebhook webhook = createTestWebhook("resolved", "PipelineFailure");
 
-        // When: Posting webhook
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        // When: Posting webhook (unauthenticated - public endpoint)
+        ResponseEntity<Map> response = unauthenticatedRestTemplate.postForEntity(
                 "/api/v1/observability/alerts/webhook",
                 webhook,
                 Map.class
