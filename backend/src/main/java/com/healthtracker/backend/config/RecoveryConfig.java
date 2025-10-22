@@ -6,9 +6,7 @@ import com.healthtracker.backend.service.recovery.RateLimitRecoveryHandler;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Configuration for automated recovery system.
@@ -40,13 +38,5 @@ public class RecoveryConfig {
         orchestrationService.registerHandler("APIRateLimited", rateLimitRecoveryHandler);
 
         log.info("Registered {} recovery handlers", 5);
-    }
-
-    /**
-     * RestTemplate for making HTTP requests to external APIs
-     */
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
     }
 }
