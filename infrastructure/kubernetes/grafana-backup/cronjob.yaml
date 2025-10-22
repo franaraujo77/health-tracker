@@ -1,0 +1,120 @@
+# Grafana Dashboard Backup CronJob
+# Runs daily at 03:00 UTC to export dashboards and commit to Git
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: grafana-dashboard-backup
+  namespace: observability
+  labels:
+    app: grafana-dashboard-backup
+    component: backup
+spec:
+  # Run daily at 03:00 UTC
+  schedule: "0 3 * * *"
+
+  # Keep last 3 successful and 1 failed job for debugging
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # Don't start new job if previous still running
+  concurrencyPolicy: Forbid
+
+  # Job template
+  jobTemplate:
+    metadata:
+      labels:
+        app: grafana-dashboard-backup
+        component: backup
+    spec:
+      # Clean up after 1 day
+      ttlSecondsAfterFinished: 86400
+
+      # Retry once on failure
+      backoffLimit: 1
+
+      template:
+        metadata:
+          labels:
+            app: grafana-dashboard-backup
+            component: backup
+        spec:
+          serviceAccountName: grafana-dashboard-backup
+          restartPolicy: Never
+
+          # Security context
+          securityContext:
+            fsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
+
+          containers:
+            - name: backup
+              image: health-tracker/grafana-backup:1.0.0
+              imagePullPolicy: IfNotPresent
+
+              env:
+                # Grafana connection
+                - name: GRAFANA_URL
+                  value: "http://grafana.observability.svc.cluster.local:3000"
+
+                # Grafana API key from secret
+                - name: GRAFANA_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-dashboard-backup-credentials
+                      key: api_key
+
+                # Git repository configuration
+                - name: GIT_REPO_URL
+                  value: "git@github.com:your-org/health-tracker.git"
+                - name: GIT_BRANCH
+                  value: "main"
+                - name: GIT_AUTHOR_NAME
+                  value: "Grafana Backup Bot"
+                - name: GIT_AUTHOR_EMAIL
+                  value: "grafana-backup@health-tracker.local"
+
+                # Dashboard directory in repository
+                - name: DASHBOARD_DIR
+                  value: ".github/dashboards"
+
+                # SSH key path for Git authentication
+                - name: SSH_KEY_PATH
+                  value: "/secrets/ssh/id_rsa"
+
+              # Resource requirements
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+
+              # Security context
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop:
+                    - ALL
+
+              # Volume mounts
+              volumeMounts:
+                - name: workspace
+                  mountPath: /workspace
+                - name: ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+
+          volumes:
+            - name: workspace
+              emptyDir:
+                sizeLimit: 1Gi
+            - name: ssh-key
+              secret:
+                secretName: grafana-dashboard-backup-ssh-key
+                defaultMode: 0600
