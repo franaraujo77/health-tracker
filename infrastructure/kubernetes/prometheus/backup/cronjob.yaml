@@ -1,0 +1,120 @@
+# Prometheus Backup CronJob
+# Runs daily at 02:00 UTC to create snapshots and upload to S3
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: prometheus-backup
+  namespace: observability
+  labels:
+    app: prometheus-backup
+    component: backup
+spec:
+  # Run daily at 02:00 UTC
+  schedule: "0 2 * * *"
+
+  # Keep last 3 successful and 1 failed job for debugging
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # Don't start new job if previous still running
+  concurrencyPolicy: Forbid
+
+  # Job template
+  jobTemplate:
+    metadata:
+      labels:
+        app: prometheus-backup
+        component: backup
+    spec:
+      # Clean up after 1 day
+      ttlSecondsAfterFinished: 86400
+
+      # Retry once on failure
+      backoffLimit: 1
+
+      template:
+        metadata:
+          labels:
+            app: prometheus-backup
+            component: backup
+        spec:
+          serviceAccountName: prometheus-backup
+          restartPolicy: Never
+
+          # Security context
+          securityContext:
+            fsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
+
+          containers:
+            - name: backup
+              image: health-tracker/prometheus-backup:1.0.0
+              imagePullPolicy: IfNotPresent
+
+              env:
+                # Prometheus connection
+                - name: PROMETHEUS_URL
+                  value: "http://prometheus-0.prometheus.observability.svc.cluster.local:9090"
+
+                # S3 configuration
+                - name: S3_BUCKET
+                  value: "health-tracker-prometheus-backups"
+                - name: S3_REGION
+                  value: "us-east-1"
+                - name: S3_PREFIX
+                  value: "prometheus-snapshots"
+
+                # AWS credentials
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: prometheus-backup-s3-credentials
+                      key: access_key_id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: prometheus-backup-s3-credentials
+                      key: secret_access_key
+
+                # Backup retention configuration
+                - name: RETENTION_DAILY
+                  value: "30"
+                - name: RETENTION_MONTHLY
+                  value: "12"
+                - name: RETENTION_YEARLY
+                  value: "3"
+
+                # Backup verification
+                - name: VERIFY_BACKUP
+                  value: "true"
+
+              # Resource requirements
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+
+              # Security context
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop:
+                    - ALL
+
+              # Temp directory for snapshot processing
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+
+          volumes:
+            - name: tmp
+              emptyDir:
+                sizeLimit: 10Gi
