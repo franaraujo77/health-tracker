@@ -1,0 +1,292 @@
+{
+  "dashboard": {
+    "title": "Cost Dashboard - Financial Tracking",
+    "uid": "cost-dashboard",
+    "tags": ["pipeline", "cost", "financial"],
+    "timezone": "browser",
+    "refresh": "1h",
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "workflow",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(cost_tracking_total_dollars, workflow_name)",
+          "multi": true,
+          "includeAll": true
+        },
+        {
+          "name": "cost_type",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(cost_tracking_total_dollars, cost_type)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Monthly Cost",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "sum(increase(cost_tracking_total_dollars{cost_type=~\"$cost_type\",workflow_name=~\"$workflow\"}[30d]))",
+          "legendFormat": "Total"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 500, "color": "yellow"},
+                {"value": 1000, "color": "red"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Claude API Monthly Cost",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "sum(increase(claude_api_cost_dollars{workflow_name=~\"$workflow\"}[30d]))",
+          "legendFormat": "Claude API"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"fixedColor": "blue", "mode": "fixed"}
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 3,
+        "title": "AWS Monthly Cost",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "sum(increase(aws_infrastructure_cost_dollars{workflow_name=~\"$workflow\"}[30d]))",
+          "legendFormat": "AWS"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"fixedColor": "orange", "mode": "fixed"}
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 4,
+        "title": "Cost Per Pipeline Run",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "sum(rate(cost_tracking_total_dollars{workflow_name=~\"$workflow\"}[24h])) /\nsum(rate(pipeline_runs_total{workflow_name=~\"$workflow\"}[24h]))",
+          "legendFormat": "Avg Cost/Run"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 4,
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 0.5, "color": "yellow"},
+                {"value": 1, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Daily Cost Trend (30 days)",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(rate(cost_tracking_total_dollars{cost_type=~\"$cost_type\",workflow_name=~\"$workflow\"}[1d])) by (cost_type)",
+          "legendFormat": "{{cost_type}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 20,
+              "spanNulls": true,
+              "stacking": {"mode": "normal"}
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["lastNotNull", "mean", "sum"]
+          },
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Cost Breakdown by Type",
+        "type": "piechart",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(increase(cost_tracking_total_dollars{cost_type=~\"$cost_type\",workflow_name=~\"$workflow\"}[30d])) by (cost_type)",
+          "legendFormat": "{{cost_type}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "percent"]
+          },
+          "pieType": "pie",
+          "displayLabels": ["name", "percent"]
+        }
+      },
+      {
+        "id": 7,
+        "title": "Claude API Token Usage (30d)",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 12, "w": 8, "h": 4},
+        "targets": [{
+          "expr": "sum(increase(claude_api_tokens_total{workflow_name=~\"$workflow\"}[30d]))",
+          "legendFormat": "Total Tokens"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 8,
+        "title": "Cost by Workflow (Top 10)",
+        "type": "bargauge",
+        "gridPos": {"x": 8, "y": 12, "w": 16, "h": 8},
+        "targets": [{
+          "expr": "topk(10,\n  sum(increase(cost_tracking_total_dollars{cost_type=~\"$cost_type\"}[7d])) by (workflow_name)\n)",
+          "legendFormat": "{{workflow_name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"mode": "continuous-GrYlRd"}
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        }
+      },
+      {
+        "id": 9,
+        "title": "Cost Anomalies (Recent)",
+        "type": "table",
+        "gridPos": {"x": 0, "y": 20, "w": 24, "h": 6},
+        "targets": [{
+          "expr": "cost_anomalies_detected_total{severity=~\"high|critical\",workflow_name=~\"$workflow\"}",
+          "format": "table",
+          "instant": true
+        }],
+        "transformations": [{
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "__name__": true},
+            "indexByName": {
+              "severity": 0,
+              "cost_type": 1,
+              "workflow_name": 2,
+              "detected_at": 3,
+              "expected_cost": 4,
+              "actual_cost": 5
+            },
+            "renameByName": {
+              "severity": "Severity",
+              "cost_type": "Cost Type",
+              "workflow_name": "Workflow",
+              "detected_at": "Detected At",
+              "expected_cost": "Expected ($)",
+              "actual_cost": "Actual ($)"
+            }
+          }
+        }],
+        "fieldConfig": {
+          "overrides": [{
+            "matcher": {"id": "byName", "options": "Severity"},
+            "properties": [{
+              "id": "custom.cellOptions",
+              "value": {
+                "type": "color-background",
+                "mode": "basic"
+              }
+            }, {
+              "id": "mappings",
+              "value": [{
+                "type": "value",
+                "options": {
+                  "critical": {"color": "dark-red", "index": 0},
+                  "high": {"color": "dark-orange", "index": 1}
+                }
+              }]
+            }]
+          }]
+        },
+        "options": {
+          "sortBy": [{"displayName": "Detected At", "desc": true}]
+        }
+      }
+    ],
+    "links": [
+      {"title": "← Executive Dashboard", "url": "/d/executive-dashboard", "keepTime": true},
+      {"title": "← Development Dashboard", "url": "/d/development-dashboard", "keepTime": true}
+    ]
+  }
+}

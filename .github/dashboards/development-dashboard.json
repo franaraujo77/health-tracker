@@ -1,0 +1,241 @@
+{
+  "dashboard": {
+    "title": "Development Dashboard - Build Performance",
+    "uid": "development-dashboard",
+    "tags": ["pipeline", "development", "performance"],
+    "timezone": "browser",
+    "refresh": "1m",
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "workflow",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(frontend_build_duration_seconds, workflow_name)",
+          "multi": true,
+          "includeAll": true
+        },
+        {
+          "name": "pr_number",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(pipeline_runs_total{workflow_name=~\"$workflow\"}, pr_number)",
+          "multi": false,
+          "includeAll": true
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Build Duration by Workflow (7d avg)",
+        "type": "bargauge",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "avg(frontend_build_duration_seconds{workflow_name=~\"$workflow\"}) by (workflow_name)",
+            "legendFormat": "Frontend - {{workflow_name}}"
+          },
+          {
+            "expr": "avg(backend_compile_duration_seconds{workflow_name=~\"$workflow\"}) by (workflow_name)",
+            "legendFormat": "Backend - {{workflow_name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "continuous-GrYlRd"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 120, "color": "yellow"},
+                {"value": 300, "color": "red"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        }
+      },
+      {
+        "id": 2,
+        "title": "Test Coverage Trend",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "frontend_test_coverage_percent{workflow_name=~\"$workflow\"}",
+            "legendFormat": "Frontend"
+          },
+          {
+            "expr": "backend_test_coverage_percent{workflow_name=~\"$workflow\"}",
+            "legendFormat": "Backend"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "spanNulls": true
+            }
+          },
+          "overrides": [{
+            "matcher": {"id": "byName", "options": "Target"},
+            "properties": [{
+              "id": "custom.lineStyle",
+              "value": {"fill": "dash", "dash": [10, 10]}
+            }]
+          }]
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "calcs": ["lastNotNull", "mean", "min"]
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Flaky Test Detection",
+        "type": "table",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "topk(10,\n  sum(increase(test_flaky_total{workflow_name=~\"$workflow\"}[7d])) by (test_name, workflow_name)\n)",
+          "format": "table",
+          "instant": true
+        }],
+        "transformations": [{
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true},
+            "indexByName": {
+              "test_name": 0,
+              "workflow_name": 1,
+              "Value": 2
+            },
+            "renameByName": {
+              "test_name": "Test Name",
+              "workflow_name": "Workflow",
+              "Value": "Flaky Count (7d)"
+            }
+          }
+        }],
+        "options": {
+          "sortBy": [{"displayName": "Flaky Count (7d)", "desc": true}]
+        }
+      },
+      {
+        "id": 4,
+        "title": "Trace Viewer (Recent Builds)",
+        "type": "nodeGraph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "datasource": "Tempo",
+        "targets": [{
+          "queryType": "traceql",
+          "query": "{name=\"workflow.pipeline\"}",
+          "limit": 20
+        }],
+        "options": {
+          "nodeSizeField": "span.duration",
+          "nodeColorField": "span.status",
+          "edges": {
+            "mainStatUnit": "ms"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Test Execution Time Breakdown",
+        "type": "piechart",
+        "gridPos": {"x": 0, "y": 16, "w": 8, "h": 6},
+        "targets": [{
+          "expr": "sum(backend_test_duration_seconds{workflow_name=~\"$workflow\"}) by (test_suite)",
+          "legendFormat": "{{test_suite}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "percent"]
+          },
+          "pieType": "donut",
+          "displayLabels": ["percent"]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Bundle Size Trend",
+        "type": "timeseries",
+        "gridPos": {"x": 8, "y": 16, "w": 8, "h": 6},
+        "targets": [{
+          "expr": "frontend_build_bundle_size_bytes{workflow_name=~\"$workflow\"} / 1024 / 1024",
+          "legendFormat": "{{workflow_name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "decmbytes",
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 15
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Lighthouse Performance Score",
+        "type": "gauge",
+        "gridPos": {"x": 16, "y": 16, "w": 8, "h": 6},
+        "targets": [{
+          "expr": "avg(lighthouse_performance_score{workflow_name=~\"$workflow\"})",
+          "legendFormat": "Performance"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 50, "color": "orange"},
+                {"value": 75, "color": "yellow"},
+                {"value": 90, "color": "green"}
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "links": [
+      {"title": "← Operations Dashboard", "url": "/d/operations-dashboard", "keepTime": true},
+      {"title": "Cost Dashboard →", "url": "/d/cost-dashboard", "keepTime": true}
+    ]
+  }
+}
