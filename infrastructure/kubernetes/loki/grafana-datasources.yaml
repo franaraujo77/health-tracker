@@ -52,7 +52,20 @@ datasources:
         lokiSearch: true
         customQuery: false
         query: '{job="$${__tags}"} |="$${__trace.traceId}"'
-      # Service graph
+      # Trace to metrics (exemplars)
+      tracesToMetrics:
+        datasourceUid: prometheus
+        tags:
+          - key: 'service.name'
+            value: 'job'
+        queries:
+          - name: 'Request rate'
+            query: 'rate(tempo_spanmetrics_calls_total{$$__tags}[5m])'
+          - name: 'Error rate'
+            query: 'rate(tempo_spanmetrics_calls_total{$$__tags,status_code="STATUS_CODE_ERROR"}[5m])'
+          - name: 'Duration'
+            query: 'histogram_quantile(0.95, sum(rate(tempo_spanmetrics_latency_bucket{$$__tags}[5m])) by (le))'
+      # Service graph from metrics generator
       serviceMap:
         datasourceUid: prometheus
       # Node graph

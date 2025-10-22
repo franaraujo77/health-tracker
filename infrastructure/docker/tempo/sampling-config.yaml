@@ -1,0 +1,52 @@
+# Tempo Tail Sampling Configuration
+# Intelligent sampling strategy: always sample errors/slow requests, 10% probabilistic for others
+
+# Sampling policies applied in order
+policies:
+  # Policy 1: Always sample traces with errors
+  - name: always-sample-errors
+    type: status_code
+    status_code:
+      status_codes:
+        - ERROR
+        - UNSET
+
+  # Policy 2: Always sample slow requests (>5s)
+  - name: always-sample-slow
+    type: latency
+    latency:
+      threshold_ms: 5000
+
+  # Policy 3: Always sample specific workflows
+  - name: always-sample-critical-workflows
+    type: string_attribute
+    string_attribute:
+      key: workflow
+      values:
+        - frontend-ci
+        - backend-ci
+        - validation-orchestrator
+      enabled_regex_matching: false
+
+  # Policy 4: Sample by trace state (errors, warnings)
+  - name: sample-by-trace-state
+    type: trace_state
+    trace_state:
+      key: error
+      values:
+        - "true"
+
+  # Policy 5: Probabilistic sampling for everything else (10%)
+  - name: probabilistic-10-percent
+    type: probabilistic
+    probabilistic:
+      sampling_percentage: 10
+
+# Decision wait time before sampling decision is made
+decision_wait: 10s
+
+# Number of traces to keep in memory for decision
+num_traces: 100000
+
+# Expected new traces per second
+expected_new_traces_per_sec: 1000
