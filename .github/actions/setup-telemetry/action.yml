@@ -1,0 +1,208 @@
+name: 'Setup OpenTelemetry'
+description: 'Initialize OpenTelemetry SDK for GitHub Actions workflow instrumentation'
+author: 'Health Tracker Team'
+
+inputs:
+  service-name:
+    description: 'Service name for telemetry (defaults to workflow name)'
+    required: false
+    default: '${{ github.workflow }}'
+  otel-endpoint:
+    description: 'OpenTelemetry Collector OTLP endpoint'
+    required: false
+    default: 'http://otel-collector.observability.svc.cluster.local:4317'
+  trace-enabled:
+    description: 'Enable distributed tracing'
+    required: false
+    default: 'true'
+  metrics-enabled:
+    description: 'Enable metrics collection'
+    required: false
+    default: 'true'
+
+outputs:
+  trace-id:
+    description: 'Generated trace ID for this workflow execution'
+    value: ${{ steps.init-otel.outputs.trace_id }}
+  service-name:
+    description: 'Resolved service name'
+    value: ${{ steps.init-otel.outputs.service_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install OpenTelemetry CLI
+      id: install-otel-cli
+      shell: bash
+      run: |
+        echo "📦 Installing otel-cli for workflow instrumentation..."
+
+        # Download and install otel-cli
+        OTEL_CLI_VERSION="0.4.5"
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+
+        # Map architecture names
+        case $ARCH in
+          x86_64) ARCH="amd64" ;;
+          aarch64|arm64) ARCH="arm64" ;;
+        esac
+
+        DOWNLOAD_URL="https://github.com/equinix-labs/otel-cli/releases/download/v${OTEL_CLI_VERSION}/otel-cli_${OTEL_CLI_VERSION}_${OS}_${ARCH}.tar.gz"
+
+        echo "🌐 Downloading otel-cli from: $DOWNLOAD_URL"
+        curl -sL "$DOWNLOAD_URL" -o /tmp/otel-cli.tar.gz
+
+        echo "📂 Extracting otel-cli..."
+        tar -xzf /tmp/otel-cli.tar.gz -C /tmp
+
+        echo "📋 Installing otel-cli to /usr/local/bin..."
+        sudo mv /tmp/otel-cli /usr/local/bin/
+        sudo chmod +x /usr/local/bin/otel-cli
+
+        echo "✅ otel-cli installed successfully"
+        otel-cli --version
+
+    - name: Initialize OpenTelemetry
+      id: init-otel
+      shell: bash
+      env:
+        SERVICE_NAME: ${{ inputs.service-name }}
+        OTEL_ENDPOINT: ${{ inputs.otel-endpoint }}
+        TRACE_ENABLED: ${{ inputs.trace-enabled }}
+        METRICS_ENABLED: ${{ inputs.metrics-enabled }}
+      run: |
+        echo "🔧 Initializing OpenTelemetry for workflow: $SERVICE_NAME"
+
+        # Export OpenTelemetry environment variables
+        echo "OTEL_SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
+        echo "OTEL_EXPORTER_OTLP_ENDPOINT=$OTEL_ENDPOINT" >> $GITHUB_ENV
+        echo "OTEL_EXPORTER_OTLP_PROTOCOL=grpc" >> $GITHUB_ENV
+        echo "OTEL_TRACES_EXPORTER=otlp" >> $GITHUB_ENV
+        echo "OTEL_METRICS_EXPORTER=otlp" >> $GITHUB_ENV
+        echo "OTEL_LOGS_EXPORTER=otlp" >> $GITHUB_ENV
+
+        # Set resource attributes for GitHub Actions context
+        RESOURCE_ATTRS="service.name=$SERVICE_NAME"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,service.version=${{ github.sha }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,deployment.environment=ci"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.workflow=${{ github.workflow }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.run_id=${{ github.run_id }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.run_number=${{ github.run_number }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.run_attempt=${{ github.run_attempt }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.actor=${{ github.actor }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.repository=${{ github.repository }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.ref=${{ github.ref }}"
+        RESOURCE_ATTRS="$RESOURCE_ATTRS,github.sha=${{ github.sha }}"
+
+        # Add PR-specific attributes if available
+        if [ -n "${{ github.event.pull_request.number }}" ]; then
+          RESOURCE_ATTRS="$RESOURCE_ATTRS,github.pr.number=${{ github.event.pull_request.number }}"
+          RESOURCE_ATTRS="$RESOURCE_ATTRS,github.pr.head_ref=${{ github.head_ref }}"
+          RESOURCE_ATTRS="$RESOURCE_ATTRS,github.pr.base_ref=${{ github.base_ref }}"
+        fi
+
+        echo "OTEL_RESOURCE_ATTRIBUTES=$RESOURCE_ATTRS" >> $GITHUB_ENV
+
+        # Generate trace ID for this workflow run
+        TRACE_ID=$(openssl rand -hex 16)
+        echo "trace_id=$TRACE_ID" >> $GITHUB_OUTPUT
+        echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+        echo "OTEL_TRACE_ID=$TRACE_ID" >> $GITHUB_ENV
+
+        echo "✅ OpenTelemetry initialized"
+        echo "   Service: $SERVICE_NAME"
+        echo "   Endpoint: $OTEL_ENDPOINT"
+        echo "   Trace ID: $TRACE_ID"
+        echo "   Traces: $TRACE_ENABLED"
+        echo "   Metrics: $METRICS_ENABLED"
+
+        # Create workflow span (root span for entire workflow)
+        if [ "$TRACE_ENABLED" = "true" ]; then
+          echo "📊 Creating root span for workflow execution..."
+          otel-cli span background \
+            --service "$SERVICE_NAME" \
+            --name "workflow.${{ github.workflow }}" \
+            --kind server \
+            --attrs "workflow.trigger=${{ github.event_name }}" \
+            --attrs "workflow.status=running" \
+            --endpoint "$OTEL_ENDPOINT" \
+            --tp-print || echo "⚠️  Warning: Failed to create background span (non-blocking)"
+        fi
+
+    - name: Export telemetry helper functions
+      shell: bash
+      run: |
+        # Create helper script for workflow steps
+        cat > /tmp/otel-helpers.sh << 'OTEL_HELPERS_EOF'
+#!/bin/bash
+
+# Function to create a span for a workflow step
+otel_span_step() {
+  local step_name="$1"
+  local step_status="${2:-success}"
+
+  if [ "$OTEL_TRACES_ENABLED" != "false" ]; then
+    otel-cli span \
+      --service "$OTEL_SERVICE_NAME" \
+      --name "step.$step_name" \
+      --kind internal \
+      --attrs "step.name=$step_name" \
+      --attrs "step.status=$step_status" \
+      --endpoint "$OTEL_EXPORTER_OTLP_ENDPOINT" \
+      "${@:3}" || true
+  fi
+}
+
+# Function to export metrics
+otel_metric() {
+  local metric_name="$1"
+  local metric_value="$2"
+  local metric_type="${3:-counter}"
+
+  if [ "$OTEL_METRICS_ENABLED" != "false" ]; then
+    case $metric_type in
+      counter)
+        otel-cli counter add \
+          --name "$metric_name" \
+          --value "$metric_value" \
+          --service "$OTEL_SERVICE_NAME" \
+          --endpoint "$OTEL_EXPORTER_OTLP_ENDPOINT" || true
+        ;;
+      gauge)
+        otel-cli gauge set \
+          --name "$metric_name" \
+          --value "$metric_value" \
+          --service "$OTEL_SERVICE_NAME" \
+          --endpoint "$OTEL_EXPORTER_OTLP_ENDPOINT" || true
+        ;;
+    esac
+  fi
+}
+
+# Function to wrap command execution with span
+otel_exec() {
+  local span_name="$1"
+  shift
+
+  if [ "$OTEL_TRACES_ENABLED" != "false" ]; then
+    otel-cli exec \
+      --service "$OTEL_SERVICE_NAME" \
+      --name "$span_name" \
+      --endpoint "$OTEL_EXPORTER_OTLP_ENDPOINT" \
+      -- "$@"
+  else
+    "$@"
+  fi
+}
+
+export -f otel_span_step
+export -f otel_metric
+export -f otel_exec
+OTEL_HELPERS_EOF
+
+        chmod +x /tmp/otel-helpers.sh
+        echo "OTEL_HELPERS_PATH=/tmp/otel-helpers.sh" >> $GITHUB_ENV
+
+        echo "✅ Telemetry helper functions exported"
+        echo "   Usage: source \$OTEL_HELPERS_PATH"
