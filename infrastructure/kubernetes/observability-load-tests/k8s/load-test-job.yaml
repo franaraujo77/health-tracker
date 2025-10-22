@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-load-test-observability
+  namespace: observability
+  labels:
+    app: k6-load-test
+    component: testing
+spec:
+  ttlSecondsAfterFinished: 3600  # Clean up after 1 hour
+  template:
+    metadata:
+      labels:
+        app: k6-load-test
+    spec:
+      restartPolicy: Never
+      serviceAccountName: k6-load-test
+      containers:
+      - name: k6
+        image: grafana/k6:0.48.0
+        command:
+          - k6
+          - run
+          - --out
+          - json=/tmp/results.json
+          - /scripts/load-test-comprehensive.js
+        env:
+        - name: K6_PROMETHEUS_RW_SERVER_URL
+          value: "http://prometheus:9090/api/v1/write"
+        - name: PROMETHEUS_URL
+          value: "http://prometheus:9090"
+        - name: LOKI_URL
+          value: "http://loki:3100"
+        - name: TEMPO_URL
+          value: "http://tempo:4318"
+        - name: TEST_RUN_ID
+          value: "$(date +%Y%m%d-%H%M%S)"
+        - name: BATCH_SIZE
+          value: "100"
+        - name: LOGS_PER_BATCH
+          value: "100"
+        - name: SPANS_PER_TRACE
+          value: "10"
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+          limits:
+            cpu: 4
+            memory: 4Gi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: results
+          mountPath: /tmp
+      volumes:
+      - name: scripts
+        configMap:
+          name: k6-load-test-scripts
+      - name: results
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k6-load-test
+  namespace: observability
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-load-test-scripts
+  namespace: observability
+data:
+  load-test-comprehensive.js: |
+    // Placeholder - replace with actual script content
+    // Or use volume mount to inject scripts
