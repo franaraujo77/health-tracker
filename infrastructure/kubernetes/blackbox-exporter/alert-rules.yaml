@@ -1,0 +1,175 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-synthetic-monitoring-rules
+  namespace: observability
+  labels:
+    app: prometheus
+    component: alert-rules
+data:
+  synthetic-monitoring-rules.yml: |
+    groups:
+      - name: synthetic_monitoring
+        interval: 30s
+        rules:
+          # Service down alerts
+          - alert: ServiceDown
+            expr: probe_success == 0
+            for: 2m
+            labels:
+              severity: critical
+              category: availability
+            annotations:
+              summary: "Service {{ $labels.service }} is down"
+              description: "{{ $labels.service }} ({{ $labels.check }}) has been unreachable for 2 minutes.\n  Current status: {{ $value }}\n  Instance: {{ $labels.instance }}"
+              runbook: "docs/observability/runbooks.md#service-down"
+
+          # High probe failure rate
+          - alert: HighProbeFailureRate
+            expr: |
+              (
+                sum by (service, check) (rate(probe_success{job="blackbox-http"}[5m]) == 0)
+                /
+                sum by (service, check) (rate(probe_success{job="blackbox-http"}[5m]))
+              ) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              category: availability
+            annotations:
+              summary: "High probe failure rate for {{ $labels.service }}"
+              description: "{{ $labels.service }} ({{ $labels.check }}) has {{ $value | humanizePercentage }} probe failure rate over the last 5 minutes."
+              runbook: "docs/observability/runbooks.md#high-probe-failure"
+
+          # Slow probe response
+          - alert: SlowProbeResponse
+            expr: probe_duration_seconds > 5
+            for: 5m
+            labels:
+              severity: warning
+              category: performance
+            annotations:
+              summary: "Slow probe response for {{ $labels.service }}"
+              description: "{{ $labels.service }} ({{ $labels.check }}) is responding slowly. Current duration: {{ $value | humanizeDuration }}"
+              runbook: "docs/observability/runbooks.md#slow-probe-response"
+
+          # SSL certificate expiration
+          - alert: SSLCertificateExpiringSoon
+            expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+            for: 1h
+            labels:
+              severity: warning
+              category: security
+            annotations:
+              summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+              description: "SSL certificate for {{ $labels.instance }} will expire in {{ $value | humanizeDuration }}."
+              runbook: "docs/observability/runbooks.md#ssl-certificate-expiring"
+
+          # Critical service availability - Prometheus
+          - alert: PrometheusUnavailable
+            expr: probe_success{service="prometheus"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              category: availability
+              service: prometheus
+            annotations:
+              summary: "Prometheus is unavailable"
+              description: "Prometheus has been unreachable for 1 minute. All monitoring is at risk."
+              runbook: "docs/observability/runbooks.md#prometheus-unavailable"
+
+          # Critical service availability - Grafana
+          - alert: GrafanaUnavailable
+            expr: probe_success{service="grafana"} == 0
+            for: 2m
+            labels:
+              severity: high
+              category: availability
+              service: grafana
+            annotations:
+              summary: "Grafana is unavailable"
+              description: "Grafana has been unreachable for 2 minutes. Dashboards are inaccessible."
+              runbook: "docs/observability/runbooks.md#grafana-unavailable"
+
+          # Critical service availability - Loki
+          - alert: LokiUnavailable
+            expr: probe_success{service="loki"} == 0
+            for: 2m
+            labels:
+              severity: high
+              category: availability
+              service: loki
+            annotations:
+              summary: "Loki is unavailable"
+              description: "Loki has been unreachable for 2 minutes. Log ingestion is failing."
+              runbook: "docs/observability/runbooks.md#loki-unavailable"
+
+          # Critical service availability - Tempo
+          - alert: TempoUnavailable
+            expr: probe_success{service="tempo"} == 0
+            for: 2m
+            labels:
+              severity: high
+              category: availability
+              service: tempo
+            annotations:
+              summary: "Tempo is unavailable"
+              description: "Tempo has been unreachable for 2 minutes. Trace ingestion is failing."
+              runbook: "docs/observability/runbooks.md#tempo-unavailable"
+
+          # Critical service availability - AlertManager
+          - alert: AlertManagerUnavailable
+            expr: probe_success{service="alertmanager"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              category: availability
+              service: alertmanager
+            annotations:
+              summary: "AlertManager is unavailable"
+              description: "AlertManager has been unreachable for 1 minute. Alert routing is broken."
+              runbook: "docs/observability/runbooks.md#alertmanager-unavailable"
+
+          # OpenTelemetry Collector health
+          - alert: OTelCollectorUnavailable
+            expr: probe_success{service="otel-collector"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              category: availability
+              service: otel-collector
+            annotations:
+              summary: "OpenTelemetry Collector is unavailable"
+              description: "OTel Collector has been unreachable for 2 minutes. Telemetry ingestion is failing."
+              runbook: "docs/observability/runbooks.md#otel-collector-unavailable"
+
+          # Uptime SLA tracking
+          - record: service:uptime:ratio_5m
+            expr: |
+              sum by (service) (rate(probe_success{job="blackbox-http"}[5m]))
+              /
+              sum by (service) (rate(probe_success{job="blackbox-http"}[5m]) >= 0)
+
+          - record: service:uptime:ratio_1h
+            expr: |
+              sum by (service) (rate(probe_success{job="blackbox-http"}[1h]))
+              /
+              sum by (service) (rate(probe_success{job="blackbox-http"}[1h]) >= 0)
+
+          - record: service:uptime:ratio_24h
+            expr: |
+              sum by (service) (rate(probe_success{job="blackbox-http"}[24h]))
+              /
+              sum by (service) (rate(probe_success{job="blackbox-http"}[24h]) >= 0)
+
+          # SLA violation (below 99.9% uptime)
+          - alert: SLAViolation
+            expr: service:uptime:ratio_24h < 0.999
+            for: 10m
+            labels:
+              severity: high
+              category: sla
+            annotations:
+              summary: "SLA violation for {{ $labels.service }}"
+              description: "{{ $labels.service }} uptime is {{ $value | humanizePercentage }}, below 99.9% SLA target."
+              runbook: "docs/observability/runbooks.md#sla-violation"

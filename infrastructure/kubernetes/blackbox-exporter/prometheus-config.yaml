@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-blackbox-targets
+  namespace: observability
+  labels:
+    app: prometheus
+    component: synthetic-monitoring
+data:
+  blackbox-targets.yml: |
+    # Synthetic Monitoring Targets for Blackbox Exporter
+    # These targets are scraped by Prometheus to monitor service availability
+
+    # Prometheus availability and API functionality
+    - targets:
+        - http://prometheus:9090
+      labels:
+        service: prometheus
+        check: http_availability
+        severity: critical
+        module: http_2xx
+
+    - targets:
+        - http://prometheus:9090/api/v1/query
+      labels:
+        service: prometheus
+        check: api_query
+        severity: critical
+        module: prometheus_api
+
+    # Grafana availability and dashboard rendering
+    - targets:
+        - http://grafana:3000
+      labels:
+        service: grafana
+        check: http_availability
+        severity: high
+        module: grafana_dashboard
+
+    - targets:
+        - http://grafana:3000/api/health
+      labels:
+        service: grafana
+        check: health_endpoint
+        severity: high
+        module: http_2xx
+
+    # Loki log ingestion and query paths
+    - targets:
+        - http://loki:3100/ready
+      labels:
+        service: loki
+        check: readiness
+        severity: high
+        module: loki_ready
+
+    - targets:
+        - http://loki:3100/loki/api/v1/query?query={job="test"}
+      labels:
+        service: loki
+        check: query_api
+        severity: high
+        module: loki_query
+
+    # Tempo trace storage and query
+    - targets:
+        - http://tempo:3200/ready
+      labels:
+        service: tempo
+        check: readiness
+        severity: high
+        module: tempo_ready
+
+    - targets:
+        - http://tempo:3200/api/echo
+      labels:
+        service: tempo
+        check: api_echo
+        severity: medium
+        module: http_2xx
+
+    # AlertManager availability
+    - targets:
+        - http://alertmanager:9093/-/healthy
+      labels:
+        service: alertmanager
+        check: health
+        severity: critical
+        module: http_2xx
+
+    - targets:
+        - http://alertmanager:9093/api/v2/status
+      labels:
+        service: alertmanager
+        check: api_status
+        severity: critical
+        module: alertmanager_api
+
+    # OpenTelemetry Collector health
+    - targets:
+        - http://otel-collector:13133
+      labels:
+        service: otel-collector
+        check: health
+        severity: critical
+        module: otel_collector_health
+
+    # Backend application health (if running)
+    - targets:
+        - http://backend:8080/actuator/health
+      labels:
+        service: backend
+        check: health
+        severity: high
+        module: http_2xx
+
+    # Frontend application availability (if running)
+    - targets:
+        - http://frontend:3000
+      labels:
+        service: frontend
+        check: http_availability
+        severity: medium
+        module: http_2xx

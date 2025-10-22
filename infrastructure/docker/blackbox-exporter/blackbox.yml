@@ -1,0 +1,133 @@
+# Blackbox Exporter Configuration
+# Defines synthetic monitoring probes for observability stack components
+
+modules:
+  # HTTP 200 check - basic availability
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      preferred_ip_protocol: "ip4"
+      follow_redirects: true
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+
+  # Prometheus API check - validates query endpoint
+  prometheus_api:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "query=up"
+      fail_if_not_matches_regexp:
+        - '.*"status":"success".*'
+      preferred_ip_protocol: "ip4"
+
+  # Grafana dashboard check - validates UI is accessible
+  grafana_dashboard:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 302]  # 302 for auth redirect
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*grafana.*'
+      preferred_ip_protocol: "ip4"
+      follow_redirects: false
+
+  # Loki log ingestion check - validates write path
+  loki_ready:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*ready.*'
+      preferred_ip_protocol: "ip4"
+
+  # Tempo trace query check - validates query endpoint
+  tempo_ready:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*ready.*'
+      preferred_ip_protocol: "ip4"
+
+  # AlertManager API check - validates alerting is operational
+  alertmanager_api:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*status.*'
+      preferred_ip_protocol: "ip4"
+
+  # OpenTelemetry Collector health check
+  otel_collector_health:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*Server available.*'
+      preferred_ip_protocol: "ip4"
+
+  # Advanced Prometheus query check - validates complex queries work
+  prometheus_query_performance:
+    prober: http
+    timeout: 30s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "query=rate(http_requests_total[5m])"
+      fail_if_not_matches_regexp:
+        - '.*"status":"success".*'
+      preferred_ip_protocol: "ip4"
+
+  # Loki log query check - validates read path
+  loki_query:
+    prober: http
+    timeout: 30s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_matches_regexp:
+        - '.*streams.*'
+      preferred_ip_protocol: "ip4"
+
+  # TCP check - for services without HTTP endpoints
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+
+  # ICMP check - basic network connectivity
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
