@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: observability
+
+resources:
+- namespace.yaml
+- serviceaccount.yaml
+- configmap.yaml
+- secret.yaml
+- service.yaml
+- statefulset.yaml
+
+commonLabels:
+  app.kubernetes.io/name: tempo
+  app.kubernetes.io/instance: tempo
+  app.kubernetes.io/version: "2.3.1"
+  app.kubernetes.io/component: distributed-tracing
+  app.kubernetes.io/part-of: observability-stack
+
+images:
+- name: health-tracker/tempo
+  newName: health-tracker/tempo
+  newTag: "2.3.1"
+
+replicas:
+- name: tempo
+  count: 1

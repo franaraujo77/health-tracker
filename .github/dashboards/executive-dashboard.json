@@ -1,0 +1,206 @@
+{
+  "dashboard": {
+    "title": "Executive Dashboard - Pipeline Health",
+    "uid": "executive-dashboard",
+    "tags": ["pipeline", "executive", "kpi"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "refresh": "5m",
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "workflow",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(pipeline_runs_total, workflow_name)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Pipeline Health Score",
+        "type": "gauge",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "(\n  sum(rate(pipeline_runs_total{status=\"success\",workflow_name=~\"$workflow\"}[24h])) /\n  sum(rate(pipeline_runs_total{workflow_name=~\"$workflow\"}[24h]))\n) * 100",
+          "legendFormat": "Health Score"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 80, "color": "yellow"},
+                {"value": 95, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Mean Time To Recovery (MTTR)",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "avg(\n  (time() - timestamp(pipeline_failure_timestamp{workflow_name=~\"$workflow\"}))\n  -\n  (time() - timestamp(pipeline_recovery_timestamp{workflow_name=~\"$workflow\"}))\n) / 60",
+          "legendFormat": "MTTR"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "m",
+            "decimals": 1,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 30, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Monthly Pipeline Cost",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "sum(increase(cost_tracking_total_dollars{workflow_name=~\"$workflow\"}[30d]))",
+          "legendFormat": "Total Cost"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "SLA Compliance",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [{
+          "expr": "(\n  sum(rate(pipeline_runs_total{status=\"success\",duration_seconds<=1800,workflow_name=~\"$workflow\"}[7d])) /\n  sum(rate(pipeline_runs_total{workflow_name=~\"$workflow\"}[7d]))\n) * 100",
+          "legendFormat": "SLA %"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 95, "color": "yellow"},
+                {"value": 99, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Pipeline Success Rate Trend (30 days)",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(rate(pipeline_runs_total{status=\"success\",workflow_name=~\"$workflow\"}[1h])) by (workflow_name) /\nsum(rate(pipeline_runs_total{workflow_name=~\"$workflow\"}[1h])) by (workflow_name) * 100",
+          "legendFormat": "{{workflow_name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Cost Trend (30 days)",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(rate(cost_tracking_total_dollars{workflow_name=~\"$workflow\"}[1d])) by (cost_type)",
+          "legendFormat": "{{cost_type}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["lastNotNull", "mean"]
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Active Alerts",
+        "type": "table",
+        "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6},
+        "targets": [{
+          "expr": "ALERTS{alertstate=\"firing\",workflow_name=~\"$workflow\"}",
+          "format": "table",
+          "instant": true
+        }],
+        "transformations": [{
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "Value": true},
+            "indexByName": {
+              "alertname": 0,
+              "severity": 1,
+              "workflow_name": 2,
+              "description": 3
+            }
+          }
+        }],
+        "fieldConfig": {
+          "overrides": [{
+            "matcher": {"id": "byName", "options": "severity"},
+            "properties": [{
+              "id": "custom.cellOptions",
+              "value": {
+                "type": "color-background",
+                "mode": "basic"
+              }
+            }, {
+              "id": "mappings",
+              "value": [{
+                "type": "value",
+                "options": {
+                  "critical": {"color": "red", "index": 0},
+                  "high": {"color": "orange", "index": 1},
+                  "medium": {"color": "yellow", "index": 2},
+                  "low": {"color": "blue", "index": 3}
+                }
+              }]
+            }]
+          }]
+        }
+      }
+    ],
+    "links": [
+      {"title": "Operations Dashboard", "url": "/d/operations-dashboard", "keepTime": true},
+      {"title": "Development Dashboard", "url": "/d/development-dashboard", "keepTime": true},
+      {"title": "Cost Dashboard", "url": "/d/cost-dashboard", "keepTime": true}
+    ]
+  }
+}

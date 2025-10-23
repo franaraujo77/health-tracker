@@ -1,0 +1,157 @@
+# Tempo Configuration
+# Distributed tracing backend with S3 storage
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+# Distributor configuration
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+
+  # Ring configuration for multi-instance deployments
+  ring:
+    kvstore:
+      store: memberlist
+
+# Ingester configuration
+ingester:
+  # Trace lifecycle settings
+  trace_idle_period: 10s
+  max_block_duration: 5m
+  max_block_bytes: 1048576  # 1MB
+
+  lifecycler:
+    ring:
+      kvstore:
+        store: memberlist
+      replication_factor: 1
+    tokens_file_path: /var/tempo/wal/tokens
+
+# Compactor configuration
+compactor:
+  compaction:
+    compaction_window: 1h
+    max_compaction_objects: 1000000
+    block_retention: 168h  # 7 days
+    compacted_block_retention: 24h
+    retention_concurrency: 10
+
+  ring:
+    kvstore:
+      store: memberlist
+
+# Metrics generator for service graphs
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: health-tracker
+
+  storage:
+    path: /var/tempo/data/generator/wal
+    remote_write:
+      - url: http://prometheus.observability.svc.cluster.local:9090/api/v1/write
+        send_exemplars: true
+
+  # Service graph generation
+  processor:
+    service_graphs:
+      dimensions:
+        - service.name
+        - service.namespace
+        - workflow
+
+      # Span multiplier settings
+      max_items: 10000
+      workers: 10
+
+    # Span metrics
+    span_metrics:
+      dimensions:
+        - http.method
+        - http.status_code
+        - service.name
+
+# Querier configuration
+querier:
+  max_concurrent_queries: 20
+  frontend_worker:
+    frontend_address: tempo-query-frontend:9095
+
+# Query frontend configuration
+query_frontend:
+  search:
+    max_duration: 0s
+  trace_by_id:
+    query_shards: 50
+
+# Storage configuration
+storage:
+  trace:
+    backend: s3
+
+    # Write-Ahead Log
+    wal:
+      path: /var/tempo/wal
+      encoding: snappy
+
+    # S3 backend
+    s3:
+      bucket: tempo-traces-health-tracker
+      endpoint: s3.us-east-1.amazonaws.com
+      region: us-east-1
+      access_key: ${AWS_ACCESS_KEY_ID}
+      secret_key: ${AWS_SECRET_ACCESS_KEY}
+      insecure: false
+      forcepathstyle: false
+
+    # Block configuration
+    block:
+      version: vParquet3
+      encoding: snappy
+      row_group_size_bytes: 100000000
+
+    # Pool configuration
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+# Memberlist configuration (for multi-instance)
+memberlist:
+  abort_if_cluster_join_fails: false
+  bind_port: 7946
+  join_members:
+    - tempo-headless.observability.svc.cluster.local:7946
+
+# Overrides configuration
+overrides:
+  defaults:
+    # Ingestion limits
+    ingestion_rate_limit_bytes: 100000000  # 100MB/s
+    ingestion_burst_size_bytes: 200000000  # 200MB
+    max_traces_per_user: 100000
+
+    # Search limits
+    max_search_bytes_per_trace: 100000
+
+    # Global limits
+    max_bytes_per_trace: 50000000  # 50MB max trace size
+
+    # Block retention
+    block_retention: 168h  # 7 days
+
+# Usage report (disabled)
+usage_report:
+  reporting_enabled: false

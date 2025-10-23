@@ -1,0 +1,78 @@
+# Prometheus File-Based Service Discovery Targets
+# ConfigMap for static external targets
+#
+# This ConfigMap provides example configurations for file_sd_configs.
+# Add your static targets here for services outside Kubernetes.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-targets
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  # Example: External database cluster
+  databases.json: |
+    [
+      {
+        "targets": [
+          "postgres-primary.example.com:9187",
+          "postgres-replica-1.example.com:9187",
+          "postgres-replica-2.example.com:9187"
+        ],
+        "labels": {
+          "job": "postgres",
+          "environment": "production",
+          "cluster": "main-db"
+        }
+      }
+    ]
+
+  # Example: External HTTP services
+  external-services.yml: |
+    - targets:
+        - api.example.com:443
+        - cdn.example.com:443
+      labels:
+        job: external-http
+        environment: production
+        type: api
+
+  # Example: Cloud provider endpoints
+  cloud-services.json: |
+    [
+      {
+        "targets": [
+          "rds.us-east-1.amazonaws.com:3306"
+        ],
+        "labels": {
+          "job": "aws-rds",
+          "environment": "production",
+          "region": "us-east-1",
+          "provider": "aws"
+        }
+      },
+      {
+        "targets": [
+          "elasticache.us-east-1.amazonaws.com:6379"
+        ],
+        "labels": {
+          "job": "aws-elasticache",
+          "environment": "production",
+          "region": "us-east-1",
+          "provider": "aws"
+        }
+      }
+    ]
+
+  # Example: Third-party SaaS metrics endpoints
+  saas-services.yml: |
+    - targets:
+        - metrics.datadog.com:443
+        - api.newrelic.com:443
+      labels:
+        job: saas-monitoring
+        environment: production
+        type: metrics-aggregator

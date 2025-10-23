@@ -1,0 +1,50 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: otel-collector-restart
+  namespace: observability
+spec:
+  action: pod-kill
+  mode: all
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: otel-collector
+  duration: "1m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: otel-collector-cpu-spike
+  namespace: observability
+spec:
+  mode: all
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: otel-collector
+  stressors:
+    cpu:
+      workers: 8
+      load: 95
+  duration: "3m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: otel-collector-network-corruption
+  namespace: observability
+spec:
+  action: corrupt
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: otel-collector
+  corrupt:
+    corrupt: "10"
+    correlation: "25"
+  duration: "5m"

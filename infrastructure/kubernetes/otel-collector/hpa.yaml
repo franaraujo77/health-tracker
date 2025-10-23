@@ -1,0 +1,99 @@
+---
+# HorizontalPodAutoscaler for OpenTelemetry Collector
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: otel-collector
+  namespace: observability
+  labels:
+    app: otel-collector
+    component: telemetry
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: otel-collector
+
+  minReplicas: 2
+  maxReplicas: 10
+
+  # Scaling behavior configuration
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
+      policies:
+        - type: Percent
+          value: 50  # Scale down by max 50% of current pods
+          periodSeconds: 60
+        - type: Pods
+          value: 2  # Or scale down by max 2 pods
+          periodSeconds: 60
+      selectPolicy: Min  # Use the policy that scales down the least
+
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Scale up immediately when needed
+      policies:
+        - type: Percent
+          value: 100  # Scale up by max 100% of current pods
+          periodSeconds: 30
+        - type: Pods
+          value: 4  # Or scale up by max 4 pods
+          periodSeconds: 30
+      selectPolicy: Max  # Use the policy that scales up the most
+
+  # Metrics for scaling decisions
+  metrics:
+    # CPU utilization target
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+    # Memory utilization target
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+    # Custom metric: OTLP receiver queue size
+    # This prevents backpressure and data loss
+    - type: Pods
+      pods:
+        metric:
+          name: otelcol_receiver_accepted_spans
+        target:
+          type: AverageValue
+          averageValue: "1000"  # Scale up if avg spans > 1000/sec per pod
+
+    # Custom metric: Exporter queue size
+    # Ensures exporters can keep up with incoming data
+    - type: Pods
+      pods:
+        metric:
+          name: otelcol_exporter_queue_size
+        target:
+          type: AverageValue
+          averageValue: "500"  # Scale up if avg queue size > 500 per pod
+
+---
+# PodDisruptionBudget to ensure availability during disruptions
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: otel-collector
+  namespace: observability
+  labels:
+    app: otel-collector
+    component: telemetry
+spec:
+  minAvailable: 2  # Always keep at least 2 pods running
+  selector:
+    matchLabels:
+      app: otel-collector
+
+  # Unhealthy pod eviction policy
+  unhealthyPodEvictionPolicy: IfHealthyBudget

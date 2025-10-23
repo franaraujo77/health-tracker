@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: observability
+
+resources:
+- namespace.yaml
+- serviceaccount.yaml
+- configmap.yaml
+- secret.yaml
+- service.yaml
+- statefulset.yaml
+
+commonLabels:
+  app.kubernetes.io/name: loki
+  app.kubernetes.io/instance: loki
+  app.kubernetes.io/version: "2.9.4"
+  app.kubernetes.io/component: log-aggregation
+  app.kubernetes.io/part-of: observability-stack
+  app.kubernetes.io/managed-by: kustomize
+
+images:
+- name: health-tracker/loki
+  newName: health-tracker/loki
+  newTag: "2.9.4"
+
+configMapGenerator:
+- name: loki-runtime-config
+  files:
+  - runtime-config.yaml
+
+replicas:
+- name: loki
+  count: 1

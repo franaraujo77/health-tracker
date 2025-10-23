@@ -1,0 +1,214 @@
+# OpenTelemetry Collector Configuration
+# Health Tracker CI/CD Pipeline Observability
+
+# Receivers: Define how telemetry data enters the collector
+receivers:
+  # OTLP receiver for metrics, traces, and logs
+  otlp:
+    protocols:
+      # gRPC endpoint for high-performance telemetry ingestion
+      grpc:
+        endpoint: 0.0.0.0:4317
+        # Max message size: 4MB (default)
+        max_recv_msg_size_mib: 4
+        # Keep alive settings for long-running connections
+        keepalive:
+          server_parameters:
+            max_connection_idle: 11s
+            max_connection_age: 12s
+            max_connection_age_grace: 13s
+            time: 30s
+            timeout: 5s
+
+      # HTTP endpoint for REST API compatibility
+      http:
+        endpoint: 0.0.0.0:4318
+        # CORS configuration for browser-based telemetry
+        cors:
+          allowed_origins:
+            - "http://localhost:*"
+            - "https://*.github.com"
+
+  # Prometheus receiver for scraping metrics from instrumented services
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['localhost:8888']
+
+# Processors: Transform and filter telemetry data
+processors:
+  # Batch processor: Reduces number of outgoing connections
+  batch:
+    # Send batch every 10 seconds
+    timeout: 10s
+    # Or when batch reaches 1024 data points
+    send_batch_size: 1024
+    # Maximum batch size (safety limit)
+    send_batch_max_size: 2048
+
+  # Memory limiter: Prevents OOM by applying backpressure
+  memory_limiter:
+    # Check memory usage every second
+    check_interval: 1s
+    # Hard limit at 1GB
+    limit_mib: 1024
+    # Spike limit at 750MB (triggers backpressure)
+    spike_limit_mib: 750
+
+  # Resource detection: Automatically add resource attributes
+  resourcedetection:
+    detectors: [env, system, docker]
+    timeout: 5s
+    override: false
+
+  # Attributes processor: Add custom attributes to all telemetry
+  attributes:
+    actions:
+      - key: service.environment
+        value: production
+        action: upsert
+      - key: telemetry.sdk.language
+        action: insert
+        from_attribute: library.language
+      - key: pipeline.name
+        value: health-tracker-ci
+        action: insert
+
+# Exporters: Define where telemetry data is sent
+exporters:
+  # Logging exporter for debugging (outputs to stdout)
+  logging:
+    loglevel: info
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # Prometheus exporter (for metrics scraping)
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: otel
+    const_labels:
+      collector: health-tracker
+
+  # OTLP exporters for forwarding to backends
+  # These will be configured in Task 5 to point to Prometheus, Loki, Tempo
+  otlp/metrics:
+    endpoint: prometheus:9090
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+  otlp/traces:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+  # Loki exporter for log aggregation
+  loki:
+    endpoint: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+    # Tenant ID for multi-tenancy (X-Scope-OrgID header)
+    tenant_id: github-actions
+    # Labels to add to all logs
+    labels:
+      resource:
+        service.name: "service_name"
+        service.namespace: "service_namespace"
+      attributes:
+        level: "level"
+        job: "job"
+        workflow: "workflow"
+      record:
+        traceID: "trace_id"
+        spanID: "span_id"
+    # Format for log entries
+    format: json
+    # Timeout for sending logs
+    timeout: 10s
+    # Retry configuration
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    # Sending queue configuration
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 1000
+      storage: file_storage
+
+# Extensions: Provide additional capabilities
+extensions:
+  # Health check extension for k8s probes
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /health/status
+    check_collector_pipeline:
+      enabled: true
+      interval: 5m
+      exporter_failure_threshold: 5
+
+  # Zpages extension for debugging
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+  # Performance profiler for troubleshooting
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # File storage for persistent queue
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    timeout: 10s
+
+# Service: Define telemetry pipelines
+service:
+  # Enable extensions
+  extensions: [health_check, zpages, pprof, file_storage]
+
+  # Telemetry for the collector itself
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
+
+  # Pipelines: Connect receivers -> processors -> exporters
+  pipelines:
+    # Metrics pipeline
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [logging, prometheus, otlp/metrics]
+
+    # Traces pipeline
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [logging, otlp/traces]
+
+    # Logs pipeline
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [logging, loki]

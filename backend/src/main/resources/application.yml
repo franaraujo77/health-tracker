@@ -127,3 +127,8 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
   show-actuator: false
+
+# GitHub API Configuration (for automated recovery)
+github:
+  token: ${GITHUB_TOKEN:}  # Personal access token with workflow permissions
+  repository: ${GITHUB_REPOSITORY:francisaraujo/health-tracker}  # org/repo format

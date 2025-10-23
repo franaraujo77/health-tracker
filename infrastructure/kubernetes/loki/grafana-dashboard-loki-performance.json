@@ -1,0 +1,59 @@
+{
+  "dashboard": {
+    "title": "Loki Performance Dashboard",
+    "tags": ["loki", "observability", "performance"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Ingestion Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(loki_distributor_bytes_received_total[5m]))",
+            "legendFormat": "Bytes/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "title": "Query Performance",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(loki_request_duration_seconds_bucket{route=~\".*query.*\"}[5m])) by (le))",
+            "legendFormat": "p99"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(loki_request_duration_seconds_bucket{route=~\".*query.*\"}[5m])) by (le))",
+            "legendFormat": "p95"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "title": "Storage Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(loki_ingester_memory_chunks)",
+            "legendFormat": "Chunks in Memory"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
+      },
+      {
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(loki_request_duration_seconds_count{status_code=~\"5..\"}[5m])) / sum(rate(loki_request_duration_seconds_count[5m]))",
+            "legendFormat": "Error %"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8}
+      }
+    ],
+    "refresh": "30s",
+    "time": {"from": "now-1h", "to": "now"}
+  }
+}

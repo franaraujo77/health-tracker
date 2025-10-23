@@ -1,0 +1,366 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: observability
+  labels:
+    app: otel-collector
+    component: telemetry
+data:
+  config.yaml: |
+    # OpenTelemetry Collector Configuration
+    # Health Tracker CI/CD Pipeline Observability
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 4
+            # TLS configuration
+            tls:
+              cert_file: /etc/otel/tls/tls.crt
+              key_file: /etc/otel/tls/tls.key
+              client_ca_file: /etc/otel/tls/ca.crt
+              # Require client certificates (mTLS)
+              # Set to NoClientCert for bearer token only
+              client_ca_file_reload: true
+            # Authentication
+            auth:
+              authenticator: bearertokenauth
+            keepalive:
+              server_parameters:
+                max_connection_idle: 11s
+                max_connection_age: 12s
+                max_connection_age_grace: 13s
+                time: 30s
+                timeout: 5s
+          http:
+            endpoint: 0.0.0.0:4318
+            # TLS configuration
+            tls:
+              cert_file: /etc/otel/tls/tls.crt
+              key_file: /etc/otel/tls/tls.key
+              client_ca_file: /etc/otel/tls/ca.crt
+              client_ca_file_reload: true
+            # Authentication
+            auth:
+              authenticator: bearertokenauth
+            cors:
+              allowed_origins:
+                - "http://localhost:*"
+                - "https://*.github.com"
+
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'otel-collector'
+              scrape_interval: 30s
+              static_configs:
+                - targets: ['localhost:8888']
+
+    processors:
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 1024
+        spike_limit_mib: 750
+
+      # Resource detection - automatically enriches telemetry with infrastructure metadata
+      resourcedetection:
+        # Detectors run in order; first match wins unless override: true
+        detectors:
+          - env          # Environment variables (OTEL_RESOURCE_ATTRIBUTES)
+          - system       # Host-level attributes (os.type, host.name, host.arch)
+          - docker       # Container runtime info (container.id, container.name)
+          - gcp          # Google Cloud Platform detection
+          - ec2          # AWS EC2 instance metadata
+          - ecs          # AWS ECS task metadata
+          - eks          # AWS EKS cluster info
+          - azure        # Azure VM/container metadata
+        timeout: 5s
+        override: false
+        # Detector-specific configuration
+        system:
+          hostname_sources: ["os", "dns"]
+          resource_attributes:
+            host.name:
+              enabled: true
+            host.id:
+              enabled: true
+            host.arch:
+              enabled: true
+            host.cpu.vendor.id:
+              enabled: true
+            host.cpu.family:
+              enabled: true
+            host.cpu.model.id:
+              enabled: true
+            host.cpu.model.name:
+              enabled: true
+            host.cpu.stepping:
+              enabled: true
+            host.cpu.cache.l2.size:
+              enabled: true
+            os.type:
+              enabled: true
+            os.description:
+              enabled: true
+        docker:
+          resource_attributes:
+            host.name:
+              enabled: true
+            os.type:
+              enabled: true
+        gcp:
+          resource_attributes:
+            cloud.provider:
+              enabled: true
+            cloud.platform:
+              enabled: true
+            cloud.account.id:
+              enabled: true
+            cloud.region:
+              enabled: true
+            cloud.availability_zone:
+              enabled: true
+            host.id:
+              enabled: true
+            host.name:
+              enabled: true
+            host.type:
+              enabled: true
+            gcp.gce.instance.name:
+              enabled: false  # Redundant with host.name
+            gcp.gce.instance.hostname:
+              enabled: false  # Redundant with host.name
+        ec2:
+          resource_attributes:
+            cloud.provider:
+              enabled: true
+            cloud.platform:
+              enabled: true
+            cloud.account.id:
+              enabled: true
+            cloud.region:
+              enabled: true
+            cloud.availability_zone:
+              enabled: true
+            host.id:
+              enabled: true
+            host.image.id:
+              enabled: true
+            host.name:
+              enabled: true
+            host.type:
+              enabled: true
+        ecs:
+          resource_attributes:
+            cloud.provider:
+              enabled: true
+            cloud.platform:
+              enabled: true
+            cloud.account.id:
+              enabled: true
+            cloud.region:
+              enabled: true
+            cloud.availability_zone:
+              enabled: true
+            aws.ecs.cluster.arn:
+              enabled: true
+            aws.ecs.task.arn:
+              enabled: true
+            aws.ecs.task.family:
+              enabled: true
+            aws.ecs.task.revision:
+              enabled: true
+            aws.ecs.launchtype:
+              enabled: true
+        eks:
+          resource_attributes:
+            cloud.provider:
+              enabled: true
+            cloud.platform:
+              enabled: true
+            k8s.cluster.name:
+              enabled: true
+        azure:
+          resource_attributes:
+            cloud.provider:
+              enabled: true
+            cloud.platform:
+              enabled: true
+            cloud.region:
+              enabled: true
+            host.id:
+              enabled: true
+            host.name:
+              enabled: true
+            azure.vm.name:
+              enabled: true
+            azure.vm.size:
+              enabled: true
+            azure.resourcegroup.name:
+              enabled: true
+
+      # Kubernetes attributes - enriches telemetry with K8s metadata
+      k8s_attributes:
+        # Authentication for K8s API
+        auth_type: "serviceAccount"
+        passthrough: false
+        # Extract metadata from pod
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.deployment.name
+            - k8s.statefulset.name
+            - k8s.daemonset.name
+            - k8s.cronjob.name
+            - k8s.job.name
+            - k8s.node.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.pod.start_time
+          labels:
+            - tag_name: app.label.component
+              key: app.kubernetes.io/component
+              from: pod
+            - tag_name: app.label.name
+              key: app.kubernetes.io/name
+              from: pod
+            - tag_name: app.label.version
+              key: app.kubernetes.io/version
+              from: pod
+            - tag_name: app.label.instance
+              key: app.kubernetes.io/instance
+              from: pod
+          annotations:
+            - tag_name: git.commit
+              key: git.commit
+              from: pod
+            - tag_name: git.branch
+              key: git.branch
+              from: pod
+        # Pod association - how to match telemetry to pods
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: connection
+
+      attributes:
+        actions:
+          - key: service.environment
+            value: production
+            action: upsert
+          - key: pipeline.name
+            value: health-tracker-ci
+            action: insert
+
+    exporters:
+      logging:
+        loglevel: info
+        sampling_initial: 5
+        sampling_thereafter: 200
+
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: otel
+        const_labels:
+          collector: health-tracker
+
+      otlp/metrics:
+        endpoint: prometheus.observability.svc.cluster.local:9090
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+      otlp/traces:
+        endpoint: tempo.observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+      otlp/logs:
+        endpoint: loki.observability.svc.cluster.local:3100
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+    extensions:
+      # Bearer token authentication
+      bearertokenauth:
+        scheme: "Bearer"
+        bearer_token_file: /etc/otel/auth/bearer-token
+
+      health_check:
+        endpoint: 0.0.0.0:13133
+        path: /health/status
+        check_collector_pipeline:
+          enabled: true
+          interval: 5m
+          exporter_failure_threshold: 5
+
+      zpages:
+        endpoint: 0.0.0.0:55679
+
+      pprof:
+        endpoint: 0.0.0.0:1777
+
+    service:
+      extensions: [bearertokenauth, health_check, zpages, pprof]
+
+      telemetry:
+        logs:
+          level: info
+        metrics:
+          level: detailed
+          address: 0.0.0.0:8888
+
+      pipelines:
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resourcedetection, k8s_attributes, attributes, batch]
+          exporters: [logging, prometheus, otlp/metrics]
+
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resourcedetection, k8s_attributes, attributes, batch]
+          exporters: [logging, otlp/traces]
+
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resourcedetection, k8s_attributes, attributes, batch]
+          exporters: [logging, otlp/logs]

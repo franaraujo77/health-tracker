@@ -1,0 +1,215 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: observability
+  labels:
+    app: blackbox-exporter
+    component: synthetic-monitoring
+spec:
+  replicas: 2  # High availability
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+        component: synthetic-monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9115"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: blackbox-exporter
+      containers:
+      - name: blackbox-exporter
+        image: health-tracker/blackbox-exporter:0.24.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - --config.file=/etc/blackbox_exporter/config.yml
+          - --log.level=info
+        ports:
+        - name: http
+          containerPort: 9115
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/blackbox_exporter
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534  # nobody
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_RAW  # Required for ICMP probes
+      volumes:
+      - name: config
+        configMap:
+          name: blackbox-exporter-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - blackbox-exporter
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox-exporter
+  namespace: observability
+  labels:
+    app: blackbox-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 9115
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: blackbox-exporter
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: blackbox-exporter
+  namespace: observability
+  labels:
+    app: blackbox-exporter
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blackbox-exporter-config
+  namespace: observability
+  labels:
+    app: blackbox-exporter
+data:
+  config.yml: |
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200]
+          method: GET
+          preferred_ip_protocol: "ip4"
+          follow_redirects: true
+
+      prometheus_api:
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200]
+          method: POST
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          body: "query=up"
+          fail_if_not_matches_regexp:
+            - '.*"status":"success".*'
+          preferred_ip_protocol: "ip4"
+
+      grafana_dashboard:
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200, 302]
+          method: GET
+          fail_if_not_matches_regexp:
+            - '.*grafana.*'
+          preferred_ip_protocol: "ip4"
+          follow_redirects: false
+
+      loki_ready:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1"]
+          valid_status_codes: [200]
+          method: GET
+          fail_if_not_matches_regexp:
+            - '.*ready.*'
+          preferred_ip_protocol: "ip4"
+
+      tempo_ready:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1"]
+          valid_status_codes: [200]
+          method: GET
+          fail_if_not_matches_regexp:
+            - '.*ready.*'
+          preferred_ip_protocol: "ip4"
+
+      alertmanager_api:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1"]
+          valid_status_codes: [200]
+          method: GET
+          fail_if_not_matches_regexp:
+            - '.*status.*'
+          preferred_ip_protocol: "ip4"
+
+      otel_collector_health:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1"]
+          valid_status_codes: [200]
+          method: GET
+          fail_if_not_matches_regexp:
+            - '.*Server available.*'
+          preferred_ip_protocol: "ip4"
+
+      tcp_connect:
+        prober: tcp
+        timeout: 5s
+        tcp:
+          preferred_ip_protocol: "ip4"
+
+      icmp:
+        prober: icmp
+        timeout: 5s
+        icmp:
+          preferred_ip_protocol: "ip4"

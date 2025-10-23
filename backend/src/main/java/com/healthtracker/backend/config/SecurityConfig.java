@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh",
-                                "/api/v1/auth/logout"
+                                "/api/v1/auth/logout",
+                                "/api/v1/observability/alerts/**"  // Exclude AlertManager webhooks from CSRF
                         )
                         .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
@@ -59,7 +60,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/actuator/health/**",
-                                "/actuator/info"
+                                "/actuator/info",
+                                "/api/v1/observability/alerts/**"  // Allow AlertManager webhooks
                         ).permitAll()
 
                         // Health metrics endpoints - require PATIENT or PROVIDER role

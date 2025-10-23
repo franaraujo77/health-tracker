@@ -1,0 +1,33 @@
+# Prometheus Scrape Configuration for Blackbox Exporter
+# Add this to prometheus.yml in the scrape_configs section
+
+- job_name: 'blackbox-exporter'
+  metrics_path: /metrics
+  static_configs:
+    - targets:
+        - blackbox-exporter:9115
+
+- job_name: 'blackbox-http'
+  metrics_path: /probe
+  params:
+    module: [http_2xx]  # Default module
+  file_sd_configs:
+    - files:
+        - /etc/prometheus/blackbox-targets.yml
+      refresh_interval: 30s
+  relabel_configs:
+    # Use the target label as the actual target to probe
+    - source_labels: [__address__]
+      target_label: __param_target
+    # Use the module label if specified, otherwise use default
+    - source_labels: [module]
+      target_label: __param_module
+    # Set the instance label to the target URL
+    - source_labels: [__param_target]
+      target_label: instance
+    # Set the blackbox exporter's real address
+    - target_label: __address__
+      replacement: blackbox-exporter:9115
+    # Preserve original labels
+    - action: labelmap
+      regex: __meta_.*

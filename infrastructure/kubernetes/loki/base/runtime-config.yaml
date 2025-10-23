@@ -1,0 +1,27 @@
+# Runtime configuration for Loki
+# This file allows hot-reloading configuration changes without restarting pods
+
+overrides:
+  # Default tenant configuration
+  default:
+    ingestion_rate_mb: 10
+    ingestion_burst_size_mb: 20
+    max_streams_per_user: 10000
+    max_global_streams_per_user: 100000
+    max_query_length: 721h
+    max_query_parallelism: 32
+    retention_period: 720h
+
+  # GitHub Actions tenant (higher limits)
+  github-actions:
+    ingestion_rate_mb: 50
+    ingestion_burst_size_mb: 100
+    max_streams_per_user: 50000
+    max_global_streams_per_user: 500000
+
+  # Development tenant (lower limits)
+  development:
+    ingestion_rate_mb: 5
+    ingestion_burst_size_mb: 10
+    max_streams_per_user: 1000
+    retention_period: 168h  # 7 days

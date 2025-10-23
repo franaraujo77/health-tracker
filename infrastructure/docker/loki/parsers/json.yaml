@@ -1,0 +1,37 @@
+# JSON Log Parser Pipeline
+# Generic JSON parsing for structured application logs
+
+# Parse JSON fields
+- json:
+    expressions:
+      timestamp: timestamp
+      level: level
+      logger: logger
+      message: message
+      error: error
+      trace_id: trace_id
+      span_id: span_id
+      service: service
+      environment: environment
+      version: version
+
+# Normalize log levels
+- template:
+    source: level
+    template: '{{ .level | ToUpper }}'
+
+# Extract labels for indexing
+- labels:
+    level:
+    service:
+    environment:
+    trace_id:
+
+# Metrics extraction for common patterns
+- metrics:
+    duration:
+      type: Histogram
+      description: Request duration from logs
+      source: duration
+      config:
+        buckets: [0.1, 0.5, 1, 2, 5, 10]

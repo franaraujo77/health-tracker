@@ -34,9 +34,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Initialize telemetry for the entire validation workflow
+  setup-observability:
+    name: Setup Observability
+    runs-on: ubuntu-latest
+    outputs:
+      trace-id: ${{ steps.telemetry.outputs.trace-id }}
+      service-name: ${{ steps.telemetry.outputs.service-name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTelemetry
+        id: telemetry
+        uses: ./.github/actions/setup-telemetry
+        with:
+          service-name: 'validation-orchestrator'
+
+      - name: Create workflow start span
+        run: |
+          source $OTEL_HELPERS_PATH
+          otel_span_step "workflow-started" "success"
+          otel_metric "workflow.started" 1 "counter"
+          echo "🔍 Validation workflow started - Trace ID: ${{ steps.telemetry.outputs.trace-id }}"
+
   # Call the refactored frontend validation workflow
   validate-frontend:
     name: Frontend Validation
+    needs: setup-observability
     uses: ./.github/workflows/frontend-ci.yml
     # Timeout after 15 minutes to prevent hanging jobs
     timeout-minutes: 15
@@ -44,6 +70,7 @@ jobs:
   # Call the refactored backend validation workflow
   validate-backend:
     name: Backend Validation
+    needs: setup-observability
     uses: ./.github/workflows/backend-ci.yml
     # Timeout after 20 minutes to prevent hanging jobs
     timeout-minutes: 20
@@ -51,6 +78,7 @@ jobs:
   # Call the security validation workflow
   validate-security:
     name: Security Validation
+    needs: setup-observability
     uses: ./.github/workflows/security-validation.yml
     # Timeout after 15 minutes to prevent hanging jobs
     timeout-minutes: 15
@@ -60,7 +88,7 @@ jobs:
   aggregate-results:
     name: Aggregate Validation Results
     runs-on: ubuntu-latest
-    needs: [validate-frontend, validate-backend, validate-security]
+    needs: [setup-observability, validate-frontend, validate-backend, validate-security]
     # Always run this job even if some validations fail
     if: always()
 
@@ -73,6 +101,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup OpenTelemetry
+        uses: ./.github/actions/setup-telemetry
+        with:
+          service-name: 'validation-aggregator'
+
+      - name: Record validation job durations
+        run: |
+          source $OTEL_HELPERS_PATH
+
+          # Track which validations ran and their outcomes
+          FRONTEND_RESULT="${{ needs.validate-frontend.result }}"
+          BACKEND_RESULT="${{ needs.validate-backend.result }}"
+          SECURITY_RESULT="${{ needs.validate-security.result }}"
+
+          # Export metrics for each validation job
+          [ "$FRONTEND_RESULT" = "success" ] && otel_metric "validation.frontend.success" 1 "counter" || otel_metric "validation.frontend.failure" 1 "counter"
+          [ "$BACKEND_RESULT" = "success" ] && otel_metric "validation.backend.success" 1 "counter" || otel_metric "validation.backend.failure" 1 "counter"
+          [ "$SECURITY_RESULT" = "success" ] && otel_metric "validation.security.success" 1 "counter" || otel_metric "validation.security.failure" 1 "counter"
+
+          # Create spans for each validation stage
+          otel_span_step "frontend-validation" "$FRONTEND_RESULT"
+          otel_span_step "backend-validation" "$BACKEND_RESULT"
+          otel_span_step "security-validation" "$SECURITY_RESULT"
+
+          echo "📊 Validation results tracked - Trace ID: ${{ needs.setup-observability.outputs.trace-id }}"
 
       - name: Aggregate validation results
         id: aggregate
@@ -256,6 +310,21 @@ jobs:
           name: validation-report-${{ github.run_id }}
           path: validation-reports/
           retention-days: 30
+
+      - name: Record validation completion
+        if: always()
+        run: |
+          source $OTEL_HELPERS_PATH
+
+          # Record overall workflow outcome
+          WORKFLOW_STATUS="${{ steps.aggregate.outputs.all-passed == 'true' && 'success' || 'failure' }}"
+          ERROR_COUNT="${{ steps.aggregate.outputs.has-critical-failures == 'true' && '1' || '0' }}"
+
+          otel_span_step "validation-complete" "$WORKFLOW_STATUS"
+          otel_metric "workflow.completed" 1 "counter"
+          otel_metric "workflow.errors" "$ERROR_COUNT" "gauge"
+
+          echo "✅ Validation workflow completed - Status: $WORKFLOW_STATUS"
 
   # Post validation status comment to PR
   post-status-comment:

@@ -1,0 +1,214 @@
+# Alert Test Scenarios
+# Defines test cases for validating alert rules
+
+scenarios:
+  - name: "Service Down Detection"
+    alert: "ServiceDown"
+    description: "Tests that ServiceDown alert fires when a monitored service becomes unavailable"
+    severity: critical
+    duration: "2m"
+    test_steps:
+      - action: "Stop target service or configure blackbox probe to fail"
+        expected: "Alert fires within 2 minutes"
+      - action: "Restart service"
+        expected: "Alert clears within 1 minute"
+    validation:
+      - check: "Alert fires within 2 minutes"
+      - check: "Alert has severity=critical label"
+      - check: "Alert has description annotation"
+      - check: "Alert routes to critical receiver"
+    manual_test_required: true
+    automated_test: false
+
+  - name: "High Error Rate Detection"
+    alert: "HighErrorRate"
+    description: "Tests that HighErrorRate alert fires when error rate exceeds 10%"
+    severity: high
+    duration: "5m"
+    test_steps:
+      - action: "Inject metrics showing 15% error rate"
+        command: "./alert_injector.py inject-error-rate --duration 6"
+      - action: "Wait for alert to fire"
+        command: "./alert_injector.py wait-for-alert HighErrorRate --timeout 360"
+      - action: "Clear test metrics"
+        command: "./alert_injector.py clear"
+    validation:
+      - check: "Alert fires within 5 minutes"
+      - check: "Alert includes service label"
+      - check: "Alert description contains error rate percentage"
+    automated_test: true
+
+  - name: "High Latency Detection"
+    alert: "HighLatency"
+    description: "Tests that HighLatency alert fires when P95 latency exceeds threshold"
+    severity: warning
+    duration: "5m"
+    test_steps:
+      - action: "Inject metrics showing 2000ms P95 latency"
+        command: "./alert_injector.py inject-latency --latency 2000 --duration 6"
+      - action: "Wait for alert"
+        command: "./alert_injector.py wait-for-alert HighLatency --timeout 360"
+      - action: "Clear metrics"
+        command: "./alert_injector.py clear"
+    validation:
+      - check: "Alert fires within 5 minutes"
+      - check: "Alert shows current latency value"
+    automated_test: true
+
+  - name: "Resource Exhaustion - Memory"
+    alert: "HighMemoryUsage"
+    description: "Tests memory exhaustion alert"
+    severity: high
+    duration: "3m"
+    test_steps:
+      - action: "Inject metrics showing 95% memory usage"
+        command: "./alert_injector.py inject-resource-exhaustion --resource memory --usage 95 --duration 4"
+      - action: "Wait for alert"
+        command: "./alert_injector.py wait-for-alert HighMemoryUsage --timeout 240"
+      - action: "Clear metrics"
+        command: "./alert_injector.py clear"
+    validation:
+      - check: "Alert fires within 3 minutes"
+      - check: "Alert includes container name"
+    automated_test: true
+
+  - name: "Resource Exhaustion - CPU"
+    alert: "HighCPUUsage"
+    description: "Tests CPU exhaustion alert"
+    severity: warning
+    duration: "5m"
+    test_steps:
+      - action: "Inject metrics showing 90% CPU usage"
+        command: "./alert_injector.py inject-resource-exhaustion --resource cpu --usage 90 --duration 6"
+      - action: "Wait for alert"
+        command: "./alert_injector.py wait-for-alert HighCPUUsage --timeout 360"
+    validation:
+      - check: "Alert fires within 5 minutes"
+    automated_test: true
+
+  - name: "Prometheus Unavailable"
+    alert: "PrometheusUnavailable"
+    description: "Tests critical alert for Prometheus unavailability"
+    severity: critical
+    duration: "1m"
+    test_steps:
+      - action: "Configure blackbox probe to fail for Prometheus"
+        expected: "Alert fires within 1 minute"
+      - action: "Restore Prometheus access"
+        expected: "Alert clears"
+    validation:
+      - check: "Alert fires within 1 minute (faster than other alerts)"
+      - check: "Alert has severity=critical"
+      - check: "Alert routes to immediate notification"
+    manual_test_required: true
+    automated_test: false
+
+  - name: "Alert Routing by Severity"
+    alert: "Multiple"
+    description: "Tests that alerts route to correct receivers based on severity"
+    severity: "all"
+    test_steps:
+      - action: "Trigger critical alert"
+        expected: "Routes to pager/immediate notification"
+      - action: "Trigger high severity alert"
+        expected: "Routes to Slack + email"
+      - action: "Trigger warning alert"
+        expected: "Routes to Slack only"
+    validation:
+      - check: "Critical alerts page on-call"
+      - check: "High alerts send email + Slack"
+      - check: "Warnings send Slack only"
+    manual_test_required: true
+    automated_test: false
+
+  - name: "Alert Deduplication"
+    alert: "Multiple"
+    description: "Tests that duplicate alerts are grouped and not sent multiple times"
+    test_steps:
+      - action: "Trigger same alert from multiple instances"
+        expected: "Single notification sent"
+      - action: "Check AlertManager groups"
+        expected: "Alerts grouped by common labels"
+    validation:
+      - check: "Only one notification per group_interval"
+      - check: "Group includes all instances"
+    automated_test: true
+
+  - name: "Alert Inhibition"
+    alert: "Multiple"
+    description: "Tests that dependent alerts are inhibited by parent alerts"
+    test_steps:
+      - action: "Trigger parent alert (e.g., ServiceDown)"
+        expected: "Parent alert fires"
+      - action: "Check that child alerts are inhibited"
+        expected: "Child alerts (e.g., HighLatency from same service) do not fire"
+    validation:
+      - check: "Parent alert fires normally"
+      - check: "Child alerts inhibited"
+      - check: "Child alerts fire after parent clears"
+    manual_test_required: true
+    automated_test: false
+
+  - name: "Alert Silencing"
+    alert: "Any"
+    description: "Tests alert silence functionality"
+    test_steps:
+      - action: "Create silence for test alert"
+        command: "curl -X POST alertmanager:9093/api/v2/silences"
+      - action: "Trigger alert"
+        expected: "Alert fires but notification silenced"
+      - action: "Delete silence"
+        expected: "Future alerts send notifications"
+    validation:
+      - check: "Silence created successfully"
+      - check: "Alert visible in AlertManager but not notified"
+      - check: "Notifications resume after silence expires/deleted"
+    automated_test: true
+
+  - name: "Alert Recovery Notification"
+    alert: "Any"
+    description: "Tests that recovery notifications are sent when alerts clear"
+    test_steps:
+      - action: "Trigger alert"
+        expected: "Alert notification sent"
+      - action: "Clear alert condition"
+        expected: "Recovery notification sent"
+    validation:
+      - check: "Alert fires and sends notification"
+      - check: "Alert clears and sends recovery notification"
+      - check: "Recovery notification indicates resolved state"
+    manual_test_required: true
+    automated_test: false
+
+# Test execution order
+execution_order:
+  - "Alert Routing by Severity"  # Validate routing first
+  - "High Error Rate Detection"  # Automated tests
+  - "High Latency Detection"
+  - "Resource Exhaustion - Memory"
+  - "Resource Exhaustion - CPU"
+  - "Alert Deduplication"
+  - "Alert Silencing"
+  - "Service Down Detection"  # Manual tests
+  - "Prometheus Unavailable"
+  - "Alert Inhibition"
+  - "Alert Recovery Notification"
+
+# Expected success criteria
+success_criteria:
+  automated_tests:
+    - "All automated tests pass"
+    - "Alerts fire within expected timeframes"
+    - "Alert metadata (labels, annotations) correct"
+    - "No false positives"
+
+  manual_tests:
+    - "Manual tests documented and executed"
+    - "Results recorded in test log"
+    - "Any failures investigated and resolved"
+
+  overall:
+    - "100% of critical alert rules tested"
+    - "95% of non-critical alert rules tested"
+    - "Routing configuration validated"
+    - "No production alerts triggered during testing"

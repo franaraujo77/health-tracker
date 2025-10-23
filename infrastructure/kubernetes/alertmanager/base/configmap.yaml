@@ -1,0 +1,254 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: observability
+  labels:
+    app: alertmanager
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK'
+      pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+    # Template files for custom alert formatting
+    templates:
+      - '/etc/alertmanager/templates/*.tmpl'
+
+    # Main routing tree
+    route:
+      receiver: 'default-email'
+      group_by: ['alertname', 'workflow', 'severity']
+      group_wait: 30s        # Wait 30s to batch alerts
+      group_interval: 5m     # Send updates every 5min
+      repeat_interval: 4h    # Repeat alerts every 4h if still firing
+
+      # Route alerts based on severity
+      routes:
+        # Critical alerts → PagerDuty (immediate incident)
+        - match:
+            severity: critical
+          receiver: pagerduty-critical
+          continue: true  # Also send to other receivers
+          group_wait: 10s
+          repeat_interval: 15m
+
+        # High severity → Slack + Email
+        - match:
+            severity: high
+          receiver: slack-high-severity
+          continue: true
+
+        - match:
+            severity: high
+          receiver: email-high-severity
+          continue: false
+
+        # Medium severity → Slack only
+        - match:
+            severity: medium
+          receiver: slack-medium-severity
+          continue: false
+
+        # Low severity → Email only
+        - match:
+            severity: low
+          receiver: email-low-severity
+          continue: false
+
+    # Inhibition rules - suppress alerts when higher severity is firing
+    inhibit_rules:
+      # If pipeline_down is firing, suppress individual workflow alerts
+      - source_match:
+          alertname: PipelineDown
+        target_match_re:
+          alertname: '(WorkflowFailure|BuildFailure|TestFailure)'
+        equal: ['workflow']
+
+      # If cluster is down, suppress node alerts
+      - source_match:
+          alertname: ClusterDown
+        target_match_re:
+          alertname: 'Node.*'
+
+      # If critical alert, suppress warning alerts for same resource
+      - source_match:
+          severity: critical
+        target_match:
+          severity: warning
+        equal: ['alertname', 'workflow']
+
+    # Notification receivers
+    receivers:
+      # Default email fallback
+      - name: 'default-email'
+        email_configs:
+          - to: 'devops-team@example.com'
+            from: 'alertmanager@health-tracker.com'
+            smarthost: 'smtp.example.com:587'
+            auth_username: 'alertmanager'
+            auth_password: 'SMTP_PASSWORD_FROM_SECRET'
+            headers:
+              Subject: '[Health Tracker] {{ .GroupLabels.alertname }} - {{ .GroupLabels.severity }}'
+            html: '{{ template "email.default.html" . }}'
+            send_resolved: true
+
+      # PagerDuty for critical alerts
+      - name: 'pagerduty-critical'
+        pagerduty_configs:
+          - service_key: 'PAGERDUTY_SERVICE_KEY_FROM_SECRET'
+            description: '{{ .CommonAnnotations.summary }}'
+            details:
+              severity: '{{ .CommonLabels.severity }}'
+              workflow: '{{ .CommonLabels.workflow }}'
+              error_message: '{{ .CommonAnnotations.description }}'
+              runbook_url: '{{ .CommonAnnotations.runbook_url }}'
+              dashboard_url: '{{ .CommonAnnotations.dashboard_url }}'
+            send_resolved: true
+
+      # Slack for high severity
+      - name: 'slack-high-severity'
+        slack_configs:
+          - channel: '#pipeline-alerts-high'
+            username: 'AlertManager'
+            icon_emoji: ':rotating_light:'
+            title: '🚨 HIGH: {{ .CommonLabels.alertname }}'
+            text: |-
+              *Severity:* {{ .CommonLabels.severity }}
+              *Workflow:* {{ .CommonLabels.workflow }}
+              *Description:* {{ .CommonAnnotations.description }}
+              *Runbook:* {{ .CommonAnnotations.runbook_url }}
+              *Dashboard:* {{ .CommonAnnotations.dashboard_url }}
+            short_fields: true
+            send_resolved: true
+            actions:
+              - type: button
+                text: 'View Dashboard'
+                url: '{{ .CommonAnnotations.dashboard_url }}'
+              - type: button
+                text: 'Runbook'
+                url: '{{ .CommonAnnotations.runbook_url }}'
+
+      # Slack for medium severity
+      - name: 'slack-medium-severity'
+        slack_configs:
+          - channel: '#pipeline-alerts-medium'
+            username: 'AlertManager'
+            icon_emoji: ':warning:'
+            title: '⚠️ MEDIUM: {{ .CommonLabels.alertname }}'
+            text: |-
+              *Severity:* {{ .CommonLabels.severity }}
+              *Workflow:* {{ .CommonLabels.workflow }}
+              *Description:* {{ .CommonAnnotations.description }}
+            send_resolved: true
+
+      # Email for high severity
+      - name: 'email-high-severity'
+        email_configs:
+          - to: 'devops-team@example.com,oncall@example.com'
+            from: 'alertmanager@health-tracker.com'
+            smarthost: 'smtp.example.com:587'
+            auth_username: 'alertmanager'
+            auth_password: 'SMTP_PASSWORD_FROM_SECRET'
+            headers:
+              Subject: '🚨 [HEALTH TRACKER - HIGH] {{ .GroupLabels.alertname }}'
+            html: '{{ template "email.high.html" . }}'
+            send_resolved: true
+
+      # Email for low severity
+      - name: 'email-low-severity'
+        email_configs:
+          - to: 'devops-team@example.com'
+            from: 'alertmanager@health-tracker.com'
+            smarthost: 'smtp.example.com:587'
+            auth_username: 'alertmanager'
+            auth_password: 'SMTP_PASSWORD_FROM_SECRET'
+            headers:
+              Subject: '[Health Tracker - Low] {{ .GroupLabels.alertname }}'
+            html: '{{ template "email.default.html" . }}'
+            send_resolved: true
+
+  # Email template for default alerts
+  email.default.tmpl: |
+    {{ define "email.default.html" }}
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        .alert { background: #f8f9fa; padding: 20px; border-left: 4px solid #0066cc; }
+        .critical { border-color: #dc3545; }
+        .high { border-color: #fd7e14; }
+        .medium { border-color: #ffc107; }
+        .low { border-color: #28a745; }
+        h2 { margin-top: 0; color: #333; }
+        .label { font-weight: bold; color: #666; }
+        .value { color: #333; }
+        .link { color: #0066cc; text-decoration: none; }
+      </style>
+    </head>
+    <body>
+      <div class="alert {{ .GroupLabels.severity }}">
+        <h2>{{ .GroupLabels.alertname }}</h2>
+        <p><span class="label">Severity:</span> <span class="value">{{ .GroupLabels.severity | toUpper }}</span></p>
+        <p><span class="label">Workflow:</span> <span class="value">{{ .GroupLabels.workflow }}</span></p>
+        <p><span class="label">Description:</span> <span class="value">{{ .CommonAnnotations.description }}</span></p>
+        <p><span class="label">Started:</span> <span class="value">{{ .CommonAnnotations.startsAt }}</span></p>
+
+        {{ if .CommonAnnotations.runbook_url }}
+        <p><a class="link" href="{{ .CommonAnnotations.runbook_url }}">📖 View Runbook</a></p>
+        {{ end }}
+
+        {{ if .CommonAnnotations.dashboard_url }}
+        <p><a class="link" href="{{ .CommonAnnotations.dashboard_url }}">📊 View Dashboard</a></p>
+        {{ end }}
+      </div>
+    </body>
+    </html>
+    {{ end }}
+
+  # Email template for high severity alerts
+  email.high.tmpl: |
+    {{ define "email.high.html" }}
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background: #fff3cd; }
+        .alert { background: white; padding: 20px; border: 2px solid #fd7e14; margin: 20px; }
+        h1 { color: #fd7e14; margin-top: 0; }
+        .details { background: #f8f9fa; padding: 15px; margin: 10px 0; }
+        .label { font-weight: bold; color: #666; display: inline-block; width: 150px; }
+        .button { background: #fd7e14; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; margin: 5px; border-radius: 4px; }
+      </style>
+    </head>
+    <body>
+      <div class="alert">
+        <h1>🚨 HIGH SEVERITY ALERT: {{ .GroupLabels.alertname }}</h1>
+
+        <div class="details">
+          <p><span class="label">Severity:</span> HIGH</p>
+          <p><span class="label">Workflow:</span> {{ .GroupLabels.workflow }}</p>
+          <p><span class="label">Description:</span> {{ .CommonAnnotations.description }}</p>
+          <p><span class="label">Impact:</span> {{ .CommonAnnotations.summary }}</p>
+          <p><span class="label">Started At:</span> {{ .CommonAnnotations.startsAt }}</p>
+        </div>
+
+        <div style="margin-top: 20px;">
+          {{ if .CommonAnnotations.runbook_url }}
+          <a class="button" href="{{ .CommonAnnotations.runbook_url }}">📖 View Runbook</a>
+          {{ end }}
+
+          {{ if .CommonAnnotations.dashboard_url }}
+          <a class="button" href="{{ .CommonAnnotations.dashboard_url }}">📊 View Dashboard</a>
+          {{ end }}
+        </div>
+
+        <p style="margin-top: 20px; color: #666; font-size: 12px;">
+          This is an automated alert from Health Tracker AlertManager
+        </p>
+      </div>
+    </body>
+    </html>
+    {{ end }}

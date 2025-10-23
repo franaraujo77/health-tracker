@@ -1,0 +1,85 @@
+{
+  "dashboard": {
+    "title": "Tempo Trace Analytics",
+    "tags": ["tempo", "traces", "observability"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Request Rate by Service",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(tempo_spanmetrics_calls_total[5m])) by (service_name)",
+            "legendFormat": "{{service_name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "title": "Latency Percentiles",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(tempo_spanmetrics_latency_bucket[5m])) by (le))",
+            "legendFormat": "p99"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(tempo_spanmetrics_latency_bucket[5m])) by (le))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(tempo_spanmetrics_latency_bucket[5m])) by (le))",
+            "legendFormat": "p50"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(tempo_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(tempo_spanmetrics_calls_total[5m]))",
+            "legendFormat": "Error %"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
+      },
+      {
+        "title": "Traces Ingested",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(tempo_distributor_spans_received_total[5m]))",
+            "legendFormat": "Spans/sec"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8}
+      },
+      {
+        "title": "Top Slow Endpoints",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, avg(tempo_spanmetrics_latency_sum) by (span_name))",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "title": "Service Graph",
+        "type": "nodeGraph",
+        "targets": [
+          {
+            "expr": "tempo_spanmetrics_calls_total",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+      }
+    ],
+    "refresh": "30s",
+    "time": {"from": "now-1h", "to": "now"}
+  }
+}

@@ -1,0 +1,73 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: tempo-cpu-stress
+  namespace: observability
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: tempo
+  stressors:
+    cpu:
+      workers: 4
+      load: 80
+  duration: "5m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: tempo-memory-stress
+  namespace: observability
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: tempo
+  stressors:
+    memory:
+      workers: 4
+      size: "1GB"
+  duration: "5m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  name: tempo-disk-slow
+  namespace: observability
+spec:
+  action: latency
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: tempo
+  volumePath: /var/tempo
+  path: "/var/tempo/**/*"
+  delay: "500ms"
+  percent: 50
+  duration: "5m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  name: tempo-disk-full
+  namespace: observability
+spec:
+  action: faults
+  mode: one
+  selector:
+    namespaces:
+      - observability
+    labelSelectors:
+      app: tempo
+  volumePath: /var/tempo
+  path: "/var/tempo/**/*"
+  errno: 28  # ENOSPC - No space left on device
+  percent: 100
+  duration: "2m"

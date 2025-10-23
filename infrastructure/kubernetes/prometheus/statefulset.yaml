@@ -1,0 +1,293 @@
+# Prometheus StatefulSet with Persistent Storage
+# Deploys Prometheus with stable storage for 90-day retention
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  serviceName: prometheus
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prometheus
+
+  # Update strategy for rolling updates
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+
+  # Pod management policy
+  podManagementPolicy: Parallel
+
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        component: monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: prometheus
+
+      # Security context for the pod
+      securityContext:
+        fsGroup: 65534  # nobody group
+        runAsNonRoot: true
+        runAsUser: 65534  # nobody user
+
+      # Pod anti-affinity to spread replicas across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - prometheus
+                topologyKey: kubernetes.io/hostname
+
+      # Init container to set proper permissions
+      initContainers:
+        - name: init-chown-data
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              chown -R 65534:65534 /prometheus
+          volumeMounts:
+            - name: prometheus-storage
+              mountPath: /prometheus
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+
+      containers:
+        - name: prometheus
+          image: health-tracker/prometheus:2.48.0
+          imagePullPolicy: IfNotPresent
+
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            # Retention settings (time and size)
+            - --storage.tsdb.retention.time=90d
+            - --storage.tsdb.retention.size=450GB
+            # Block duration for compaction (2h optimizes for query performance and storage efficiency)
+            - --storage.tsdb.min-block-duration=2h
+            - --storage.tsdb.max-block-duration=2h
+            # WAL settings
+            - --storage.tsdb.wal-compression
+            - --storage.tsdb.wal-segment-size=128MB
+            # Web interface and API
+            - --web.console.libraries=/usr/share/prometheus/console_libraries
+            - --web.console.templates=/usr/share/prometheus/consoles
+            - --web.enable-lifecycle
+            - --web.enable-admin-api
+            - --web.listen-address=:9090
+            - --web.route-prefix=/
+            - --web.external-url=http://prometheus.observability.svc.cluster.local:9090
+
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+
+          # Resource requirements
+          resources:
+            requests:
+              cpu: 2000m
+              memory: 4Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness probe
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Volume mounts
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: prometheus-storage
+              mountPath: /prometheus
+            - name: prometheus-rules
+              mountPath: /etc/prometheus/rules
+              readOnly: true
+            - name: prometheus-targets
+              mountPath: /etc/prometheus/targets
+              readOnly: true
+
+          # Security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+
+        # Config reloader sidecar
+        - name: config-reloader
+          image: jimmidyson/configmap-reload:v0.12.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --volume-dir=/etc/prometheus
+            - --webhook-url=http://localhost:9090/-/reload
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+
+        # Thanos sidecar for S3 backup and long-term storage
+        - name: thanos-sidecar
+          image: quay.io/thanos/thanos:v0.34.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - sidecar
+            - --tsdb.path=/prometheus
+            - --prometheus.url=http://localhost:9090
+            - --grpc-address=0.0.0.0:10901
+            - --http-address=0.0.0.0:10902
+            # Object storage configuration
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            # Reloader for configuration changes
+            - --reloader.config-file=/etc/prometheus/prometheus.yml
+            - --reloader.config-envsubst-file=/etc/prometheus-shared/prometheus.yml
+            - --reloader.rule-dir=/etc/prometheus/rules/
+          ports:
+            - name: grpc
+              containerPort: 10901
+              protocol: TCP
+            - name: http
+              containerPort: 10902
+              protocol: TCP
+          env:
+            # S3 credentials from secret
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: thanos-objstore-secret
+                  key: access_key_id
+                  optional: true
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: thanos-objstore-secret
+                  key: secret_access_key
+                  optional: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: prometheus-storage
+              mountPath: /prometheus
+            - name: thanos-objstore-config
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: prometheus-rules
+              mountPath: /etc/prometheus/rules
+              readOnly: true
+            - name: prometheus-config-shared
+              mountPath: /etc/prometheus-shared
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+
+      # Volumes
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-rules
+          configMap:
+            name: prometheus-rules
+        - name: prometheus-targets
+          configMap:
+            name: prometheus-targets
+            optional: true
+        - name: thanos-objstore-config
+          secret:
+            secretName: thanos-objstore-config
+        - name: prometheus-config-shared
+          emptyDir: {}
+
+      # Termination grace period
+      terminationGracePeriodSeconds: 120
+
+  # Volume claim templates for persistent storage
+  volumeClaimTemplates:
+    - metadata:
+        name: prometheus-storage
+        labels:
+          app: prometheus
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Gi
+        # Storage class will be determined by cluster default
+        # Override with storageClassName if needed

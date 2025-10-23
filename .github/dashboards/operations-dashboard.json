@@ -1,0 +1,188 @@
+{
+  "dashboard": {
+    "title": "Operations Dashboard - Real-time Monitoring",
+    "uid": "operations-dashboard",
+    "tags": ["pipeline", "operations", "monitoring"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "workflow",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(pipeline_runs_total, workflow_name)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Workflows",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 3},
+        "targets": [{
+          "expr": "count(pipeline_runs_total{status=\"running\",workflow_name=~\"$workflow\"})",
+          "legendFormat": "Running"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 5, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Queue Depth",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 3},
+        "targets": [{
+          "expr": "sum(github_actions_queue_depth{workflow_name=~\"$workflow\"})",
+          "legendFormat": "Queued"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 3, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate (5min)",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 3},
+        "targets": [{
+          "expr": "sum(rate(pipeline_runs_total{status=\"failure\",workflow_name=~\"$workflow\"}[5m])) /\nsum(rate(pipeline_runs_total{workflow_name=~\"$workflow\"}[5m])) * 100",
+          "legendFormat": "Error %"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 5, "color": "yellow"},
+                {"value": 15, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Resource Utilization",
+        "type": "gauge",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 3},
+        "targets": [{
+          "expr": "sum(github_actions_runner_utilization{workflow_name=~\"$workflow\"}) / sum(github_actions_runner_capacity) * 100",
+          "legendFormat": "Utilization"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 70, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Workflow Duration Heatmap (6h)",
+        "type": "heatmap",
+        "gridPos": {"x": 0, "y": 3, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(rate(pipeline_duration_seconds_bucket{workflow_name=~\"$workflow\"}[5m])) by (le, workflow_name)",
+          "format": "heatmap",
+          "legendFormat": "{{workflow_name}}"
+        }],
+        "options": {
+          "calculate": true,
+          "cellGap": 2,
+          "color": {
+            "mode": "scheme",
+            "scheme": "Spectral"
+          },
+          "yAxis": {
+            "unit": "s",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Error Rate by Stage",
+        "type": "bargauge",
+        "gridPos": {"x": 12, "y": 3, "w": 12, "h": 8},
+        "targets": [{
+          "expr": "sum(rate(pipeline_stage_failures_total{workflow_name=~\"$workflow\"}[5m])) by (stage_name)",
+          "legendFormat": "{{stage_name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "color": {"mode": "continuous-GrYlRd"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 0.1, "color": "yellow"},
+                {"value": 0.5, "color": "red"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Recent Logs (Errors)",
+        "type": "logs",
+        "gridPos": {"x": 0, "y": 11, "w": 24, "h": 8},
+        "targets": [{
+          "expr": "{workflow_name=~\"$workflow\",level=\"error\"}",
+          "datasource": "Loki"
+        }],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "prettifyLogMessage": true,
+          "enableLogDetails": true,
+          "sortOrder": "Descending"
+        }
+      }
+    ],
+    "links": [
+      {"title": "← Executive Dashboard", "url": "/d/executive-dashboard", "keepTime": true},
+      {"title": "Development Dashboard →", "url": "/d/development-dashboard", "keepTime": true}
+    ]
+  }
+}
