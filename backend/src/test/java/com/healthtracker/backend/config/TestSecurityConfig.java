@@ -56,6 +56,8 @@ public class TestSecurityConfig {
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh",
                                 "/api/v1/auth/logout",
+                                "/api/v1/observability/alerts/webhook",
+                                "/api/v1/observability/alerts/health",
                                 "/actuator/health/**",
                                 "/actuator/info"
                         ).permitAll()
